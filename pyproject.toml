@@ -1,0 +1,18 @@
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "construction_bim"
+authors = [{ name = "Gaviel", email = "gaviel@local.dev" }]
+description = "BIM module for ERPNext: IFC import, 3D model viewer, PDF takeoff. Vibe-engineered from OpenConstructionERP (AGPL-3.0, DataDrivenConstruction)."
+requires-python = ">=3.11"
+readme = "README.md"
+dynamic = ["version"]
+dependencies = []
+
+[project.optional-dependencies]
+dev = []
+
+[tool.bench]
+install_requires = []

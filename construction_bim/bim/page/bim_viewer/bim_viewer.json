@@ -1,0 +1,30 @@
+{
+ "content": null,
+ "creation": "2026-09-02 00:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "octicon octicon-git-branch",
+ "idx": 0,
+ "modified": "2026-09-02 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "BIM",
+ "name": "bim-viewer",
+ "owner": "Administrator",
+ "page_name": "bim-viewer",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Projects Manager"
+  },
+  {
+   "role": "Projects User"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "BIM Viewer"
+}

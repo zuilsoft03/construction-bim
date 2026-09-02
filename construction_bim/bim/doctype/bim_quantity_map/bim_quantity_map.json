@@ -1,0 +1,125 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:BIM-QMAP-{#####}",
+ "creation": "2026-09-02 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "map_name",
+  "element_type_filter",
+  "property_filter",
+  "quantity_source",
+  "multiplier",
+  "unit",
+  "waste_factor_pct",
+  "boq_target",
+  "is_active"
+ ],
+ "fields": [
+  {
+   "fieldname": "map_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Map Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "element_type_filter",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Element Type Filter",
+   "description": "e.g. IFCWALL, IFCWALLSTANDARDCASE (comma-separated for multiple)"
+  },
+  {
+   "fieldname": "property_filter",
+   "fieldtype": "JSON",
+   "label": "Property Filter",
+   "description": "JSON of key/value pairs that must match element properties"
+  },
+  {
+   "fieldname": "quantity_source",
+   "fieldtype": "Data",
+   "label": "Quantity Source",
+   "reqd": 1,
+   "description": "Quantity key from element.quantities, e.g. NominalLength / GrossArea / NetVolume"
+  },
+  {
+   "fieldname": "multiplier",
+   "fieldtype": "Data",
+   "label": "Multiplier",
+   "default": "1"
+  },
+  {
+   "fieldname": "unit",
+   "fieldtype": "Data",
+   "label": "Unit",
+   "description": "Result unit, e.g. m / m2 / m3"
+  },
+  {
+   "fieldname": "waste_factor_pct",
+   "fieldtype": "Data",
+   "label": "Waste Factor %",
+   "default": "0"
+  },
+  {
+   "fieldname": "boq_target",
+   "fieldtype": "JSON",
+   "label": "BOQ Target",
+   "description": "JSON describing the BOQ item(s) to link/roll up to, e.g. {item_code: \"CONC-01\"}"
+  },
+  {
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Is Active",
+   "default": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-02 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "BIM",
+ "name": "BIM Quantity Map",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,20 @@
+# dependencies
+node_modules/
+.env
+venv/
+__pycache__/
+*.pyc
+
+# built bundles (rebuild with esbuild from frontend_src/; see build.sh)
+construction_bim/public/js/bim_viewer.bundle.js
+construction_bim/public/js/pdf_takeoff.bundle.js
+construction_bim/public/js/glb_check.bundle.js
+
+# test data (large IFC/PDF samples; keep scripts, drop assets)
+test/real/
+test/*.bin
+*.tgz
+
+# OS
+Thumbs.db
+.DS_Store

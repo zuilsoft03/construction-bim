@@ -1,0 +1,106 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:BIM-BOQ-{#####}",
+ "creation": "2026-09-02 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "bim_element",
+  "boq_reference_type",
+  "boq_reference_name",
+  "link_type",
+  "confidence",
+  "rule_id"
+ ],
+ "fields": [
+  {
+   "fieldname": "bim_element",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "BIM Element",
+   "options": "BIM Element",
+   "reqd": 1
+  },
+  {
+   "fieldname": "boq_reference_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "BOQ Reference Type",
+   "options": "\nConstruction Contract BOQ Item\nItem",
+   "reqd": 1
+  },
+  {
+   "fieldname": "boq_reference_name",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "BOQ Reference",
+   "options": "boq_reference_type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "link_type",
+   "fieldtype": "Select",
+   "label": "Link Type",
+   "options": "Manual\nRule\nAuto",
+   "default": "Manual"
+  },
+  {
+   "fieldname": "confidence",
+   "fieldtype": "Data",
+   "label": "Confidence"
+  },
+  {
+   "fieldname": "rule_id",
+   "fieldtype": "Data",
+   "label": "Rule ID"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-02 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "BIM",
+ "name": "BIM BOQ Link",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

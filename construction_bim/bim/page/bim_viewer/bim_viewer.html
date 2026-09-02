@@ -1,0 +1,107 @@
+<!-- BIM Viewer — 3D model viewer for construction_bim -->
+<style>
+#bim-app { display: flex; height: calc(100vh - 120px); font-family: var(--font-stack, sans-serif); }
+#bim-app * { box-sizing: border-box; }
+#bim-left { width: 300px; min-width: 260px; border-right: 1px solid var(--border-color, #d1d8dd); background: var(--bg-color, #fff); display: flex; flex-direction: column; overflow: hidden; }
+#bim-left .panel { padding: 10px 12px; border-bottom: 1px solid var(--border-color, #d1d8dd); }
+#bim-left h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted, #8d99a6); }
+#bim-models { max-height: 180px; overflow: auto; }
+.bim-model-item { padding: 6px 8px; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; gap: 6px; align-items: center; font-size: 13px; width: 100%; background: transparent; border: 1px solid transparent; text-align: left; margin-bottom: 2px; }
+.bim-model-item:hover { background: var(--control-bg, #f0f4f7); }
+.bim-model-item.active { background: var(--blue-50, #e8f2fb); color: var(--blue-600, #1c4c8e); }
+.bim-model-item .cnt { color: var(--text-muted, #8d99a6); font-size: 11px; }
+#bim-upload { width: 100%; margin-top: 8px; }
+#bim-canvas-wrap { flex: 1; position: relative; background: linear-gradient(180deg, #101418, #1b2128); overflow: hidden; }
+#bim-canvas { width: 100%; height: 100%; display: block; }
+#bim-hud { position: absolute; top: 10px; left: 10px; display: flex; gap: 6px; z-index: 5; }
+#bim-hud button, #bim-tools button { background: rgba(255,255,255,.92); border: 1px solid #cfd6dd; border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer; color: #333; }
+#bim-hud button.active, #bim-tools button.active { background: #2490ef; color: #fff; border-color: #2490ef; }
+#bim-tools { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 4px; z-index: 5; }
+#bim-right { width: 340px; min-width: 300px; border-left: 1px solid var(--border-color, #d1d8dd); background: var(--bg-color, #fff); overflow-y: auto; }
+#bim-right .section { padding: 10px 12px; border-bottom: 1px solid var(--border-color, #e4e7eb); }
+#bim-right h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted, #8d99a6); }
+#bim-props table { width: 100%; border-collapse: collapse; font-size: 12px; }
+#bim-props td { padding: 3px 6px; border-bottom: 1px solid #eef1f4; vertical-align: top; }
+#bim-props td:first-child { color: var(--text-muted, #6c7680); width: 45%; word-break: break-word; }
+#bim-props td:last-child { word-break: break-word; }
+#bim-status { position: absolute; bottom: 10px; left: 10px; color: rgba(255,255,255,.7); font-size: 12px; z-index: 5; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+#bim-filters select { width: 100%; margin-bottom: 6px; font-size: 12px; padding: 4px; }
+#bim-filters .filter-row { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; }
+#bim-filters input { flex: 1; font-size: 12px; padding: 4px; }
+#bim-filters .row-actions { display: flex; gap: 4px; }
+#bim-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.85); font-size: 14px; z-index: 10; background: rgba(16,20,24,.6); }
+#bim-element-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.bim-badge { display: inline-block; background: #e8f2fb; color: #1c4c8e; border-radius: 10px; padding: 1px 8px; font-size: 11px; margin-right: 4px; }
+.link-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; border-bottom: 1px solid #eef1f4; font-size: 12px; }
+.link-row .del { color: #d64545; cursor: pointer; border: none; background: none; font-size: 12px; }
+.empty-hint { color: var(--text-muted, #8d99a6); font-size: 12px; font-style: italic; }
+#bim-newlink { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+#bim-newlink select, #bim-newlink input { font-size: 12px; padding: 4px; }
+#bim-viewpoints { max-height: 160px; overflow: auto; }
+</style>
+
+<div id="bim-app">
+  <div id="bim-left">
+    <div class="panel">
+      <h4>Models</h4>
+      <div id="bim-models"><div class="empty-hint">No models yet</div></div>
+      <input id="bim-file-input" type="file" accept=".ifc,.IFC" style="display:none" />
+      <button id="bim-upload" class="btn btn-default btn-xs">⬆ Upload IFC</button>
+    </div>
+    <div class="panel" id="bim-filters">
+      <h4>Filters</h4>
+      <select id="f-discipline"><option value="">Discipline: all</option></select>
+      <select id="f-storey"><option value="">Storey: all</option></select>
+      <select id="f-type"><option value="">Type: all</option></select>
+      <div class="filter-row"><input id="f-search" placeholder="Search name / type / id" /><button id="f-clear" class="btn btn-default btn-xs">Clear</button></div>
+      <div class="row-actions" style="margin-top:6px">
+        <button id="btn-fit" class="btn btn-default btn-xs">Fit view</button>
+        <button id="btn-color-prop" class="btn btn-default btn-xs" title="Color by quantity/property (cycles)">Color by prop</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h4>Viewpoints</h4>
+      <div id="bim-viewpoints"><div class="empty-hint">Save the camera to bookmark a view</div></div>
+      <div style="display:flex;gap:4px;margin-top:6px">
+        <input id="vp-name" placeholder="Viewpoint name" style="flex:1;font-size:12px;padding:4px" />
+        <button id="vp-save" class="btn btn-default btn-xs">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="bim-canvas-wrap">
+    <div id="bim-hud">
+      <button id="tool-orbit" class="active">Orbit</button>
+      <button id="tool-select">Select</button>
+      <button id="tool-measure">Measure</button>
+      <button id="tool-clip">Clip</button>
+    </div>
+    <div id="bim-tools">
+      <button id="t-wireframe" title="Toggle wireframe">▦</button>
+      <button id="t-iso" title="Isometric view">◧</button>
+      <button id="t-top" title="Top view">⊞</button>
+      <button id="t-front" title="Front view">▭</button>
+      <button id="t-reset" title="Reset clip">✕</button>
+    </div>
+    <canvas id="bim-canvas"></canvas>
+    <div id="bim-status">Load a model to begin</div>
+    <div id="bim-loading" style="display:none"></div>
+  </div>
+
+  <div id="bim-right">
+    <div class="section" id="bim-props-section">
+      <h4>Selection</h4>
+      <div id="bim-element-title" class="empty-hint">Click an element in the viewer</div>
+      <div id="bim-props"><div class="empty-hint">No selection</div></div>
+    </div>
+    <div class="section" id="bim-links-section">
+      <h4>BOQ Links</h4>
+      <div id="bim-links"><div class="empty-hint">No links</div></div>
+      <div id="bim-newlink">
+        <select id="nl-type"><option>Item</option><option>Construction Contract BOQ Item</option></select>
+        <input id="nl-name" placeholder="Item code / BOQ item name" style="flex:1" />
+        <button id="nl-add" class="btn btn-default btn-xs">Link</button>
+      </div>
+    </div>
+  </div>
+</div>
