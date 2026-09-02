@@ -22,17 +22,31 @@ frappe.pages['bim-viewer'].on_page_load = function (wrapper) {
 		if (st) st.textContent = 'Rejection: ' + (e.reason && (e.reason.message || e.reason) || 'unknown');
 	});
 
-	// load the bundled app (three.js etc.) — plain module, boots on import
-	// (cache bust with mtime so bundle updates always take effect)
-	import('/assets/construction_bim/js/bim_viewer.bundle.js?v=' + Date.now()).then(function () {
-		var st = document.getElementById('bim-status');
-		if (st) st.textContent = 'Bundle loaded (' + new Date().toLocaleTimeString() + ')';
-	}).catch(function (e) {
-		console.error('bim_viewer bundle failed to load', e);
-		frappe.msgprint({
-			title: __('BIM Viewer Error'),
-			message: __('Failed to load the 3D viewer bundle: {0}', [e.message || e]),
-			indicator: 'red',
+	function loadScript(src) {
+		return new Promise(function (resolve, reject) {
+			var s = document.createElement('script');
+			s.src = src + '?v=' + Date.now();
+			s.onload = resolve;
+			s.onerror = function () { reject(new Error('Script failed: ' + src)); };
+			document.head.appendChild(s);
 		});
-	});
+	}
+
+	// 1) engine core: web-ifc IIFE (window.WebIFC) + three/web-ifc bundle (window.IFCEngine)
+	// 2) app code (reads the globals; no bundling of three/web-ifc inside)
+	loadScript('/assets/construction_bim/js/webifc-api-iife.js')
+		.then(function () { return loadScript('/assets/construction_bim/js/webifc.bundle.js'); })
+		.then(function () { return import('/assets/construction_bim/js/bim_viewer.bundle.js?v=' + Date.now()); })
+		.then(function () {
+			var st = document.getElementById('bim-status');
+			if (st) st.textContent = 'Bundle loaded (' + new Date().toLocaleTimeString() + ')';
+		})
+		.catch(function (e) {
+			console.error('bim_viewer bundle failed to load', e);
+			frappe.msgprint({
+				title: __('BIM Viewer Error'),
+				message: __('Failed to load the 3D viewer bundle: {0}', [e.message || e]),
+				indicator: 'red',
+			});
+		});
 };

@@ -1,10 +1,15 @@
-// NEW geometry loader: web-ifc renders the ORIGINAL IFC in the browser.
-// Replaces the old GLB path. Picking maps web-ifc expressID -> BIM Element row
-// via the parser's ifc_id (identical IFC entity id).
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { TransformControls } from 'three/addons/controls/TransformControls.js';
-import { IFCLoader } from 'web-ifc-three';
+// BIM Viewer app — uses the PROVEN engine globals:
+//   window.WebIFC        (web-ifc-api-iife.js — direct IfcAPI)
+//   window.IFCEngine     (webifc.bundle.js — THREE + WebIFC + buildIfcScene + OrbitControls)
+// No bundling of three/web-ifc here; all geometry comes from buildIfcScene.
+// Picking maps web-ifc expressID -> BIM Element row via parser ifc_id.
+
+const ENGINE = window.IFCEngine;
+const WebIFC = window.WebIFC;
+if (!ENGINE || !WebIFC) throw new Error('IFCEngine not loaded (webifc-api-iife.js + webifc.bundle.js must load first)');
+const THREE = ENGINE.THREE;
+const OrbitControls = ENGINE.OrbitControls;
+const buildIfcScene = ENGINE.buildIfcScene;
 
 const API = {
   list_models: 'construction_bim.bim.api.list_models',
@@ -54,20 +59,19 @@ const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
 keyLight.position.set(30, 50, 20);
 scene.add(keyLight);
 
-// grid
 const grid = new THREE.GridHelper(100, 20, 0x3a4250, 0x2a3038);
 grid.position.y = -0.02;
 scene.add(grid);
 
-let modelGroup = null;        // web-ifc loaded scene
-let elementMeshes = [];       // {mesh, element} — mesh = web-ifc mesh node (per expressID)
+let modelGroup = null;
+let elementMeshes = [];       // {mesh, expressID} from expressMap
 let elementIndex = new Map(); // expressID -> element row
 let currentModel = null;
-let currentSelection = null;  // {mesh, element}
+let currentSelection = null;
 let activeTool = 'orbit';
 let clipBox = null;
 let wireframeMode = false;
-let ifcLoader = null;
+let ifcApi = null;            // WebIFC.IfcAPI instance (for property lookup)
 let currentModelId = null;
 
 const highlightMat = new THREE.MeshStandardMaterial({ color: 0xffd166, emissive: 0x663d00, emissiveIntensity: .35 });
@@ -137,31 +141,39 @@ async function selectModel(name) {
   }
 }
 
-// ---- web-ifc geometry: parse IFC directly in-browser ----
+// ---- web-ifc geometry: parse IFC directly in-browser (proven path) ----
+async function getIfcApi() {
+  if (ifcApi) return ifcApi;
+  const api = new WebIFC.IfcAPI();
+  api.SetWasmPath('/assets/construction_bim/js/webifc/', true);
+  await api.Init();
+  ifcApi = api;
+  return api;
+}
+
 async function loadGeometry(name) {
   if (modelGroup) { scene.remove(modelGroup); disposeGroup(modelGroup); modelGroup = null; elementMeshes = []; }
   const res = await frappe.call({ method: API.get_model, args: { model: name } });
   const ifcUrl = res.message.original_file;
   if (!ifcUrl) { setStatus('Model has no original IFC file'); return; }
   const abs = ifcUrl.startsWith('/') ? ifcUrl : '/' + ifcUrl;
-
-  if (!ifcLoader) {
-    ifcLoader = new IFCLoader();
-    await ifcLoader.ifcManager.setWasmPath('webifc/');
-  }
   try {
-    const model = await ifcLoader.loadAsync(abs);
-    modelGroup = model;
-    currentModelId = model.modelID;
+    showLoading('Downloading IFC…', true);
+    const resp = await fetch(abs);
+    if (!resp.ok) { setStatus('IFC fetch failed: ' + resp.status); return; }
+    const buf = new Uint8Array(await resp.arrayBuffer());
+    showLoading('Parsing IFC… (' + (buf.length / 1e6).toFixed(1) + ' MB)', true);
+    const api = await getIfcApi();
+    currentModelId = api.OpenModel(buf, { COORDINATE_TO_ORIGIN: true, USE_FAST_BVH: true });
+    showLoading('Building scene…', true);
+    const result = buildIfcScene(api, currentModelId);
+    modelGroup = result.group;
     scene.add(modelGroup);
-    // Build the expressID -> mesh index map from geometry attributes
     elementMeshes = [];
-    modelGroup.traverse(o => {
-      if (o.isMesh) {
-        o.userData.expressID = o.geometry.attributes.expressID ? Array.from(o.geometry.attributes.expressID.array || []) : [];
-      }
+    result.expressMap.forEach((meshes, expressID) => {
+      meshes.forEach(m => elementMeshes.push({ mesh: m, expressID }));
     });
-    setStatus(`web-ifc parsed: ${modelGroup.children.length} items`);
+    setStatus(`web-ifc parsed: ${result.meshCount.total} meshes, ${result.meshCount.tris} tris`);
   } catch (e) {
     setStatus('web-ifc geometry load failed: ' + (e.message || e));
   }
@@ -180,7 +192,6 @@ async function loadElements(name) {
   const res = await frappe.call({ method: API.list_elements, args: { model: name, filters: '{}', limit: 20000 } });
   const data = res.message;
   elementIndex = new Map();
-  // our parser's ifc_id == web-ifc expressID; stable_id == GlobalId
   (data.elements || []).forEach(el => {
     const ifc_id = el.stable_id;           // GlobalId
     elementIndex.set(el.mesh_ref.replace('e', ''), el);   // expressID-ish key
@@ -192,10 +203,8 @@ async function loadElements(name) {
 function getExpressIdAt(geometry, faceIndex) {
   const attr = geometry.attributes.expressID;
   if (!attr || faceIndex === undefined || faceIndex === null) return null;
-  // for merged geometry, face index may be on a subgroup; fall back to first
   const id = attr.getX(faceIndex);
   if (id !== undefined && id !== 0) return id;
-  // merged geometries store per-vertex expressID: sample from index buffer
   return attr.getX(Math.min(faceIndex, attr.count - 1));
 }
 
@@ -214,7 +223,6 @@ function clearSelection() {
 
 async function selectElement(mesh, expressID) {
   clearSelection();
-  // find row by expressID (ifc_id), falling back to first mesh entry
   let el = expressID && (elementIndex.get(String(expressID)) || elementIndex.get(expressID));
   if (!el) el = mesh.userData.element || null;
   currentSelection = { mesh, element: el, expressID };
@@ -223,10 +231,9 @@ async function selectElement(mesh, expressID) {
   mesh.material.emissive && mesh.material.emissive.copy(highlightMat.emissive);
   if (el) {
     renderElementPanel(el);
-  } else if (currentModelId && expressID) {
-    // rich IFC properties straight from web-ifc
+  } else if (currentModelId && expressID && ifcApi) {
     try {
-      const props = await ifcLoader.ifcManager.getItemProperties(currentModelId, expressID);
+      const props = await ifcApi.GetLine(currentModelId, expressID);
       renderWebIfcPanel(expressID, props);
     } catch (e) {
       els.props.innerHTML = '<div class="empty-hint">No ERPNext row for expressID ' + expressID + '</div>';
@@ -237,14 +244,14 @@ async function selectElement(mesh, expressID) {
 }
 
 function renderWebIfcPanel(expressID, props) {
-  els.propsTitle.textContent = 'IFC #' + expressID + ' ' + (props && props.Name ? props.Name.value : '');
+  els.propsTitle.textContent = 'IFC #' + expressID + ' ' + (props && props.type ? props.type : '');
   els.propsTitle.className = '';
   const html = [];
   if (props) {
     Object.keys(props).slice(0, 40).forEach(k => {
       const v = props[k];
-      const val = v && v.value !== undefined ? v.value : (typeof v === 'object' ? JSON.stringify(v).slice(0,80) : v);
-      html.push(`<tr><td>${k}</td><td>${String(val).slice(0,80)}</td></tr>`);
+      const val = v && typeof v === 'object' && v.value !== undefined ? v.value : (typeof v === 'object' ? JSON.stringify(v).slice(0, 80) : v);
+      html.push(`<tr><td>${k}</td><td>${String(val).slice(0, 80)}</td></tr>`);
     });
   }
   els.props.innerHTML = '<table>' + html.join('') + '</table>';
@@ -264,7 +271,7 @@ function renderElementPanel(el) {
     html.push('</table>');
   }
   const p = el.properties || {};
-  const pKeys = Object.keys(p).filter(k => !['ifc_id','ifc_type'].includes(k));
+  const pKeys = Object.keys(p).filter(k => !['ifc_id', 'ifc_type'].includes(k));
   if (pKeys.length) {
     html.push('<div style="margin:8px 0 4px;font-weight:600">Properties</div><table>');
     pKeys.slice(0, 60).forEach(k => html.push(`<tr><td>${k}</td><td>${p[k]}</td></tr>`));
@@ -317,7 +324,6 @@ els.canvas.addEventListener('click', async (ev) => {
   }
 });
 
-// wireframe
 document.getElementById('t-wireframe').onclick = () => {
   wireframeMode = !wireframeMode;
   if (modelGroup) modelGroup.traverse(o => {
@@ -373,7 +379,6 @@ const measureLine = new THREE.Line(
   new THREE.LineBasicMaterial({ color: 0xffd166, linewidth: 2 })
 );
 scene.add(measureLine);
-const measureLabels = [];
 function measureClick(ev) {
   const rect = els.canvas.getBoundingClientRect();
   const mouse = new THREE.Vector2(
@@ -457,8 +462,7 @@ document.getElementById('btn-color-prop').onclick = () => {
   const prop = COLOR_PROPS[colorMode];
   const palette = new Map();
   let i = 0;
-  // color by element rows where we can match expressID
-  const seen = new Map(); // expressID -> color
+  const seen = new Map();
   elementMeshes.forEach(({ mesh, element }) => {
     if (element) {
       const key = element[prop] || 'other';
@@ -467,7 +471,7 @@ document.getElementById('btn-color-prop').onclick = () => {
   });
   if (modelGroup) modelGroup.traverse(o => {
     if (!o.isMesh) return;
-    const ids = o.userData.expressID || [];
+    const ids = o.userData.expressID ? [o.userData.expressID] : [];
     let color = null;
     for (let k = 0; k < ids.length; k++) {
       const el = elementIndex.get(String(ids[k]));
@@ -516,13 +520,11 @@ async function applyFilters() {
   const visibleNames = new Set((res.message.elements || []).map(el => el.name));
   if (modelGroup) modelGroup.traverse(o => {
     if (!o.isMesh) return;
-    const ids = o.userData.expressID || [];
+    const expr = o.userData.expressID;
     let vis = false;
-    for (let k = 0; k < ids.length; k++) {
-      const el = elementIndex.get(String(ids[k])) || elementIndex.get(ids[k]);
-      if (el && visibleNames.has(el.name)) { vis = true; break; }
-    }
-    if (!ids.length) vis = true; // no expressID attr -> keep visible
+    const el = expr ? (elementIndex.get(String(expr)) || elementIndex.get(expr)) : null;
+    if (el && visibleNames.has(el.name)) vis = true;
+    if (!expr) vis = true;
     if (clipBox) o.visible = vis && meshVisible(o, clipBox.box.min, clipBox.box.max);
     else o.visible = vis;
   });

@@ -1,6 +1,7 @@
 // Direct web-ifc -> three.js builder. Loads after web-ifc-api-iife.js (window.WebIFC).
 // Exposes window.IFCEngine = { THREE, WebIFC, buildIfcScene }
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 const WebIFC = window.WebIFC;
 
@@ -87,4 +88,4 @@ function buildIfcScene(api, modelID) {
   return { group, expressMap, meshCount };
 }
 
-window.IFCEngine = { THREE, WebIFC, buildIfcScene };
+window.IFCEngine = { THREE, WebIFC, buildIfcScene, OrbitControls };
