@@ -17,3 +17,14 @@ Huvila Oy.
 
 The three.js / GLTFLoader libraries bundled in public/js/three are vendored
 under their respective MIT-style licenses (three.js is MIT).
+
+Bundled dependencies under `construction_bim/public/js/`:
+- `webifc/` (web-ifc 0.0.77, https://github.com/ThatOpen/engine_web-ifc) —
+  **MPL-2.0**. Files: web-ifc.wasm, web-ifc-mt.wasm, IFCWorker.js,
+  webifc-api-iife.js. MPL-2.0 allows combination into a larger work (this
+  AGPL-3.0 app) without relicensing the app; the MPL-covered files themselves
+  remain under MPL-2.0, and their source is available from the upstream
+  repository above at the version listed.
+- `webifc.bundle.js` is built from `frontend_src/webifc_build/entry2.js`
+  (builder: esbuild, MIT). Regenerate with `frontend_src/webifc_build/build2.js`
+  (requires `npm install` in that folder).

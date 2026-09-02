@@ -174,6 +174,12 @@ app_color = "grey"
 
 # Permissions
 # -----------
+
+# DocType JS
+# ----------
+doctype_js = {
+	"Project": "public/js/project.js",
+}
 # permission_query_conditions = {
 # 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 # }
