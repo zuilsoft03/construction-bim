@@ -1,8 +1,10 @@
+// NEW geometry loader: web-ifc renders the ORIGINAL IFC in the browser.
+// Replaces the old GLB path. Picking maps web-ifc expressID -> BIM Element row
+// via the parser's ifc_id (identical IFC entity id).
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
-
+import { IFCLoader } from 'web-ifc-three';
 
 const API = {
   list_models: 'construction_bim.bim.api.list_models',
@@ -37,7 +39,7 @@ const els = {
 };
 
 // ---------------- three.js scene ----------------
-const renderer = new THREE.WebGLRenderer({ canvas: els.canvas, antialias: true });
+const renderer = new THREE.WebGLRenderer({ canvas: els.canvas, antialias: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x14181d);
@@ -57,13 +59,16 @@ const grid = new THREE.GridHelper(100, 20, 0x3a4250, 0x2a3038);
 grid.position.y = -0.02;
 scene.add(grid);
 
-let modelGroup = null;        // the GLB scene root we load
-let elementMeshes = [];       // {mesh, element}
+let modelGroup = null;        // web-ifc loaded scene
+let elementMeshes = [];       // {mesh, element} — mesh = web-ifc mesh node (per expressID)
+let elementIndex = new Map(); // expressID -> element row
 let currentModel = null;
 let currentSelection = null;  // {mesh, element}
 let activeTool = 'orbit';
 let clipBox = null;
 let wireframeMode = false;
+let ifcLoader = null;
+let currentModelId = null;
 
 const highlightMat = new THREE.MeshStandardMaterial({ color: 0xffd166, emissive: 0x663d00, emissiveIntensity: .35 });
 
@@ -132,44 +137,66 @@ async function selectModel(name) {
   }
 }
 
+// ---- web-ifc geometry: parse IFC directly in-browser ----
 async function loadGeometry(name) {
-  if (modelGroup) { scene.remove(modelGroup); modelGroup = null; elementMeshes = []; }
+  if (modelGroup) { scene.remove(modelGroup); disposeGroup(modelGroup); modelGroup = null; elementMeshes = []; }
   const res = await frappe.call({ method: API.get_model, args: { model: name } });
-  const url = res.message.geometry_file;
-  if (!url) { setStatus('Model has no geometry'); return; }
-  const abs = url.startsWith('/') ? url : '/' + url;
-  const loader = new GLTFLoader();
+  const ifcUrl = res.message.original_file;
+  if (!ifcUrl) { setStatus('Model has no original IFC file'); return; }
+  const abs = ifcUrl.startsWith('/') ? ifcUrl : '/' + ifcUrl;
+
+  if (!ifcLoader) {
+    ifcLoader = new IFCLoader();
+    await ifcLoader.ifcManager.setWasmPath('webifc/');
+  }
   try {
-    const gltf = await loader.loadAsync(abs);
-    modelGroup = gltf.scene;
+    const model = await ifcLoader.loadAsync(abs);
+    modelGroup = model;
+    currentModelId = model.modelID;
     scene.add(modelGroup);
-    // register meshes, store node name -> mesh
+    // Build the expressID -> mesh index map from geometry attributes
+    elementMeshes = [];
     modelGroup.traverse(o => {
       if (o.isMesh) {
-        o.userData.meshName = o.name || '';
+        o.userData.expressID = o.geometry.attributes.expressID ? Array.from(o.geometry.attributes.expressID.array || []) : [];
       }
     });
+    setStatus(`web-ifc parsed: ${modelGroup.children.length} items`);
   } catch (e) {
-    setStatus('Geometry load failed: ' + (e.message || e));
+    setStatus('web-ifc geometry load failed: ' + (e.message || e));
   }
 }
 
-let elementIndex = new Map(); // mesh_ref -> element row
+function disposeGroup(group) {
+  group.traverse(o => {
+    if (o.isMesh) {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material && o.material !== highlightMat) o.material.dispose();
+    }
+  });
+}
+
 async function loadElements(name) {
   const res = await frappe.call({ method: API.list_elements, args: { model: name, filters: '{}', limit: 20000 } });
   const data = res.message;
   elementIndex = new Map();
-  (data.elements || []).forEach(el => elementIndex.set(el.mesh_ref, el));
-  // map meshes to elements
-  elementMeshes = [];
-  if (modelGroup) {
-    modelGroup.traverse(o => {
-      if (o.isMesh) {
-        const el = elementIndex.get(o.name) || elementIndex.get('e' + o.name);
-        if (el) { o.userData.element = el; elementMeshes.push({ mesh: o, element: el }); }
-      }
-    });
-  }
+  // our parser's ifc_id == web-ifc expressID; stable_id == GlobalId
+  (data.elements || []).forEach(el => {
+    const ifc_id = el.stable_id;           // GlobalId
+    elementIndex.set(el.mesh_ref.replace('e', ''), el);   // expressID-ish key
+    elementIndex.set(el.name, el);
+  });
+}
+
+// expressID lookup: geometry attribute value at picked face
+function getExpressIdAt(geometry, faceIndex) {
+  const attr = geometry.attributes.expressID;
+  if (!attr || faceIndex === undefined || faceIndex === null) return null;
+  // for merged geometry, face index may be on a subgroup; fall back to first
+  const id = attr.getX(faceIndex);
+  if (id !== undefined && id !== 0) return id;
+  // merged geometries store per-vertex expressID: sample from index buffer
+  return attr.getX(Math.min(faceIndex, attr.count - 1));
 }
 
 // ---------------- selection ----------------
@@ -185,13 +212,42 @@ function clearSelection() {
   });
 }
 
-function selectElement(mesh) {
+async function selectElement(mesh, expressID) {
   clearSelection();
-  currentSelection = { mesh, element: mesh.userData.element };
+  // find row by expressID (ifc_id), falling back to first mesh entry
+  let el = expressID && (elementIndex.get(String(expressID)) || elementIndex.get(expressID));
+  if (!el) el = mesh.userData.element || null;
+  currentSelection = { mesh, element: el, expressID };
   if (!mesh.userData.origColor) mesh.userData.origColor = mesh.material.color.clone();
   mesh.material.color.copy(highlightMat.color);
   mesh.material.emissive && mesh.material.emissive.copy(highlightMat.emissive);
-  renderElementPanel(mesh.userData.element);
+  if (el) {
+    renderElementPanel(el);
+  } else if (currentModelId && expressID) {
+    // rich IFC properties straight from web-ifc
+    try {
+      const props = await ifcLoader.ifcManager.getItemProperties(currentModelId, expressID);
+      renderWebIfcPanel(expressID, props);
+    } catch (e) {
+      els.props.innerHTML = '<div class="empty-hint">No ERPNext row for expressID ' + expressID + '</div>';
+    }
+  } else {
+    els.props.innerHTML = '<div class="empty-hint">No element data</div>';
+  }
+}
+
+function renderWebIfcPanel(expressID, props) {
+  els.propsTitle.textContent = 'IFC #' + expressID + ' ' + (props && props.Name ? props.Name.value : '');
+  els.propsTitle.className = '';
+  const html = [];
+  if (props) {
+    Object.keys(props).slice(0, 40).forEach(k => {
+      const v = props[k];
+      const val = v && v.value !== undefined ? v.value : (typeof v === 'object' ? JSON.stringify(v).slice(0,80) : v);
+      html.push(`<tr><td>${k}</td><td>${String(val).slice(0,80)}</td></tr>`);
+    });
+  }
+  els.props.innerHTML = '<table>' + html.join('') + '</table>';
 }
 
 function renderElementPanel(el) {
@@ -241,7 +297,7 @@ function setTool(tool) {
   renderer.domElement.style.cursor = tool === 'measure' ? 'crosshair' : 'default';
 }
 
-els.canvas.addEventListener('click', (ev) => {
+els.canvas.addEventListener('click', async (ev) => {
   if (activeTool === 'measure') { measureClick(ev); return; }
   if (activeTool !== 'select') return;
   const rect = els.canvas.getBoundingClientRect();
@@ -251,23 +307,21 @@ els.canvas.addEventListener('click', (ev) => {
   );
   const raycaster = new THREE.Raycaster();
   raycaster.setFromCamera(mouse, camera);
-  const meshes = elementMeshes.map(m => m.mesh);
-  const hits = raycaster.intersectObjects(meshes, true);
+  const meshes = [];
+  if (modelGroup) modelGroup.traverse(o => { if (o.isMesh) meshes.push(o); });
+  const hits = raycaster.intersectObjects(meshes, false);
   if (hits.length) {
-    // walk up to the mesh node
-    let obj = hits[0].object;
-    while (obj && !obj.userData.element) obj = obj.parent;
-    if (obj && obj.userData.element) selectElement(obj);
+    const hit = hits[0];
+    const expr = getExpressIdAt(hit.object.geometry, hit.face ? hit.face.a : undefined);
+    await selectElement(hit.object, expr);
   }
 });
 
 // wireframe
 document.getElementById('t-wireframe').onclick = () => {
   wireframeMode = !wireframeMode;
-  elementMeshes.forEach(({ mesh }) => {
-    if (mesh.material) {
-      mesh.material.wireframe = wireframeMode;
-    }
+  if (modelGroup) modelGroup.traverse(o => {
+    if (o.isMesh && o.material) o.material.wireframe = wireframeMode;
   });
 };
 
@@ -375,8 +429,8 @@ function applyClip(min, max) {
   if (clipBox) scene.remove(clipBox);
   clipBox = new THREE.Box3Helper(new THREE.Box3(min, max), 0xffd166);
   scene.add(clipBox);
-  elementMeshes.forEach(({ mesh }) => {
-    mesh.visible = meshVisible(mesh, min, max);
+  if (modelGroup) modelGroup.traverse(o => {
+    if (o.isMesh) o.visible = meshVisible(o, min, max);
   });
   setStatus('Clip applied — elements outside the box hidden');
 }
@@ -390,7 +444,7 @@ function meshVisible(mesh, min, max) {
 }
 document.getElementById('t-reset').onclick = () => {
   if (clipBox) { scene.remove(clipBox); clipBox = null; }
-  elementMeshes.forEach(({ mesh }) => mesh.visible = true);
+  if (modelGroup) modelGroup.traverse(o => { if (o.isMesh) o.visible = true; });
   setStatus('Clip reset');
 };
 
@@ -403,17 +457,30 @@ document.getElementById('btn-color-prop').onclick = () => {
   const prop = COLOR_PROPS[colorMode];
   const palette = new Map();
   let i = 0;
+  // color by element rows where we can match expressID
+  const seen = new Map(); // expressID -> color
   elementMeshes.forEach(({ mesh, element }) => {
-    const key = element[prop] || 'other';
-    if (!palette.has(key)) palette.set(key, PROP_COLORS[i++ % PROP_COLORS.length]);
-    if (!mesh.userData.origColor) mesh.userData.origColor = mesh.material.color.clone();
-    mesh.material.color.setHex(palette.get(key));
-    mesh.material.emissive && mesh.material.emissive.setHex(0x000000);
+    if (element) {
+      const key = element[prop] || 'other';
+      if (!palette.has(key)) palette.set(key, PROP_COLORS[i++ % PROP_COLORS.length]);
+    }
   });
-  if (currentSelection) {
-    const m = currentSelection.mesh;
-    m.material.color.copy(highlightMat.color);
-    m.material.emissive && m.material.emissive.copy(highlightMat.emissive);
+  if (modelGroup) modelGroup.traverse(o => {
+    if (!o.isMesh) return;
+    const ids = o.userData.expressID || [];
+    let color = null;
+    for (let k = 0; k < ids.length; k++) {
+      const el = elementIndex.get(String(ids[k]));
+      if (el) { const key = el[prop] || 'other'; color = palette.get(key); break; }
+    }
+    if (color !== null) {
+      if (!o.userData.origColor) o.userData.origColor = o.material.color.clone();
+      o.material.color.setHex(color);
+    }
+  });
+  if (currentSelection && currentSelection.mesh) {
+    currentSelection.mesh.material.color.copy(highlightMat.color);
+    currentSelection.mesh.material.emissive && currentSelection.mesh.material.emissive.copy(highlightMat.emissive);
   }
   setStatus('Colored by ' + prop);
 };
@@ -446,18 +513,25 @@ async function applyFilters() {
     search: els.fSearch.value,
   };
   const res = await frappe.call({ method: API.list_elements, args: { model: currentModel.name, filters: JSON.stringify(filters), limit: 20000 } });
-  const visible = new Set((res.message.elements || []).map(el => el.name));
-  elementMeshes.forEach(({ mesh, element }) => {
-    if (!clipBox) mesh.visible = visible.has(element.name);
-    else if (visible.has(element.name)) mesh.visible = meshVisible(mesh, clipBox.box.min, clipBox.box.max);
-    else mesh.visible = false;
+  const visibleNames = new Set((res.message.elements || []).map(el => el.name));
+  if (modelGroup) modelGroup.traverse(o => {
+    if (!o.isMesh) return;
+    const ids = o.userData.expressID || [];
+    let vis = false;
+    for (let k = 0; k < ids.length; k++) {
+      const el = elementIndex.get(String(ids[k])) || elementIndex.get(ids[k]);
+      if (el && visibleNames.has(el.name)) { vis = true; break; }
+    }
+    if (!ids.length) vis = true; // no expressID attr -> keep visible
+    if (clipBox) o.visible = vis && meshVisible(o, clipBox.box.min, clipBox.box.max);
+    else o.visible = vis;
   });
   setStatus(`${res.message.total} elements match filters`);
 }
 
 // ---------------- links ----------------
 document.getElementById('nl-add').onclick = async () => {
-  if (!currentSelection) { setStatus('Select an element first'); return; }
+  if (!currentSelection || !currentSelection.element) { setStatus('Select an element with an ERPNext row first'); return; }
   const name = document.getElementById('nl-name').value.trim();
   if (!name) return;
   await frappe.call({

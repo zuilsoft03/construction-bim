@@ -1,0 +1,17 @@
+{
+  "name": "webifc_build",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "dependencies": {
+    "esbuild": "^0.28.2",
+    "three": "^0.149.0",
+    "web-ifc": "^0.0.77",
+    "web-ifc-three": "^0.0.126"
+  }
+}

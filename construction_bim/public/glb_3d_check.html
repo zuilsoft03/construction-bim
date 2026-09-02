@@ -2,9 +2,9 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>3D CHECK v3 (classic) — construction_bim</title>
+<title>web-ifc 3D render — construction_bim</title>
 <style>
-  html, body { margin: 0; padding: 0; background: #101318; overflow: hidden; }
+  html, body { margin: 0; padding: 0; background: #101418; overflow: hidden; }
   #info { position: fixed; top: 8px; left: 8px; color: #9fd8ff; font: 11px monospace; z-index: 10; white-space: pre; }
   #err { position: fixed; top: 8px; left: 8px; color: #ff9a9a; font: 12px monospace; z-index: 20; white-space: pre; }
 </style>
@@ -12,73 +12,87 @@
 <body>
 <pre id="info">loading…</pre>
 <pre id="err"></pre>
-<script src="/assets/construction_bim/js/glb_check.bundle.js"></script>
+<script>
+window.addEventListener('error', function (e) {
+  var m = (e && e.message || String(e)).slice(0, 300);
+  document.getElementById('err').textContent += '[err] ' + m + '\n';
+}, true);
+</script>
+<script src="/assets/construction_bim/js/webifc.bundle.js"></script>
 <script>
 (function(){
-  var info = document.getElementById('info');
   var err = document.getElementById('err');
+  var info = document.getElementById('info');
   function msg(m){ err.textContent += '[m] ' + m + '\n'; }
-  function fail(m){ err.textContent += '[FAIL] ' + m + '\n'; }
+  if (!window.IFCEngine) { err.textContent = 'IFCEngine missing'; return; }
+  var THREE = window.IFCEngine.THREE;
+  var IFCLoader = window.IFCEngine.IFCLoader;
   try {
-    if (!window.THREE || !window.GLTFLoader) { fail('globals missing: ' + [!!window.THREE, !!window.GLTFLoader, !!window.OrbitControls].join(',')); return; }
-    msg('globals ok');
-    var renderer;
-    try {
-      renderer = new THREE.WebGLRenderer({ antialias: true });
-      msg('webgl ok');
-    } catch (e) { fail('webgl: ' + e.message); return; }
+    var renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
-
     var scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x101318);
-    var camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.01, 5000);
-    camera.position.set(70, 100, 90);
-    var controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(0, 0, 0);
-    controls.update();
-
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x334433, 1.0));
+    scene.background = new THREE.Color(0x14181d);
+    var camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 5000);
+    camera.position.set(60, 80, 90);
+    // simple manual orbit (no OrbitControls in engine bundle)
+    var controls = { target: new THREE.Vector3(), update: function(){} };
+    var dragging = false, px = 0, py = 0;
+    renderer.domElement.addEventListener('mousedown', function(e){ dragging = true; px = e.clientX; py = e.clientY; });
+    renderer.domElement.addEventListener('mouseup', function(){ dragging = false; });
+    renderer.domElement.addEventListener('mousemove', function(e){
+      if (!dragging) return;
+      var dx = e.clientX - px, dy = e.clientY - py; px = e.clientX; py = e.clientY;
+      var off = camera.position.clone().sub(controls.target);
+      var r = off.length();
+      var theta = Math.atan2(off.z, off.x) + dx * 0.005;
+      var phi = Math.acos(Math.max(-1, Math.min(1, off.y / r))) - dy * 0.005;
+      off.set(r*Math.cos(theta)*Math.sin(phi), r*Math.cos(phi), r*Math.sin(theta)*Math.sin(phi));
+      camera.position.copy(controls.target).add(off);
+      camera.lookAt(controls.target);
+    });
+    renderer.domElement.addEventListener('wheel', function(e){
+      var off = camera.position.clone().sub(controls.target);
+      var r = off.length() * (e.deltaY > 0 ? 1.1 : 0.9);
+      off.setLength(r);
+      camera.position.copy(controls.target).add(off);
+      camera.lookAt(controls.target);
+    });
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 1.0));
     var sun = new THREE.DirectionalLight(0xffffff, 1.5);
     sun.position.set(60, 120, 50);
     scene.add(sun);
 
-    var loader = new GLTFLoader();
-    var t0 = Date.now();
-    loader.load('http://localhost:8000/files/LIVE-GEOM-TEST-v2_BIM-MODEL-2026-00013.glb', function(gltf){
-      var model = gltf.scene;
-      scene.add(model);
-      msg('gltf loaded in ' + (Date.now()-t0) + 'ms; children=' + model.children.length);
-      var box = new THREE.Box3().setFromObject(model);
-      var size = new THREE.Vector3(); box.getSize(size);
-      var center = new THREE.Vector3(); box.getCenter(center);
-      controls.target.copy(center);
-      camera.position.set(center.x + size.length()*0.8, center.y + size.length()*0.62, center.z + size.length()*0.85);
-      controls.update();
-
-      var meshCount = 0, triCount = 0;
-      model.traverse(function(o){ if (o.isMesh){ meshCount++; var g = o.geometry; triCount += (g.index ? g.index.count : g.attributes.position.count) / 3; }});
-      info.textContent = [
-        'GLB loaded OK — REAL GEOMETRY BUILDING',
-        'children: ' + model.children.length,
-        'mesh count: ' + meshCount,
-        'triangles: ' + triCount.toFixed(0),
-        'size: x=' + size.x.toFixed(1) + ' y=' + size.y.toFixed(1) + ' z=' + size.z.toFixed(1),
-        'center: ' + center.toArray().map(function(v){return v.toFixed(1);}).join(','),
-        '',
-        'Colors per discipline: blue=architecture, orange=structure',
-      ].join('\n');
-      renderer.render(scene, camera);
-      window.__ready = true;
-    }, undefined, function(e){ fail('load: ' + (e && e.message || e)); });
-
-    (function animate(){
-      requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
-    })();
+    var loader = new IFCLoader();
+    loader.ifcManager.setWasmPath('webifc/').then(function(){
+      var t0 = Date.now();
+      msg('loading IFC via IFCLoader…');
+      loader.load('/files/ARK_NordicLCA_Housing_Concrete_BuildingPermit_Revit.ifc', function(ifcmodel){
+        scene.add(ifcmodel);
+        msg('IFC rendered in ' + (Date.now()-t0) + 'ms; children=' + ifcmodel.children.length);
+        var meshCount = 0, triCount = 0;
+        ifcmodel.traverse(function(o){ if (o.isMesh){ meshCount++; var g = o.geometry; triCount += (g.index ? g.index.count : g.attributes.position.count) / 3; }});
+        var box = new THREE.Box3().setFromObject(ifcmodel);
+        var size = new THREE.Vector3(); box.getSize(size);
+        var center = new THREE.Vector3(); box.getCenter(center);
+        controls.target.copy(center);
+        camera.position.set(center.x + size.length()*0.75, center.y + size.length()*0.55, center.z + size.length()*0.8);
+        camera.lookAt(controls.target);
+        info.textContent = [
+          'IFC RENDERED BY web-ifc (real geometry, in-browser)',
+          'meshes: ' + meshCount,
+          'triangles: ' + triCount.toFixed(0),
+          'bbox: x=' + size.x.toFixed(1) + ' y=' + size.y.toFixed(1) + ' z=' + size.z.toFixed(1),
+        ].join('\n');
+        (function animate(){
+          requestAnimationFrame(animate);
+          renderer.render(scene, camera);
+        })();
+        window.__ready = true;
+      }, function(e){ msg('progress: ' + (e && e.message || e)); }, function(e){ msg('load err: ' + (e && e.message || e)); });
+    }).catch(function(e){ msg('wasm: ' + (e && e.message || e)); });
   } catch (e) {
-    fail('init: ' + (e && e.message || e));
+    err.textContent += '[init] ' + (e && e.message || e) + '\n';
   }
 })();
 </script>
