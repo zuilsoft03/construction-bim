@@ -8,7 +8,7 @@ Two geometry sources, in priority order:
   1. **Real** vertex meshes from :mod:`ifc_geometry` (IFC4 ``IFCEXTRUDEDAREASOLID``
      / ``IFCRECTANGLEPROFILEDEF`` prisms in world coordinates) — the building
      actually looks like a building.
-  2. **Box fallback** from placement + quantities (OCEP's own text-fallback
+  2. **Box fallback** from placement + quantities (text-fallback
      behaviour) for elements without recoverable geometry, so an import never
      comes back empty.
 
@@ -41,7 +41,7 @@ TYPE_VEC3 = "VEC3"
 # X rotation of -90 degrees (Z-up IFC -> Y-up glTF)
 ROOT_ROTATION = [-0.7071067811865476, 0.0, 0.0, 0.7071067811865476]
 
-# Discipline -> vertex colour (sRGB-ish, same family as OCEP's palette)
+# Discipline -> vertex colour (sRGB-ish, common discipline palette)
 DISCIPLINE_COLORS = {
     "architecture": (0.42, 0.72, 0.90),   # light blue
     "structure":    (0.95, 0.60, 0.22),   # orange
@@ -112,7 +112,7 @@ def _element_geometry(el: dict[str, Any], geometry: dict | None) -> tuple[list[l
     """Return (positions, normals) for one element in world Z-up metres.
 
     Uses the real mesh from ``geometry`` when present; otherwise falls back to a
-    box shaped by placement + quantities (OCEP's text-fallback behaviour).
+    box shaped by placement + quantities (text-fallback behaviour).
     """
     ifc_id = el.get("properties", {}).get("ifc_id")
     if geometry and ifc_id in geometry:

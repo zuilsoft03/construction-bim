@@ -1,12 +1,10 @@
 """IFC STEP-21 text parser — pure Python, no IfcOpenShell.
 
-Vibe-engineered port of OpenConstructionERP's ``bim_hub/ifc_processor.py``
-text-fallback parser (AGPL-3.0, DataDrivenConstruction). Extracts building
-elements, storeys, disciplines, properties, quantities and placements from a
-STEP-21 (ISO 10303-21) IFC file so an ERPNext site can import BIM models with
-stdlib only.
+Extracts building elements, storeys, disciplines, properties, quantities and
+placements from a STEP-21 (ISO 10303-21) IFC file so an ERPNext site can
+import BIM models with stdlib only.
 
-Pipeline (mirrors OCEP):
+Pipeline:
 1. Strip ``/* ... */`` comments; escape doubled apostrophes (STEP-21 escaped
    quotes) before regex tokenisation.
 2. Split on ``;`` (not newlines — exporters write multi-line entities).
@@ -177,7 +175,7 @@ def _resolve_length_scale(entities: dict[int, dict]) -> float:
 def _extract_placements(entities: dict[int, dict], length_scale: float = 1.0) -> dict[int, list[float]]:
     """Map element entity id -> world [x, y, z] (metres, Z-up, right-handed).
 
-    Ports OCEP's approach: build CartesianPoint -> coords, then
+    Approach: build CartesianPoint -> coords, then
     Axis2Placement3D/2D -> point, then IfcLocalPlacement -> resolved point by
     **walking the whole local-placement chain** (element's own axis point +
     every parent IFCLOCALPLACEMENT's axis point, per the IFC spec). This is what

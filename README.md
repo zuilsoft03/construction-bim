@@ -11,11 +11,11 @@ A native **Frappe/ERPNext app** that brings IFC/BIM models into ERPNext:
 - **PDF Takeoff** desk page (`/desk/pdf-takeoff`) — scale-calibrated distance /
   area / polyline measurements saved per PDF file.
 
-The design follows the architecture of
-[OpenConstructionERP](https://openconstruction.org) (`bim_hub`, `takeoff`)
-ported into Frappe idioms. Where OCEP's open code emits box placeholders for
-geometry, this app extracts the real vertices from the IFC file itself, so an
-imported model looks like the actual building.
+The design follows common construction-ERP BIM concepts — BIM model hub,
+per-element properties and quantities, 3D viewer, PDF takeoff — implemented
+natively as a Frappe/ERPNext app. Where basic text fallbacks emit box
+placeholders for geometry, this app extracts the real vertices from the IFC
+file itself, so an imported model looks like the actual building.
 
 ## Quick start
 
@@ -55,6 +55,6 @@ construction_bim/
 
 ## License
 
-**AGPL-3.0.** This project is derived from the architecture of
-OpenConstructionERP (AGPL-3.0) — see `NOTICE` for attribution. The
-NordicLCA test assets are CC BY-SA 4.0 (Nordic Sustainable Construction).
+**AGPL-3.0.** Bundled third-party code: three.js (MIT), web-ifc (MPL-2.0),
+pdf.js (Apache-2.0) — see `NOTICE`. The NordicLCA test assets are CC BY-SA 4.0
+(Nordic Sustainable Construction).

@@ -3,10 +3,10 @@
 
 Why this exists
 ---------------
-OCEP's ``bim_hub`` open-source text fallback emits **box placeholders** per
-element; its real-geometry path is the closed DDC ``cad2data`` binary. This
-module reconstructs *real* meshes straight from the IFC file instead, so a
-building can be reproduced accurately on import:
+Text-fallback parsers emit **box placeholders** per element; real-geometry
+paths are typically closed binaries. This module reconstructs *real* meshes
+straight from the IFC file instead, so a building can be reproduced
+accurately on import:
 
     element -> arg5 IFCPRODUCTDEFINITIONSHAPE -> IFCSHAPEREPRESENTATION('Body')
             -> IFCEXTRUDEDAREASOLID(profile_def, axis_placement, direction, distance)
@@ -33,7 +33,7 @@ unit direction to lift the 2D profile into 3D.
 
 Output: per-element ``{vertices: [[x,y,z]...], faces: [[i,j,k]...]}`` consumable
 by :func:`glb_writer.build_glb`. Elements without recoverable geometry get a
-box built from their placement + quantities (OCEP's own fallback), so an
+box built from their placement + quantities as fallback, so an
 import never comes back empty.
 """
 

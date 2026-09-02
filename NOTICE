@@ -1,13 +1,8 @@
 Construction BIM for ERPNext
 
-This project builds on the architecture and approach of OpenConstructionERP
-(https://openconstruction.org), AGPL-3.0 licensed — specifically its `bim_hub`
-and `takeoff` modules, which this app ports into Frappe idioms.
-
-OpenConstructionERP © its contributors. Where OCEP's open source delivers box
-placeholders in its text fallback, the geometry reconstruction in this project
-is original code (ifc_geometry.py) that extracts real vertices from the IFC
-file directly; the closed DDC cad2data binary referenced by OCEP is NOT used.
+Original application code is Copyright © Gaviel and licensed AGPL-3.0
+(see LICENSE). This application is a native Frappe/ERPNext implementation
+of common construction-ERP BIM concepts.
 
 Test IFC/PDF assets used during development:
 "BIM4LCA" downloads from Nordic Sustainable Construction

@@ -10,9 +10,13 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "frontend_src"
-ESBUILD_JS = pathlib.Path(
-    r"C:\Users\gavie\AppData\Local\Temp\ocep\frontend\node_modules\esbuild\bin\esbuild"
+# Find esbuild: prefer the project-local copy (frontend_src/webifc_build),
+# fall back to a global install.
+_LOCAL_ESBUILD = ROOT / "frontend_src" / "webifc_build" / "node_modules" / ".bin" / "esbuild"
+_GLOBAL_ESBUILD = pathlib.Path(
+    r"C:\Users\gavie\AppData\Local\hermes\node\esbuild.cmd"
 )
+ESBUILD_JS = _LOCAL_ESBUILD if _LOCAL_ESBUILD.exists() else _GLOBAL_ESBUILD
 NODE_BIN = r"C:\Users\gavie\AppData\Local\hermes\node\node.exe"
 
 PAGES = ["bim_viewer", "pdf_takeoff"]
