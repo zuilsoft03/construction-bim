@@ -456,7 +456,7 @@ def list_measurements(pdf_file: str) -> list[dict]:
         try:
             file_doc = _find_file(pdf_file)
             pdf_file = file_doc.name
-        except Exception:
+        except (frappe.exceptions.ValidationError, frappe.exceptions.DoesNotExistError):
             pass
     return frappe.get_all("PDF Measurement",
                           filters={"pdf_file": pdf_file},

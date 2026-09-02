@@ -12,7 +12,7 @@
  "link_type": null,
  "link_to": null,
  "external_link": null,
- "standard": 0,
+ "standard": 1,
  "indicator_color": null,
  "restrict_to_domain": null,
  "hide_custom": 0,

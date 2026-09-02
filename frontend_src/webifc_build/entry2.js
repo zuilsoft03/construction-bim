@@ -94,7 +94,7 @@ function buildIfcScene(api, modelID) {
             : new THREE.Color(0xd0c0a0),
           side: THREE.DoubleSide,
           transparent: isTransparent,
-          opacity: isTransparent ? Math.max(opacity, 0.25) : 1.0,
+          opacity: isTransparent ? (opacity > 0.01 ? Math.max(opacity, 0.25) : 0.0) : 1.0,
           depthWrite: !isTransparent,
         });
 

@@ -5,16 +5,16 @@ frappe.pages['bim-viewer'].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
-	page.add_inner_button(__('📐 PDF Takeoff'), function () {
+	page.add_inner_button('📐 ' + __('PDF Takeoff'), function () {
 		frappe.set_route('pdf-takeoff');
 	});
-	page.add_inner_button(__('🏢 BIM Models'), function () {
+	page.add_inner_button('🏢 ' + __('BIM Models'), function () {
 		frappe.set_route('List', 'BIM Model');
 	});
-	page.add_inner_button(__('📑 Contracts & BOQ'), function () {
+	page.add_inner_button('📑 ' + __('Contracts & BOQ'), function () {
 		frappe.set_route('List', 'Construction Contract');
 	});
-	page.add_inner_button(__('🏠 Workspace'), function () {
+	page.add_inner_button('🏠 ' + __('Workspace'), function () {
 		frappe.set_route('Workspaces', 'Construction');
 	});
 

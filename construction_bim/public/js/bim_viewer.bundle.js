@@ -232,6 +232,9 @@
             renderElementPanel(el);
           }
         }).catch(() => {
+          if (currentSelection && currentSelection.element && currentSelection.element.name === el.name) {
+            renderElementPanel(el, true);
+          }
         });
       }
     } else if (currentModelId && expressID && ifcApi) {
@@ -248,42 +251,95 @@
   function renderWebIfcPanel(expressID, props) {
     els.propsTitle.textContent = "IFC #" + expressID + " " + (props && props.type ? props.type : "");
     els.propsTitle.className = "";
-    const html = [];
+    els.props.innerHTML = "";
     if (props) {
+      const table = document.createElement("table");
       Object.keys(props).slice(0, 40).forEach((k) => {
         const v = props[k];
         const val = v && typeof v === "object" && v.value !== void 0 ? v.value : typeof v === "object" ? JSON.stringify(v).slice(0, 80) : v;
-        html.push(`<tr><td>${k}</td><td>${String(val).slice(0, 80)}</td></tr>`);
+        const tr = document.createElement("tr");
+        const tdK = document.createElement("td");
+        tdK.textContent = k;
+        const tdV = document.createElement("td");
+        tdV.textContent = String(val).slice(0, 80);
+        tr.appendChild(tdK);
+        tr.appendChild(tdV);
+        table.appendChild(tr);
       });
+      els.props.appendChild(table);
     }
-    els.props.innerHTML = "<table>" + html.join("") + "</table>";
   }
-  function renderElementPanel(el) {
+  function renderElementPanel(el, loadFailed = false) {
     if (!el) return;
     const title = el.title || el.name || el.element_type;
     els.propsTitle.textContent = `${title} (${el.stable_id || el.name})`;
     els.propsTitle.className = "";
-    const html = [];
-    html.push('<div><span class="bim-badge">' + (el.discipline || "\u2014") + '</span><span class="bim-badge">' + (el.storey || "no storey") + "</span></div>");
+    els.props.innerHTML = "";
+    const badgesDiv = document.createElement("div");
+    const b1 = document.createElement("span");
+    b1.className = "bim-badge";
+    b1.textContent = el.discipline || "\u2014";
+    const b2 = document.createElement("span");
+    b2.className = "bim-badge";
+    b2.textContent = el.storey || "no storey";
+    badgesDiv.appendChild(b1);
+    badgesDiv.appendChild(b2);
+    els.props.appendChild(badgesDiv);
     const q = el.quantities || {};
     const qKeys = Object.keys(q);
     if (qKeys.length) {
-      html.push('<div style="margin:8px 0 4px;font-weight:600">Quantities</div><table>');
-      qKeys.forEach((k) => html.push(`<tr><td>${k}</td><td>${q[k]}</td></tr>`));
-      html.push("</table>");
+      const qHeader = document.createElement("div");
+      qHeader.style.cssText = "margin:8px 0 4px;font-weight:600";
+      qHeader.textContent = "Quantities";
+      els.props.appendChild(qHeader);
+      const qTable = document.createElement("table");
+      qKeys.forEach((k) => {
+        const tr = document.createElement("tr");
+        const tdK = document.createElement("td");
+        tdK.textContent = k;
+        const tdV = document.createElement("td");
+        tdV.textContent = String(q[k]);
+        tr.appendChild(tdK);
+        tr.appendChild(tdV);
+        qTable.appendChild(tr);
+      });
+      els.props.appendChild(qTable);
     }
     const p = el.properties || {};
     const pKeys = Object.keys(p).filter((k) => !["ifc_id", "ifc_type"].includes(k));
     if (pKeys.length) {
-      html.push('<div style="margin:8px 0 4px;font-weight:600">Properties</div><table>');
-      pKeys.slice(0, 60).forEach((k) => html.push(`<tr><td>${k}</td><td>${p[k]}</td></tr>`));
-      if (pKeys.length > 60) html.push(`<tr><td colspan="2">\u2026 ${pKeys.length - 60} more</td></tr>`);
-      html.push("</table>");
+      const pHeader = document.createElement("div");
+      pHeader.style.cssText = "margin:8px 0 4px;font-weight:600";
+      pHeader.textContent = "Properties";
+      els.props.appendChild(pHeader);
+      const pTable = document.createElement("table");
+      pKeys.slice(0, 60).forEach((k) => {
+        const tr = document.createElement("tr");
+        const tdK = document.createElement("td");
+        tdK.textContent = k;
+        const tdV = document.createElement("td");
+        tdV.textContent = typeof p[k] === "object" ? JSON.stringify(p[k]) : String(p[k]);
+        tr.appendChild(tdK);
+        tr.appendChild(tdV);
+        pTable.appendChild(tr);
+      });
+      if (pKeys.length > 60) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 2;
+        td.textContent = `\u2026 ${pKeys.length - 60} more`;
+        tr.appendChild(td);
+        pTable.appendChild(tr);
+      }
+      els.props.appendChild(pTable);
     }
     if (!qKeys.length && !pKeys.length) {
-      html.push('<div class="empty-hint" style="margin-top:8px">Loading properties\u2026</div>');
+      const hint = document.createElement("div");
+      hint.className = "empty-hint";
+      hint.style.marginTop = "8px";
+      hint.textContent = loadFailed ? "Failed to load properties" : "Loading properties\u2026";
+      els.props.appendChild(hint);
     }
-    els.props.innerHTML = html.join("");
     loadLinks(el.name);
   }
   async function loadLinks(bimElement) {

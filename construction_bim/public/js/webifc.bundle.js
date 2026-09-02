@@ -29691,7 +29691,7 @@
                 color: color && color.x !== void 0 ? new Color().setRGB(color.x, color.y, color.z, "srgb") : new Color(13680800),
                 side: DoubleSide,
                 transparent: isTransparent,
-                opacity: isTransparent ? Math.max(opacity, 0.25) : 1,
+                opacity: isTransparent ? opacity > 0.01 ? Math.max(opacity, 0.25) : 0 : 1,
                 depthWrite: !isTransparent
               });
               const mesh = new Mesh(geo, material);
