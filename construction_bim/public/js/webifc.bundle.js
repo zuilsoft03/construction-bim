@@ -29596,7 +29596,7 @@
       function buildIfcScene(api, modelID) {
         const group = new Group();
         const meshCount = { total: 0, verts: 0, tris: 0 };
-        const wallTypes = [
+        const elementTypes = [
           WebIFC.IFCWALL,
           WebIFC.IFCWALLSTANDARDCASE,
           WebIFC.IFCSLAB,
@@ -29609,6 +29609,7 @@
           WebIFC.IFCPLATE,
           WebIFC.IFCCOVERING,
           WebIFC.IFCSTAIR,
+          WebIFC.IFCSTAIRFLIGHT,
           WebIFC.IFCRAILING,
           WebIFC.IFCROOF,
           WebIFC.IFCCURTAINWALL,
@@ -29619,6 +29620,7 @@
           WebIFC.IFCGRID,
           WebIFC.IFCFLOWSEGMENT,
           WebIFC.IFCFLOWFITTING,
+          WebIFC.IFCFLOWTERMINAL,
           WebIFC.IFCDISTRIBUTIONELEMENT
         ].filter((t) => t !== void 0);
         const geometryCache = /* @__PURE__ */ new Map();
@@ -29626,10 +29628,14 @@
         function getGeometry(modelID2, geometryExpressID) {
           if (geometryCache.has(geometryExpressID)) return geometryCache.get(geometryExpressID);
           const g = api.GetGeometry(modelID2, geometryExpressID);
-          const verts = api.GetVertexArray(g.GetVertexData(), g.GetVertexDataSize());
-          const indices = api.GetIndexArray(g.GetIndexData(), g.GetIndexDataSize());
-          geometryCache.set(geometryExpressID, { verts, indices });
-          return geometryCache.get(geometryExpressID);
+          const rawVerts = api.GetVertexArray(g.GetVertexData(), g.GetVertexDataSize());
+          const rawIndices = api.GetIndexArray(g.GetIndexData(), g.GetIndexDataSize());
+          const verts = new Float32Array(rawVerts);
+          const indices = new Uint32Array(rawIndices);
+          g.delete();
+          const cached = { verts, indices };
+          geometryCache.set(geometryExpressID, cached);
+          return cached;
         }
         function addIfcType(type) {
           let ids;
@@ -29652,25 +29658,37 @@
               const pg = flat.geometries.get(gi);
               const { verts, indices } = getGeometry(modelID, pg.geometryExpressID);
               if (!verts || !indices || !indices.length) continue;
-              const pos = new Float32Array(verts);
-              const idx = new Uint32Array(indices);
+              const numVerts = verts.length / 6;
+              const posFloats = new Float32Array(numVerts * 3);
+              const normFloats = new Float32Array(numVerts * 3);
+              const exprFloats = new Float32Array(numVerts);
+              for (let v = 0; v < numVerts; v++) {
+                const src = v * 6;
+                const dst = v * 3;
+                posFloats[dst] = verts[src];
+                posFloats[dst + 1] = verts[src + 1];
+                posFloats[dst + 2] = verts[src + 2];
+                normFloats[dst] = verts[src + 3];
+                normFloats[dst + 1] = verts[src + 4];
+                normFloats[dst + 2] = verts[src + 5];
+                exprFloats[v] = expressID;
+              }
               const geo = new BufferGeometry();
-              geo.setAttribute("position", new BufferAttribute(pos, 3));
-              geo.setIndex(new BufferAttribute(idx, 1));
-              geo.computeVertexNormals();
-              const expr = new Float32Array(pos.length / 3);
-              for (let k = 0; k < expr.length; k++) expr[k] = expressID;
-              geo.setAttribute("expressID", new BufferAttribute(expr, 1));
+              geo.setAttribute("position", new BufferAttribute(posFloats, 3));
+              geo.setAttribute("normal", new BufferAttribute(normFloats, 3));
+              geo.setAttribute("expressID", new BufferAttribute(exprFloats, 1));
+              geo.setIndex(new BufferAttribute(indices, 1));
               const mat4 = new Matrix4();
               if (pg.flatTransformation && pg.flatTransformation.length >= 16) {
                 mat4.fromArray(pg.flatTransformation);
               } else {
                 mat4.identity();
               }
-              const opacity = pg.color && pg.color.w !== void 0 ? pg.color.w : 1;
+              const color = pg.color;
+              const opacity = color && color.w !== void 0 ? color.w : 1;
               const isTransparent = opacity < 0.95;
               const material = new MeshLambertMaterial({
-                color: pg.color && pg.color.x !== void 0 ? new Color(pg.color.x, pg.color.y, pg.color.z) : 4886745,
+                color: color && color.x !== void 0 ? new Color().setRGB(color.x, color.y, color.z, "srgb") : new Color(13680800),
                 side: DoubleSide,
                 transparent: isTransparent,
                 opacity: isTransparent ? Math.max(opacity, 0.25) : 1,
@@ -29685,12 +29703,12 @@
               if (!expressMap.has(expressID)) expressMap.set(expressID, []);
               expressMap.get(expressID).push(mesh);
               meshCount.total++;
-              meshCount.verts += pos.length / 3;
-              meshCount.tris += idx.length / 3;
+              meshCount.verts += numVerts;
+              meshCount.tris += indices.length / 3;
             }
           }
         }
-        for (const t of wallTypes) addIfcType(t);
+        for (const t of elementTypes) addIfcType(t);
         return { group, expressMap, meshCount };
       }
       window.IFCEngine = { THREE: three_module_exports, WebIFC, buildIfcScene, OrbitControls };

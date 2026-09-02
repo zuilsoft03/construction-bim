@@ -8,14 +8,14 @@ const WebIFC = window.WebIFC;
 function buildIfcScene(api, modelID) {
   const group = new THREE.Group();
   const meshCount = { total: 0, verts: 0, tris: 0 };
-  const wallTypes = [
+  const elementTypes = [
     WebIFC.IFCWALL, WebIFC.IFCWALLSTANDARDCASE, WebIFC.IFCSLAB, WebIFC.IFCBUILDINGELEMENTPROXY,
     WebIFC.IFCDOOR, WebIFC.IFCWINDOW, WebIFC.IFCCOLUMN, WebIFC.IFCBEAM, WebIFC.IFCMEMBER,
-    WebIFC.IFCPLATE, WebIFC.IFCCOVERING, WebIFC.IFCSTAIR, WebIFC.IFCRAILING,
+    WebIFC.IFCPLATE, WebIFC.IFCCOVERING, WebIFC.IFCSTAIR, WebIFC.IFCSTAIRFLIGHT, WebIFC.IFCRAILING,
     WebIFC.IFCROOF, WebIFC.IFCCURTAINWALL,
     WebIFC.IFCFOOTING, WebIFC.IFCFURNISHINGELEMENT, WebIFC.IFCSANITARYTERMINAL,
     WebIFC.IFCELEMENT, WebIFC.IFCGRID,
-    WebIFC.IFCFLOWSEGMENT, WebIFC.IFCFLOWFITTING, WebIFC.IFCDISTRIBUTIONELEMENT,
+    WebIFC.IFCFLOWSEGMENT, WebIFC.IFCFLOWFITTING, WebIFC.IFCFLOWTERMINAL, WebIFC.IFCDISTRIBUTIONELEMENT,
   ].filter(t => t !== undefined);
 
   const geometryCache = new Map();
@@ -24,10 +24,16 @@ function buildIfcScene(api, modelID) {
   function getGeometry(modelID, geometryExpressID) {
     if (geometryCache.has(geometryExpressID)) return geometryCache.get(geometryExpressID);
     const g = api.GetGeometry(modelID, geometryExpressID);
-    const verts = api.GetVertexArray(g.GetVertexData(), g.GetVertexDataSize());
-    const indices = api.GetIndexArray(g.GetIndexData(), g.GetIndexDataSize());
-    geometryCache.set(geometryExpressID, { verts, indices });
-    return geometryCache.get(geometryExpressID);
+    const rawVerts = api.GetVertexArray(g.GetVertexData(), g.GetVertexDataSize());
+    const rawIndices = api.GetIndexArray(g.GetIndexData(), g.GetIndexDataSize());
+    // In web-ifc, vertexData is interleaved with 6 floats per vertex: [x, y, z, nx, ny, nz]
+    // Copy into plain typed arrays before deleting WASM geometry
+    const verts = new Float32Array(rawVerts);
+    const indices = new Uint32Array(rawIndices);
+    g.delete(); // Free WASM memory
+    const cached = { verts, indices };
+    geometryCache.set(geometryExpressID, cached);
+    return cached;
   }
 
   function addIfcType(type) {
@@ -46,15 +52,31 @@ function buildIfcScene(api, modelID) {
         const { verts, indices } = getGeometry(modelID, pg.geometryExpressID);
         if (!verts || !indices || !indices.length) continue;
 
-        const pos = new Float32Array(verts);
-        const idx = new Uint32Array(indices);
+        // web-ifc raw vertex format: 6 floats per vertex:
+        // [vx, vy, vz, nx, ny, nz]
+        // De-interleave into separate position (3 floats) and normal (3 floats)
+        const numVerts = verts.length / 6;
+        const posFloats = new Float32Array(numVerts * 3);
+        const normFloats = new Float32Array(numVerts * 3);
+        const exprFloats = new Float32Array(numVerts);
+
+        for (let v = 0; v < numVerts; v++) {
+          const src = v * 6;
+          const dst = v * 3;
+          posFloats[dst]     = verts[src];
+          posFloats[dst + 1] = verts[src + 1];
+          posFloats[dst + 2] = verts[src + 2];
+          normFloats[dst]     = verts[src + 3];
+          normFloats[dst + 1] = verts[src + 4];
+          normFloats[dst + 2] = verts[src + 5];
+          exprFloats[v]       = expressID;
+        }
+
         const geo = new THREE.BufferGeometry();
-        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-        geo.setIndex(new THREE.BufferAttribute(idx, 1));
-        geo.computeVertexNormals();
-        const expr = new Float32Array(pos.length / 3);
-        for (let k = 0; k < expr.length; k++) expr[k] = expressID;
-        geo.setAttribute('expressID', new THREE.BufferAttribute(expr, 1));
+        geo.setAttribute('position', new THREE.BufferAttribute(posFloats, 3));
+        geo.setAttribute('normal', new THREE.BufferAttribute(normFloats, 3));
+        geo.setAttribute('expressID', new THREE.BufferAttribute(exprFloats, 1));
+        geo.setIndex(new THREE.BufferAttribute(indices, 1));
 
         const mat4 = new THREE.Matrix4();
         if (pg.flatTransformation && pg.flatTransformation.length >= 16) {
@@ -63,33 +85,36 @@ function buildIfcScene(api, modelID) {
           mat4.identity();
         }
 
-        const opacity = (pg.color && pg.color.w !== undefined) ? pg.color.w : 1.0;
+        const color = pg.color;
+        const opacity = (color && color.w !== undefined) ? color.w : 1.0;
         const isTransparent = opacity < 0.95;
         const material = new THREE.MeshLambertMaterial({
-          color: (pg.color && pg.color.x !== undefined)
-            ? new THREE.Color(pg.color.x, pg.color.y, pg.color.z)
-            : 0x4a90d9,
+          color: (color && color.x !== undefined)
+            ? new THREE.Color().setRGB(color.x, color.y, color.z, 'srgb')
+            : new THREE.Color(0xd0c0a0),
           side: THREE.DoubleSide,
           transparent: isTransparent,
           opacity: isTransparent ? Math.max(opacity, 0.25) : 1.0,
           depthWrite: !isTransparent,
         });
+
         const mesh = new THREE.Mesh(geo, material);
         mesh.matrixAutoUpdate = false;
         mesh.matrix.copy(mat4);
         mesh.frustumCulled = false;
         mesh.userData.expressID = expressID;
         group.add(mesh);
+
         if (!expressMap.has(expressID)) expressMap.set(expressID, []);
         expressMap.get(expressID).push(mesh);
         meshCount.total++;
-        meshCount.verts += pos.length / 3;
-        meshCount.tris += idx.length / 3;
+        meshCount.verts += numVerts;
+        meshCount.tris += indices.length / 3;
       }
     }
   }
 
-  for (const t of wallTypes) addIfcType(t);
+  for (const t of elementTypes) addIfcType(t);
   return { group, expressMap, meshCount };
 }
 
