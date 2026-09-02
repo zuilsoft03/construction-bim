@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>web-ifc render — construction_bim</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #101418; overflow: hidden; font-family: monospace; }
+  #hud { position: fixed; top: 8px; left: 8px; color: #9fd8ff; font-size: 11px; white-space: pre; z-index: 10; pointer-events: none; }
+  #err { position: fixed; top: 8px; right: 8px; color: #ff9a9a; font-size: 11px; white-space: pre; z-index: 10; max-width: 60vw; }
+  #load { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; color: #9fd8ff; font-size: 14px; z-index: 20; }
+</style>
+</head>
+<body>
+<div id="load">loading web-ifc…</div>
+<div id="hud"></div>
+<div id="err"></div>
+<script src="/assets/construction_bim/js/webifc-api-iife.js"></script>
+<script src="/assets/construction_bim/js/webifc.bundle.js"></script>
+<script>
+(function () {
+  var err = document.getElementById('err');
+  var hud = document.getElementById('hud');
+  var load = document.getElementById('load');
+  function fail(m) { err.textContent += m + '\n'; load.style.display = 'none'; }
+
+  try {
+    if (!window.WebIFC) { fail('WebIFC global missing'); return; }
+    var THREE = window.IFCEngine.THREE;
+    var api = new WebIFC.IfcAPI();
+    api.SetWasmPath('/assets/construction_bim/js/webifc/', true);
+
+    var renderer, scene, camera, group;
+    var rot = { x: -0.9, y: 0.9, dist: 120 };
+    var dragging = false, px = 0, py = 0;
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x101418);
+    document.body.appendChild(renderer.domElement);
+
+    scene = new THREE.Scene();
+    scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+    var dl = new THREE.DirectionalLight(0xffffff, 0.8);
+    dl.position.set(1, 2, 1.5);
+    scene.add(dl);
+
+    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 20000);
+
+    renderer.domElement.addEventListener('mousedown', function (e) { dragging = true; px = e.clientX; py = e.clientY; });
+    window.addEventListener('mouseup', function () { dragging = false; });
+    window.addEventListener('mousemove', function (e) {
+      if (!dragging) return;
+      rot.y -= (e.clientX - px) * 0.008;
+      rot.x -= (e.clientY - py) * 0.008;
+      rot.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rot.x));
+      px = e.clientX; py = e.clientY;
+    });
+    renderer.domElement.addEventListener('wheel', function (e) {
+      rot.dist *= (e.deltaY > 0 ? 1.1 : 0.9);
+      rot.dist = Math.max(2, Math.min(20000, rot.dist));
+    });
+
+    function placeCamera(center) {
+      camera.position.set(
+        center.x + rot.dist * Math.cos(rot.x) * Math.sin(rot.y),
+        center.y + rot.dist * Math.sin(rot.x),
+        center.z + rot.dist * Math.cos(rot.x) * Math.cos(rot.y));
+      camera.lookAt(center);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      updateView();
+      renderer.render(scene, camera);
+    }
+    function updateView() {
+      if (group && group.children.length) {
+        var b = new THREE.Box3().setFromObject(group);
+        var c = b.getCenter(new THREE.Vector3());
+        placeCamera(c);
+      }
+    }
+
+    (async function () {
+      await api.Init();
+      load.textContent = 'downloading IFC…';
+      var resp = await fetch('/files/ARK_NordicLCA_Housing_Concrete_BuildingPermit_Revit.ifc');
+      if (!resp.ok) { fail('IFC fetch failed: ' + resp.status); return; }
+      var buf = new Uint8Array(await resp.arrayBuffer());
+      load.textContent = 'parsing IFC… (' + (buf.length / 1e6).toFixed(1) + ' MB)';
+      var modelID = api.OpenModel(buf, { COORDINATE_TO_ORIGIN: true, USE_FAST_BVH: true });
+      load.textContent = 'building scene…';
+      var result = window.IFCEngine.buildIfcScene(api, modelID);
+      group = result.group;
+      scene.add(group);
+      load.style.display = 'none';
+      var w = api.GetLineIDsWithType(modelID, WebIFC.IFCWALL, false);
+      var s = api.GetLineIDsWithType(modelID, WebIFC.IFCSLAB, false);
+      var d = api.GetLineIDsWithType(modelID, WebIFC.IFCDOOR, false);
+      var win = api.GetLineIDsWithType(modelID, WebIFC.IFCWINDOW, false);
+      var col = api.GetLineIDsWithType(modelID, WebIFC.IFCCOLUMN, false);
+      var beam = api.GetLineIDsWithType(modelID, WebIFC.IFCBEAM, false);
+      hud.textContent =
+        'RENDERED meshes=' + result.meshCount.total +
+        ' verts=' + result.meshCount.verts +
+        ' tris=' + result.meshCount.tris +
+        '\nIFCWALL=' + (w ? w.size() : '-') +
+        ' SLAB=' + (s ? s.size() : '-') +
+        ' DOOR=' + (d ? d.size() : '-') +
+        ' WINDOW=' + (win ? win.size() : '-') +
+        ' COLUMN=' + (col ? col.size() : '-') +
+        ' BEAM=' + (beam ? beam.size() : '-');
+      animate();
+    })().catch(function (e) { fail('EX: ' + (e && e.message || e)); });
+  } catch (e) {
+    fail('INIT: ' + (e && e.message || e));
+  }
+})();
+</script>
+</body>
+</html>

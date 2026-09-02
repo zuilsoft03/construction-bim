@@ -31,7 +31,7 @@ function buildIfcScene(api, modelID) {
 
   function addIfcType(type) {
     let ids;
-    try { ids = api.GetLineIDsWithType(modelID, type, true); }
+    try { ids = api.GetLineIDsWithType(modelID, type, false); }
     catch (e) { return; }
     if (!ids || !ids.size) return;
     for (let i = 0; i < ids.size(); i++) {
@@ -62,7 +62,12 @@ function buildIfcScene(api, modelID) {
           mat4.identity();
         }
 
-        const material = new THREE.MeshLambertMaterial({ color: 0x4a90d9, side: THREE.DoubleSide });
+        const material = new THREE.MeshLambertMaterial({
+          color: (pg.color && pg.color.x !== undefined)
+            ? new THREE.Color(pg.color.x, pg.color.y, pg.color.z)
+            : 0x4a90d9,
+          side: THREE.DoubleSide,
+        });
         const mesh = new THREE.Mesh(geo, material);
         mesh.matrixAutoUpdate = false;
         mesh.matrix.copy(mat4);
