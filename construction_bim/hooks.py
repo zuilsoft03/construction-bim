@@ -6,6 +6,16 @@ app_email = "gaviel@local.dev"
 app_license = "AGPL-3.0"
 app_icon = "octicon octicon-git-branch"
 app_color = "grey"
+app_home = "/app/construction"
+
+add_to_apps_screen = [
+	{
+		"name": "construction_bim",
+		"logo": "/assets/construction_bim/images/bim-logo.svg",
+		"title": "Construction BIM",
+		"route": "/app/construction",
+	}
+]
 
 # Includes in <head>
 # ------------------

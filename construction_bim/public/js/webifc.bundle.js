@@ -29612,19 +29612,15 @@
           WebIFC.IFCRAILING,
           WebIFC.IFCROOF,
           WebIFC.IFCCURTAINWALL,
-          WebIFC.IFCOPENINGELEMENT,
-          WebIFC.IFCBUILDING,
-          WebIFC.IFCBUILDINGSTOREY,
-          WebIFC.IFCSITE,
-          WebIFC.IFCSPACE,
-          WebIFC.IFCRELATIONSHIP,
+          WebIFC.IFCFOOTING,
+          WebIFC.IFCFURNISHINGELEMENT,
+          WebIFC.IFCSANITARYTERMINAL,
           WebIFC.IFCELEMENT,
           WebIFC.IFCGRID,
-          WebIFC.IFCROOF,
           WebIFC.IFCFLOWSEGMENT,
           WebIFC.IFCFLOWFITTING,
           WebIFC.IFCDISTRIBUTIONELEMENT
-        ];
+        ].filter((t) => t !== void 0);
         const geometryCache = /* @__PURE__ */ new Map();
         const expressMap = /* @__PURE__ */ new Map();
         function getGeometry(modelID2, geometryExpressID) {
@@ -29671,9 +29667,14 @@
               } else {
                 mat4.identity();
               }
+              const opacity = pg.color && pg.color.w !== void 0 ? pg.color.w : 1;
+              const isTransparent = opacity < 0.95;
               const material = new MeshLambertMaterial({
                 color: pg.color && pg.color.x !== void 0 ? new Color(pg.color.x, pg.color.y, pg.color.z) : 4886745,
-                side: DoubleSide
+                side: DoubleSide,
+                transparent: isTransparent,
+                opacity: isTransparent ? Math.max(opacity, 0.25) : 1,
+                depthWrite: !isTransparent
               });
               const mesh = new Mesh(geo, material);
               mesh.matrixAutoUpdate = false;

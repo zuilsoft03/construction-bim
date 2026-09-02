@@ -5,6 +5,19 @@ frappe.pages['pdf-takeoff'].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
+	page.add_inner_button(__('🏗️ 3D BIM Viewer'), function () {
+		frappe.set_route('bim-viewer');
+	});
+	page.add_inner_button(__('🏢 BIM Models'), function () {
+		frappe.set_route('List', 'BIM Model');
+	});
+	page.add_inner_button(__('📑 Contracts & BOQ'), function () {
+		frappe.set_route('List', 'Construction Contract');
+	});
+	page.add_inner_button(__('🏠 Workspace'), function () {
+		frappe.set_route('Workspaces', 'Construction');
+	});
+
 	// render the page markup (pdf_takeoff.html -> frappe.templates['pdf_takeoff'])
 	$(frappe.render_template('pdf_takeoff')).appendTo(page.body.addClass('no-border'));
 

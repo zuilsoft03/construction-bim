@@ -85,8 +85,13 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
+if (window._bimViewerAnimId) {
+  cancelAnimationFrame(window._bimViewerAnimId);
+  window._bimViewerAnimId = null;
+}
+
 function animate() {
-  requestAnimationFrame(animate);
+  window._bimViewerAnimId = requestAnimationFrame(animate);
   controls.update();
   renderer.render(scene, camera);
 }
@@ -231,6 +236,15 @@ async function selectElement(mesh, expressID) {
   mesh.material.emissive && mesh.material.emissive.copy(highlightMat.emissive);
   if (el) {
     renderElementPanel(el);
+    // Fetch full element doc with properties and quantities if not already loaded
+    if (!el.properties || !Object.keys(el.properties).length) {
+      frappe.call({ method: API.get_element, args: { element: el.name } }).then(res => {
+        if (res.message && currentSelection && currentSelection.element && currentSelection.element.name === el.name) {
+          Object.assign(el, res.message);
+          renderElementPanel(el);
+        }
+      }).catch(() => {});
+    }
   } else if (currentModelId && expressID && ifcApi) {
     try {
       const props = await ifcApi.GetLine(currentModelId, expressID);
@@ -259,7 +273,8 @@ function renderWebIfcPanel(expressID, props) {
 
 function renderElementPanel(el) {
   if (!el) return;
-  els.propsTitle.textContent = `${el.name || el.element_type} (${el.stable_id})`;
+  const title = el.title || el.name || el.element_type;
+  els.propsTitle.textContent = `${title} (${el.stable_id || el.name})`;
   els.propsTitle.className = '';
   const html = [];
   html.push('<div><span class="bim-badge">' + (el.discipline || '—') + '</span><span class="bim-badge">' + (el.storey || 'no storey') + '</span></div>');
@@ -277,6 +292,9 @@ function renderElementPanel(el) {
     pKeys.slice(0, 60).forEach(k => html.push(`<tr><td>${k}</td><td>${p[k]}</td></tr>`));
     if (pKeys.length > 60) html.push(`<tr><td colspan="2">… ${pKeys.length - 60} more</td></tr>`);
     html.push('</table>');
+  }
+  if (!qKeys.length && !pKeys.length) {
+    html.push('<div class="empty-hint" style="margin-top:8px">Loading properties…</div>');
   }
   els.props.innerHTML = html.join('');
   loadLinks(el.name);
@@ -304,9 +322,18 @@ function setTool(tool) {
   renderer.domElement.style.cursor = tool === 'measure' ? 'crosshair' : 'default';
 }
 
+let pointerDownPos = { x: 0, y: 0 };
+els.canvas.addEventListener('pointerdown', ev => {
+  pointerDownPos = { x: ev.clientX, y: ev.clientY };
+});
+
 els.canvas.addEventListener('click', async (ev) => {
   if (activeTool === 'measure') { measureClick(ev); return; }
-  if (activeTool !== 'select') return;
+  // Only handle clicks (not camera drags during orbit)
+  const dist = Math.hypot(ev.clientX - pointerDownPos.x, ev.clientY - pointerDownPos.y);
+  if (dist > 6) return;
+  if (activeTool !== 'select' && activeTool !== 'orbit') return;
+
   const rect = els.canvas.getBoundingClientRect();
   const mouse = new THREE.Vector2(
     ((ev.clientX - rect.left) / rect.width) * 2 - 1,
@@ -319,8 +346,10 @@ els.canvas.addEventListener('click', async (ev) => {
   const hits = raycaster.intersectObjects(meshes, false);
   if (hits.length) {
     const hit = hits[0];
-    const expr = getExpressIdAt(hit.object.geometry, hit.face ? hit.face.a : undefined);
+    const expr = getExpressIdAt(hit.object.geometry, hit.face ? hit.face.a : undefined) || hit.object.userData.expressID;
     await selectElement(hit.object, expr);
+  } else {
+    clearSelection();
   }
 });
 
@@ -337,17 +366,21 @@ function fitView() {
   if (box.isEmpty()) return;
   const sphere = box.getBoundingSphere(new THREE.Sphere());
   const size = box.getSize(new THREE.Vector3()).length();
-  camera.position.copy(sphere.center).add(new THREE.Vector3(size, size * 0.8, size * 0.7));
+  camera.position.copy(sphere.center).add(new THREE.Vector3(size * 0.7, size * 0.6, size * 0.7));
   controls.target.copy(sphere.center);
   controls.update();
 }
+
+const btnFit = document.getElementById('btn-fit');
+if (btnFit) btnFit.onclick = fitView;
 
 document.getElementById('t-iso').onclick = () => {
   if (!modelGroup) return;
   const box = new THREE.Box3().setFromObject(modelGroup);
   const center = box.getCenter(new THREE.Vector3());
   const size = box.getSize(new THREE.Vector3()).length();
-  camera.position.copy(center).add(new THREE.Vector3(size, size, size));
+  camera.position.copy(center).add(new THREE.Vector3(size * 0.7, size * 0.6, size * 0.7));
+  camera.up.set(0, 1, 0);
   controls.target.copy(center);
   controls.update();
 };
@@ -356,8 +389,8 @@ document.getElementById('t-top').onclick = () => {
   const box = new THREE.Box3().setFromObject(modelGroup);
   const center = box.getCenter(new THREE.Vector3());
   const size = box.getSize(new THREE.Vector3()).length();
-  camera.position.set(center.x, center.z + size, center.z);
-  camera.up.set(0, 0, 1);
+  camera.position.set(center.x, center.y + size * 1.4, center.z);
+  camera.up.set(0, 0, -1);
   controls.target.copy(center);
   controls.update();
 };
@@ -366,7 +399,7 @@ document.getElementById('t-front').onclick = () => {
   const box = new THREE.Box3().setFromObject(modelGroup);
   const center = box.getCenter(new THREE.Vector3());
   const size = box.getSize(new THREE.Vector3()).length();
-  camera.position.set(center.x - size, center.y, center.z);
+  camera.position.set(center.x, center.y, center.z + size * 1.4);
   camera.up.set(0, 1, 0);
   controls.target.copy(center);
   controls.update();
@@ -463,9 +496,10 @@ document.getElementById('btn-color-prop').onclick = () => {
   const palette = new Map();
   let i = 0;
   const seen = new Map();
-  elementMeshes.forEach(({ mesh, element }) => {
-    if (element) {
-      const key = element[prop] || 'other';
+  elementMeshes.forEach(({ mesh, expressID }) => {
+    const el = expressID ? (elementIndex.get(String(expressID)) || elementIndex.get(expressID)) : null;
+    if (el) {
+      const key = el[prop] || 'other';
       if (!palette.has(key)) palette.set(key, PROP_COLORS[i++ % PROP_COLORS.length]);
     }
   });
@@ -577,7 +611,10 @@ document.getElementById('vp-save').onclick = async () => {
     args: {
       model: currentModel.name,
       viewpoint_name: name,
-      camera: JSON.stringify({ position: camera.position.toJSON(), target: controls.target.toJSON() }),
+      camera: JSON.stringify({
+        position: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+        target: { x: controls.target.x, y: controls.target.y, z: controls.target.z },
+      }),
     },
   });
   els.vpName.value = '';
@@ -591,12 +628,23 @@ els.fileInput.onchange = async () => {
   if (!file) return;
   showLoading('Uploading…', true);
   try {
-    const uploadRes = await frappe.call({
-      method: 'upload_file',
-      args: { is_private: 0, doctype: 'BIM Model', docname: 'new' },
-      files: [file],
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    formData.append('is_private', '0');
+    formData.append('doctype', 'BIM Model');
+    formData.append('docname', 'new');
+    const uploadResp = await fetch('/api/method/upload_file', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Frappe-CSRF-Token': (window.frappe && frappe.csrf_token) || '',
+      },
     });
-    const fileUrl = uploadRes.message.file_url;
+    if (!uploadResp.ok) throw new Error('Upload HTTP status ' + uploadResp.status);
+    const uploadData = await uploadResp.json();
+    const fileUrl = uploadData.message && uploadData.message.file_url;
+    if (!fileUrl) throw new Error('Failed to retrieve uploaded file URL');
+
     showLoading('Parsing IFC…', true);
     const createRes = await frappe.call({
       method: API.create_model,

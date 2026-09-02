@@ -12,11 +12,11 @@ function buildIfcScene(api, modelID) {
     WebIFC.IFCWALL, WebIFC.IFCWALLSTANDARDCASE, WebIFC.IFCSLAB, WebIFC.IFCBUILDINGELEMENTPROXY,
     WebIFC.IFCDOOR, WebIFC.IFCWINDOW, WebIFC.IFCCOLUMN, WebIFC.IFCBEAM, WebIFC.IFCMEMBER,
     WebIFC.IFCPLATE, WebIFC.IFCCOVERING, WebIFC.IFCSTAIR, WebIFC.IFCRAILING,
-    WebIFC.IFCROOF, WebIFC.IFCCURTAINWALL, WebIFC.IFCOPENINGELEMENT,
-    WebIFC.IFCBUILDING, WebIFC.IFCBUILDINGSTOREY, WebIFC.IFCSITE, WebIFC.IFCSPACE,
-    WebIFC.IFCRELATIONSHIP, WebIFC.IFCELEMENT, WebIFC.IFCGRID, WebIFC.IFCROOF,
+    WebIFC.IFCROOF, WebIFC.IFCCURTAINWALL,
+    WebIFC.IFCFOOTING, WebIFC.IFCFURNISHINGELEMENT, WebIFC.IFCSANITARYTERMINAL,
+    WebIFC.IFCELEMENT, WebIFC.IFCGRID,
     WebIFC.IFCFLOWSEGMENT, WebIFC.IFCFLOWFITTING, WebIFC.IFCDISTRIBUTIONELEMENT,
-  ];
+  ].filter(t => t !== undefined);
 
   const geometryCache = new Map();
   const expressMap = new Map();  // expressID -> []meshes
@@ -63,11 +63,16 @@ function buildIfcScene(api, modelID) {
           mat4.identity();
         }
 
+        const opacity = (pg.color && pg.color.w !== undefined) ? pg.color.w : 1.0;
+        const isTransparent = opacity < 0.95;
         const material = new THREE.MeshLambertMaterial({
           color: (pg.color && pg.color.x !== undefined)
             ? new THREE.Color(pg.color.x, pg.color.y, pg.color.z)
             : 0x4a90d9,
           side: THREE.DoubleSide,
+          transparent: isTransparent,
+          opacity: isTransparent ? Math.max(opacity, 0.25) : 1.0,
+          depthWrite: !isTransparent,
         });
         const mesh = new THREE.Mesh(geo, material);
         mesh.matrixAutoUpdate = false;

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="bimGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2490ef" />
+      <stop offset="100%" stop-color="#14539a" />
+    </linearGradient>
+    <linearGradient id="bimGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+    <linearGradient id="bimGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+  </defs>
+  <!-- Background rounded square -->
+  <rect x="2" y="2" width="44" height="44" rx="10" fill="url(#bimGrad1)" />
+  
+  <!-- 3D Isometric BIM Cube / Structure -->
+  <!-- Top Face -->
+  <polygon points="24,10 38,18 24,26 10,18" fill="#7dd3fc" opacity="0.95" />
+  <!-- Left Face -->
+  <polygon points="10,18 24,26 24,38 10,30" fill="url(#bimGrad2)" />
+  <!-- Right Face -->
+  <polygon points="24,26 38,18 38,30 24,38" fill="#0369a1" />
+  
+  <!-- Wireframe lines simulating BIM grid -->
+  <line x1="24" y1="18" x2="31" y2="22" stroke="#ffffff" stroke-width="1" stroke-dasharray="2,2" opacity="0.8" />
+  <line x1="17" y1="22" x2="24" y2="18" stroke="#ffffff" stroke-width="1" stroke-dasharray="2,2" opacity="0.8" />
+  
+  <!-- Construction Accent Badge / Helmet touch -->
+  <circle cx="36" cy="36" r="6" fill="url(#bimGrad3)" />
+  <path d="M33 36 C33 34 39 34 39 36 Z" fill="#ffffff" />
+  <rect x="32" y="36.5" width="8" height="1.2" rx="0.6" fill="#ffffff" />
+</svg>

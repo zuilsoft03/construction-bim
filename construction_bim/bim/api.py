@@ -433,6 +433,9 @@ def delete_viewpoint(viewpoint: str) -> dict:
 def save_measurement(pdf_file: str, page_no: int = 1, measurement_type: str = "Distance",
                      points: str = "[]", scale: str = "{}", real_value: float = 0.0,
                      unit: str = "m", notes: str | None = None) -> dict:
+    if not frappe.db.exists("File", pdf_file):
+        file_doc = _find_file(pdf_file)
+        pdf_file = file_doc.name
     doc = frappe.new_doc("PDF Measurement")
     doc.pdf_file = pdf_file
     doc.page_no = int(page_no)
@@ -449,6 +452,12 @@ def save_measurement(pdf_file: str, page_no: int = 1, measurement_type: str = "D
 
 @frappe.whitelist()
 def list_measurements(pdf_file: str) -> list[dict]:
+    if not frappe.db.exists("File", pdf_file):
+        try:
+            file_doc = _find_file(pdf_file)
+            pdf_file = file_doc.name
+        except Exception:
+            pass
     return frappe.get_all("PDF Measurement",
                           filters={"pdf_file": pdf_file},
                           fields=["name", "page_no", "measurement_type", "points",
