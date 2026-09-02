@@ -66,9 +66,9 @@ Do not add functionality merely because it appears useful.
 ### System Boundary
 Frappe app `construction_bim` inside the ERPNext bench (installed apps:
 frappe, erpnext, drive 0.3.0, insights, helpdesk, builder, lending, gameplan,
-crm, telephony, construction_bim). Site: `local.dev` in Docker (compose
-project `erpnext-full`), served at `http://localhost:8000` with Host header
-`local.dev`.
+crm, telephony, construction_bim). Site: `localhost` in Docker (compose
+project `erpnext-full`), served directly at `http://localhost:8000` (no custom
+Host header needed; `local.dev` is preserved as a symlink alias).
 
 ### Request/Data Flow
 1. Desk page JS (page script) loads engine globals:
@@ -261,15 +261,15 @@ unauthorized access. Client never blindly trusts returned quantities.
 - Host unit tests: `cd C:\Users\gavie\ERP\construction_bim && python -m
   unittest discover -s test -p 'test_*.py' -v` (currently
   `test/test_drive_tree.py` — pure, no frappe).
-- In-container: `bench --site local.dev run-tests --app construction_bim`
+- In-container: `bench --site localhost run-tests --app construction_bim`
   (DB-coupled tests when added).
 - Live smoke via authenticated HTTP/desk:
-  - assets: `curl -H "Host: local.dev" http://localhost:8000/assets/construction_bim/js/webifc.bundle.js`
+  - assets: `curl.exe http://localhost:8000/assets/construction_bim/js/webifc.bundle.js`
     → 200; wasm begins `0061 736d` (`\0asm`).
   - desk page `/app/bim-viewer` loads model list; model select → 3D building
     is visible (visual check).
 - Page script is cached by the desk in localStorage unless
-  `developer_mode=1` — set on `local.dev`; after JS changes hard-refresh
+  `developer_mode=1` — set on `localhost`; after JS changes hard-refresh
   (Ctrl+F5) or clear site localStorage.
 - A command that does not exist must not be invented as a required check;
   use the real ones above.
