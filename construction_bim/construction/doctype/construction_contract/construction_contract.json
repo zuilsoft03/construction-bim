@@ -1,0 +1,286 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:CON-{YYYY}-{#####}",
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "contract_title",
+  "project",
+  "customer",
+  "contractor",
+  "contract_type",
+  "agreement_type",
+  "column_break_1",
+  "status",
+  "contract_date",
+  "start_date",
+  "completion_date",
+  "defect_liability_months",
+  "section_break_financials",
+  "contract_value",
+  "revised_contract_value",
+  "total_variations_amount",
+  "column_break_fin2",
+  "total_certified_amount",
+  "total_retention_withheld",
+  "retainage_rate",
+  "performance_bond_pct",
+  "section_break_boq",
+  "boq_items",
+  "section_break_milestones",
+  "milestones",
+  "section_break_legal",
+  "signed_contract",
+  "payment_terms",
+  "remarks",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "contract_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Contract Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Project",
+   "options": "Project",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Client / Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "contractor",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Main Contractor / Subcontractor",
+   "options": "Supplier"
+  },
+  {
+   "default": "Lump Sum",
+   "fieldname": "contract_type",
+   "fieldtype": "Select",
+   "label": "Contract Type",
+   "options": "Lump Sum\nUnit Price\nCost Plus\nTime & Materials\nGuaranteed Maximum Price (GMP)",
+   "reqd": 1
+  },
+  {
+   "default": "Prime Contract",
+   "fieldname": "agreement_type",
+   "fieldtype": "Select",
+   "label": "Agreement Type",
+   "options": "Prime Contract\nSubcontract\nJoint Venture\nLabor Only",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nActive\nSubstantially Complete\nFinal Account\nCompleted\nTerminated"
+  },
+  {
+   "default": "Today",
+   "fieldname": "contract_date",
+   "fieldtype": "Date",
+   "label": "Contract Date"
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Start Date"
+  },
+  {
+   "fieldname": "completion_date",
+   "fieldtype": "Date",
+   "label": "Completion Date"
+  },
+  {
+   "default": "12",
+   "fieldname": "defect_liability_months",
+   "fieldtype": "Int",
+   "label": "Defect Liability (Months)"
+  },
+  {
+   "fieldname": "section_break_financials",
+   "fieldtype": "Section Break",
+   "label": "Commercial & Financial Summary"
+  },
+  {
+   "fieldname": "contract_value",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Original Contract Value",
+   "options": "PHP"
+  },
+  {
+   "fieldname": "revised_contract_value",
+   "fieldtype": "Currency",
+   "label": "Revised Contract Value",
+   "options": "PHP",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "total_variations_amount",
+   "fieldtype": "Currency",
+   "label": "Total Approved Variations",
+   "options": "PHP",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_fin2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_certified_amount",
+   "fieldtype": "Currency",
+   "label": "Total Certified Billings",
+   "options": "PHP",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "total_retention_withheld",
+   "fieldtype": "Currency",
+   "label": "Total Retention Withheld",
+   "options": "PHP",
+   "read_only": 1
+  },
+  {
+   "default": "10",
+   "fieldname": "retainage_rate",
+   "fieldtype": "Percent",
+   "label": "Retainage Rate %"
+  },
+  {
+   "default": "10",
+   "fieldname": "performance_bond_pct",
+   "fieldtype": "Percent",
+   "label": "Performance Bond %"
+  },
+  {
+   "fieldname": "section_break_boq",
+   "fieldtype": "Section Break",
+   "label": "Bill of Quantities (BOQ)"
+  },
+  {
+   "fieldname": "boq_items",
+   "fieldtype": "Table",
+   "label": "BOQ Line Items",
+   "options": "Construction Contract BOQ Item"
+  },
+  {
+   "fieldname": "section_break_milestones",
+   "fieldtype": "Section Break",
+   "label": "Contract Milestones"
+  },
+  {
+   "fieldname": "milestones",
+   "fieldtype": "Table",
+   "label": "Contract Milestones",
+   "options": "Construction Contract Milestone"
+  },
+  {
+   "fieldname": "section_break_legal",
+   "fieldtype": "Section Break",
+   "label": "Documentation & Terms"
+  },
+  {
+   "fieldname": "signed_contract",
+   "fieldtype": "Attach",
+   "label": "Signed Contract Document (PDF)"
+  },
+  {
+   "fieldname": "payment_terms",
+   "fieldtype": "Small Text",
+   "label": "Payment Terms"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Construction Contract",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Construction",
+ "name": "Construction Contract",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

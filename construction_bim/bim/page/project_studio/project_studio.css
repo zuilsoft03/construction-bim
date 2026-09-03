@@ -1,0 +1,494 @@
+﻿/* OpenProject BIM Studio CSS Stylesheet */
+
+.project-studio-container {
+	display: flex;
+	flex-direction: column;
+	height: calc(100vh - 50px);
+	background-color: #f8fafc;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	color: #1e293b;
+	overflow: hidden;
+}
+
+/* Header */
+.studio-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: 48px;
+	padding: 0 16px;
+	background: #0f172a;
+	color: #fff;
+	border-bottom: 1px solid #1e293b;
+	flex-shrink: 0;
+}
+
+.studio-header-left {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.project-switcher-btn {
+	background: #1e293b;
+	color: #f8fafc;
+	border: 1px solid #334155;
+	font-weight: 600;
+	border-radius: 6px;
+	padding: 6px 14px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.project-switcher-btn:hover {
+	background: #334155;
+	color: #fff;
+}
+
+.sidebar-toggle-btn {
+	background: transparent;
+	color: #94a3b8;
+	border: none;
+	font-size: 16px;
+	padding: 6px;
+	cursor: pointer;
+}
+.sidebar-toggle-btn:hover {
+	color: #fff;
+}
+
+.studio-header-center {
+	width: 420px;
+}
+
+.studio-search-group input {
+	background: #1e293b;
+	border: 1px solid #334155;
+	color: #f8fafc;
+	border-radius: 6px;
+}
+.studio-search-group .input-group-addon {
+	background: #1e293b;
+	border: 1px solid #334155;
+	color: #94a3b8;
+}
+
+.studio-header-right {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+/* Body & Sidebar */
+.studio-body {
+	display: flex;
+	flex: 1;
+	overflow: hidden;
+}
+
+.studio-sidebar {
+	width: 220px;
+	background: #0b1329;
+	color: #94a3b8;
+	display: flex;
+	flex-direction: column;
+	border-right: 1px solid #1e293b;
+	transition: width 0.2s ease;
+	flex-shrink: 0;
+}
+
+.studio-sidebar.collapsed {
+	width: 54px;
+}
+.studio-sidebar.collapsed .quick-create-label,
+.studio-sidebar.collapsed .nav-item span,
+.studio-sidebar.collapsed .sidebar-footer {
+	display: none;
+}
+.studio-sidebar.collapsed .nav-item a {
+	justify-content: center;
+	padding: 10px 0;
+}
+
+/* Pinned Quick Create Button */
+.sidebar-quick-create {
+	padding: 12px;
+	border-bottom: 1px solid #1e293b;
+}
+
+.quick-create-btn {
+	background: #10b981;
+	border: none;
+	font-weight: 600;
+	color: #fff;
+	border-radius: 6px;
+	padding: 8px 12px;
+	transition: background 0.15s;
+}
+.quick-create-btn:hover {
+	background: #059669;
+}
+
+.quick-create-menu {
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
+	min-width: 210px;
+	border-radius: 8px;
+	padding: 6px 0;
+}
+.quick-create-menu a {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 14px;
+	color: #334155;
+	text-decoration: none;
+}
+.quick-create-menu a:hover {
+	background: #f1f5f9;
+	color: #0f172a;
+}
+
+/* Nav links */
+.studio-nav {
+	flex: 1;
+	overflow-y: auto;
+	padding: 10px 0;
+}
+
+.studio-nav-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.nav-item a {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 10px 16px;
+	color: #94a3b8;
+	text-decoration: none;
+	font-size: 13px;
+	font-weight: 500;
+	transition: all 0.15s;
+}
+.nav-item a:hover {
+	color: #f8fafc;
+	background: #1e293b;
+}
+.nav-item.active a {
+	color: #38bdf8;
+	background: #1e293b;
+	border-left: 3px solid #38bdf8;
+	font-weight: 600;
+}
+
+.sidebar-footer {
+	padding: 10px 16px;
+	border-top: 1px solid #1e293b;
+	font-size: 11px;
+}
+
+/* Main Viewport */
+.studio-viewport {
+	flex: 1;
+	overflow-y: auto;
+	padding: 20px;
+	background: #f8fafc;
+}
+
+/* Type Pills */
+.wp-pill {
+	display: inline-block;
+	padding: 2px 6px;
+	font-size: 10px;
+	font-weight: 700;
+	border-radius: 4px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+.wp-pill-task { background: #e0f2fe; color: #0284c7; }
+.wp-pill-milestone { background: #ffedd5; color: #ea580c; }
+.wp-pill-phase { background: #f1f5f9; color: #64748b; }
+.wp-pill-issue { background: #fee2e2; color: #dc2626; }
+.wp-pill-remark { background: #dcfce7; color: #16a34a; }
+.wp-pill-request { background: #ccfbf1; color: #0d9488; }
+.wp-pill-clash { background: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+/* Dashboard Grid (Project Home) */
+.dashboard-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 16px;
+}
+.dashboard-card {
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	padding: 16px;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.dashboard-card.full-width {
+	grid-column: span 2;
+}
+.card-header h3 {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 600;
+	color: #0f172a;
+}
+.flex-between {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+/* Timeline Widget */
+.timeline-container {
+	position: relative;
+	padding: 20px 10px 40px 10px;
+}
+.timeline-axis {
+	position: absolute;
+	top: 35px;
+	left: 10px;
+	right: 10px;
+	height: 4px;
+	background: #cbd5e1;
+	border-radius: 2px;
+}
+.timeline-markers {
+	display: flex;
+	justify-content: space-between;
+	position: relative;
+	z-index: 2;
+}
+.milestone-marker-point {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	cursor: pointer;
+}
+.milestone-diamond {
+	width: 16px;
+	height: 16px;
+	background: #ea580c;
+	transform: rotate(45deg);
+	box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+	margin-top: 17px;
+	transition: transform 0.15s;
+}
+.milestone-diamond.completed {
+	background: #10b981;
+}
+.milestone-diamond:hover {
+	transform: rotate(45deg) scale(1.2);
+}
+.milestone-label {
+	font-size: 11px;
+	font-weight: 600;
+	margin-top: 10px;
+	text-align: center;
+	color: #334155;
+	max-width: 90px;
+}
+.milestone-date {
+	font-size: 10px;
+	color: #64748b;
+}
+
+/* Work Packages Layout */
+.work-packages-layout {
+	display: flex;
+	gap: 16px;
+	height: calc(100vh - 120px);
+}
+.wp-sidebar-filter {
+	width: 220px;
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	padding: 12px;
+	flex-shrink: 0;
+}
+.wp-filter-group {
+	margin-top: 16px;
+}
+.filter-header {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	color: #94a3b8;
+	margin-bottom: 6px;
+}
+.filter-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+.filter-list li a {
+	display: block;
+	padding: 5px 8px;
+	color: #334155;
+	border-radius: 4px;
+	text-decoration: none;
+	font-size: 12px;
+}
+.filter-list li.active a {
+	background: #e2e8f0;
+	font-weight: 600;
+}
+.wp-main-table {
+	flex: 1;
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	padding: 16px;
+	overflow-y: auto;
+}
+
+/* Kanban Boards */
+.kanban-board-container {
+	display: flex;
+	gap: 16px;
+	overflow-x: auto;
+	height: calc(100vh - 150px);
+	padding-bottom: 10px;
+}
+.kanban-column {
+	width: 280px;
+	background: #f1f5f9;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	display: flex;
+	flex-direction: column;
+	flex-shrink: 0;
+}
+.column-header {
+	padding: 12px 14px;
+	font-weight: 600;
+	font-size: 13px;
+	border-bottom: 1px solid #e2e8f0;
+	display: flex;
+	justify-content: space-between;
+}
+.column-cards-list {
+	padding: 10px;
+	flex: 1;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+.kanban-card {
+	background: #fff;
+	border: 1px solid #cbd5e1;
+	border-radius: 6px;
+	padding: 10px;
+	box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+	cursor: grab;
+	transition: box-shadow 0.15s;
+}
+.kanban-card:hover {
+	box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+/* BCF 2-Pane Coordination Layout */
+.bcf-coordination-layout {
+	display: flex;
+	height: calc(100vh - 130px);
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	position: relative;
+	overflow: hidden;
+}
+.bcf-left-panel {
+	width: 260px;
+	border-right: 1px solid #e2e8f0;
+	padding: 12px;
+	overflow-y: auto;
+	flex-shrink: 0;
+}
+.bcf-center-canvas {
+	flex: 1;
+	position: relative;
+	background: #111827;
+}
+.bcf-canvas-hud {
+	position: absolute;
+	top: 12px;
+	left: 12px;
+	z-index: 10;
+	display: flex;
+	gap: 6px;
+}
+.webgl-canvas-host {
+	width: 100%;
+	height: 100%;
+}
+.bcf-cards-drawer {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 380px;
+	height: 100%;
+	background: #ffffff;
+	border-left: 1px solid #e2e8f0;
+	box-shadow: -4px 0 15px rgba(0,0,0,0.1);
+	z-index: 20;
+	display: flex;
+	flex-direction: column;
+}
+.drawer-header {
+	padding: 12px 16px;
+	border-bottom: 1px solid #e2e8f0;
+}
+.drawer-cards-stream {
+	flex: 1;
+	overflow-y: auto;
+	padding: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+/* Document Tree Grid */
+.document-folders-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 16px;
+}
+.folder-box {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	padding: 16px;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.folder-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 600;
+	font-size: 14px;
+	border-bottom: 1px solid #f1f5f9;
+	padding-bottom: 8px;
+	margin-bottom: 10px;
+}
+.file-item-link {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 6px 8px;
+	border-radius: 4px;
+	text-decoration: none;
+	color: #1e293b;
+	font-size: 12px;
+	transition: background 0.15s;
+}
+.file-item-link:hover {
+	background: #f1f5f9;
+}

@@ -1,0 +1,170 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:TBT-{YYYY}-{#####}",
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "topic",
+  "project",
+  "date",
+  "time",
+  "column_break_1",
+  "conducted_by",
+  "site_location",
+  "weather_condition",
+  "attendee_count",
+  "section_break_hazards",
+  "hazards_identified",
+  "ppe_compliance_checked",
+  "section_break_attendees",
+  "attendees",
+  "section_break_notes",
+  "key_discussions",
+  "photo_evidence"
+ ],
+ "fields": [
+  {
+   "fieldname": "topic",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Briefing Topic",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Project",
+   "options": "Project",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Briefing Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "time",
+   "fieldtype": "Time",
+   "label": "Time"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "conducted_by",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Conducted By (Safety Officer / Foreman)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "site_location",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Site / Zone Location"
+  },
+  {
+   "default": "Clear",
+   "fieldname": "weather_condition",
+   "fieldtype": "Select",
+   "label": "Weather Condition",
+   "options": "Clear\nCloudy\nRainy\nStormy\nExtreme Heat"
+  },
+  {
+   "default": "0",
+   "fieldname": "attendee_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Total Attendees",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_hazards",
+   "fieldtype": "Section Break",
+   "label": "Hazards & Safety Checks"
+  },
+  {
+   "fieldname": "hazards_identified",
+   "fieldtype": "Small Text",
+   "label": "Daily Hazards Discussed (Work at Height, Electrical, etc.)"
+  },
+  {
+   "default": "1",
+   "fieldname": "ppe_compliance_checked",
+   "fieldtype": "Check",
+   "label": "100% Mandatory PPE Checked (Hard Hat, Vest, Steel Toe, Harness)"
+  },
+  {
+   "fieldname": "section_break_attendees",
+   "fieldtype": "Section Break",
+   "label": "Worker Attendance Register"
+  },
+  {
+   "fieldname": "attendees",
+   "fieldtype": "Table",
+   "label": "Attendees",
+   "options": "Toolbox Talk Attendee"
+  },
+  {
+   "fieldname": "section_break_notes",
+   "fieldtype": "Section Break",
+   "label": "Discussion Summary & Photographic Evidence"
+  },
+  {
+   "fieldname": "key_discussions",
+   "fieldtype": "Text Editor",
+   "label": "Discussion Notes & Worker Concerns"
+  },
+  {
+   "fieldname": "photo_evidence",
+   "fieldtype": "Attach Image",
+   "label": "Toolbox Meeting Photo"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Construction",
+ "name": "Toolbox Talk",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "date",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

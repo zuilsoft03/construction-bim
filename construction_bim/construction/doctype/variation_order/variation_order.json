@@ -1,0 +1,208 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:VO-{YYYY}-{#####}",
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "contract",
+  "project",
+  "requested_by",
+  "column_break_1",
+  "status",
+  "reason",
+  "approval_date",
+  "approved_by",
+  "section_break_impact",
+  "cost_impact",
+  "time_extension_days",
+  "column_break_bim",
+  "bcf_topic",
+  "bim_element_group",
+  "section_break_details",
+  "description",
+  "remarks",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Variation Order Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "contract",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Construction Contract",
+   "options": "Construction Contract",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Project",
+   "options": "Project"
+  },
+  {
+   "default": "Client / Owner",
+   "fieldname": "requested_by",
+   "fieldtype": "Select",
+   "label": "Requested By",
+   "options": "Client / Owner\nMain Contractor\nConsultant / Architect\nSite Conditions\nRegulatory Authority"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nSubmitted\nUnder Review\nApproved\nRejected\nImplemented"
+  },
+  {
+   "default": "Scope Addition",
+   "fieldname": "reason",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Reason for Change",
+   "options": "Scope Addition\nScope Omission\nSite Condition Unforeseen\nClash Resolution / Design Change\nValue Engineering\nMaterial Substitution\nRegulatory Requirement"
+  },
+  {
+   "fieldname": "approval_date",
+   "fieldtype": "Date",
+   "label": "Approval Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Approved By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_impact",
+   "fieldtype": "Section Break",
+   "label": "Commercial & Schedule Impact"
+  },
+  {
+   "fieldname": "cost_impact",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Cost Impact (+ / -)",
+   "options": "PHP",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "time_extension_days",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Time Extension (Days)"
+  },
+  {
+   "fieldname": "column_break_bim",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "bcf_topic",
+   "fieldtype": "Link",
+   "label": "Linked BCF Topic",
+   "options": "BCF Topic"
+  },
+  {
+   "fieldname": "bim_element_group",
+   "fieldtype": "Link",
+   "label": "Affected BIM Element Group",
+   "options": "BIM Element Group"
+  },
+  {
+   "fieldname": "section_break_details",
+   "fieldtype": "Section Break",
+   "label": "Scope Narrative & Justification"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "Scope Description & Justification"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Variation Order",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Construction",
+ "name": "Variation Order",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

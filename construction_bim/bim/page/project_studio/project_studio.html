@@ -1,0 +1,511 @@
+﻿<div id="project-studio-root" class="project-studio-container">
+	<!-- Top Navigation Header -->
+	<header class="studio-header">
+		<div class="studio-header-left">
+			<div class="project-selector-dropdown dropdown">
+				<button class="btn btn-default dropdown-toggle project-switcher-btn" type="button" id="projectSwitcherBtn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<span class="project-icon"><i class="fa fa-cubes"></i></span>
+					<span id="current-project-title" class="project-title-text">All projects</span>
+					<span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu project-switcher-menu" id="project-switcher-list" aria-labelledby="projectSwitcherBtn">
+					<li class="dropdown-header">Projects</li>
+					<li><a href="javascript:void(0)" data-project="all"><i class="fa fa-th-list text-muted"></i> <strong>All projects (Hub)</strong></a></li>
+					<li role="separator" class="divider"></li>
+					<li id="project-switcher-loading" class="text-muted p-2 text-center"><small><i class="fa fa-spinner fa-spin"></i> Loading projects...</small></li>
+				</ul>
+			</div>
+			<button id="btn-toggle-sidebar" class="btn btn-default btn-xs sidebar-toggle-btn" title="Toggle Sidebar">
+				<i class="fa fa-bars"></i>
+			</button>
+		</div>
+
+		<div class="studio-header-center">
+			<div class="input-group studio-search-group">
+				<span class="input-group-addon"><i class="fa fa-search"></i></span>
+				<input type="text" id="studio-global-search" class="form-control" placeholder="Search work packages, models, documents in project...">
+			</div>
+		</div>
+
+		<div class="studio-header-right">
+			<button id="btn-studio-refresh" class="btn btn-default btn-sm" title="Refresh Studio Data">
+				<i class="fa fa-refresh"></i>
+			</button>
+			<button id="btn-fullscreen" class="btn btn-default btn-sm" title="Toggle Fullscreen">
+				<i class="fa fa-arrows-alt"></i>
+			</button>
+			<a href="/app/construction" class="btn btn-default btn-sm" title="Exit to Construction Workspace">
+				<i class="fa fa-th"></i> <span class="hidden-xs">Desk</span>
+			</a>
+		</div>
+	</header>
+
+	<!-- Main Studio Body -->
+	<div class="studio-body">
+		<!-- Left Collapsible Navigation Sidebar -->
+		<aside id="studio-sidebar" class="studio-sidebar">
+			<!-- Pinned Quick Create (+) Button -->
+			<div class="sidebar-quick-create dropdown">
+				<button class="btn btn-primary btn-block quick-create-btn dropdown-toggle" type="button" id="quickCreateBtn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<i class="fa fa-plus"></i> <span class="quick-create-label">Create</span> <span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu quick-create-menu" aria-labelledby="quickCreateBtn">
+					<li><a href="javascript:void(0)" class="action-quick-add" data-type="project"><i class="fa fa-folder-open-o text-primary"></i> <strong>Project</strong></a></li>
+					<li><a href="javascript:void(0)" class="action-quick-add" data-type="user"><i class="fa fa-user-plus text-info"></i> Invite user</a></li>
+					<li role="separator" class="divider"></li>
+					<li class="dropdown-header">WORK PACKAGES</li>
+					<li><a href="javascript:void(0)" class="action-quick-add" data-type="TASK"><span class="wp-pill wp-pill-task">TASK</span> Standard Task</a></li>
+					<li><a href="javascript:void(0)" class="action-quick-add" data-type="MILESTONE"><span class="wp-pill wp-pill-milestone">MILESTONE</span> Stage Deadline</a></li>
+					<li><a href="javascript:void(0)" class="action-quick-add" data-type="PHASE"><span class="wp-pill wp-pill-phase">PHASE</span> PM² Stage Gate</a></li>
+					<li><a href="javascript:void(0)" class="action-quick-add" data-type="ISSUE"><span class="wp-pill wp-pill-issue">ISSUE</span> Snag / Punchlist</a></li>
+					<li><a href="javascript:void(0)" class="action-quick-add" data-type="REMARK"><span class="wp-pill wp-pill-remark">REMARK</span> Site Observation</a></li>
+					<li><a href="javascript:void(0)" class="action-quick-add" data-type="REQUEST"><span class="wp-pill wp-pill-request">REQUEST</span> RFI / Change</a></li>
+					<li><a href="javascript:void(0)" class="action-quick-add" data-type="CLASH"><span class="wp-pill wp-pill-clash">CLASH</span> 3D Coordination</a></li>
+				</ul>
+			</div>
+
+			<!-- Nav links -->
+			<nav class="studio-nav">
+				<ul class="studio-nav-list">
+					<li class="nav-item active" data-tab="home">
+						<a href="javascript:void(0)"><i class="fa fa-home"></i> <span>Project home</span></a>
+					</li>
+					<li class="nav-item" data-tab="work-packages">
+						<a href="javascript:void(0)"><i class="fa fa-tasks"></i> <span>Work packages</span></a>
+					</li>
+					<li class="nav-item" data-tab="boards">
+						<a href="javascript:void(0)"><i class="fa fa-columns"></i> <span>Boards</span></a>
+					</li>
+					<li class="nav-item" data-tab="gantt">
+						<a href="javascript:void(0)"><i class="fa fa-align-left"></i> <span>Gantt charts</span></a>
+					</li>
+					<li class="nav-item" data-tab="bcf">
+						<a href="javascript:void(0)"><i class="fa fa-cube"></i> <span>BIM / BCF</span></a>
+					</li>
+					<li class="nav-item" data-tab="cad">
+						<a href="javascript:void(0)"><i class="fa fa-pencil"></i> <span>2D CAD (DWG)</span></a>
+					</li>
+					<li class="nav-item" data-tab="pdf">
+						<a href="javascript:void(0)"><i class="fa fa-file-pdf-o"></i> <span>PDF Plans</span></a>
+					</li>
+					<li class="nav-item" data-tab="documents">
+						<a href="javascript:void(0)"><i class="fa fa-folder-o"></i> <span>Documents</span></a>
+					</li>
+					<li class="nav-item" data-tab="meetings">
+						<a href="javascript:void(0)"><i class="fa fa-comments-o"></i> <span>Meetings & Safety</span></a>
+					</li>
+					<li class="nav-item" data-tab="members">
+						<a href="javascript:void(0)"><i class="fa fa-users"></i> <span>Members</span></a>
+					</li>
+					<li class="nav-item" data-tab="settings">
+						<a href="javascript:void(0)"><i class="fa fa-cog"></i> <span>Project settings</span></a>
+					</li>
+				</ul>
+			</nav>
+
+			<div class="sidebar-footer">
+				<small class="text-muted"><span id="sidebar-active-status">Active</span></small>
+			</div>
+		</aside>
+
+		<!-- Main Viewport Workspace -->
+		<main id="studio-viewport" class="studio-viewport">
+			<!-- TAB 0: ALL PROJECTS HUB (Screenshot 1) -->
+			<section id="view-all-projects" class="studio-tab-view" style="display: none;">
+				<div class="view-header">
+					<div class="view-header-title">
+						<ol class="breadcrumb">
+							<li><a href="javascript:void(0)">Projects</a></li>
+							<li class="active">Active projects</li>
+						</ol>
+						<h2>Active projects</h2>
+					</div>
+					<div class="view-header-actions">
+						<button id="btn-add-project" class="btn btn-success"><i class="fa fa-plus"></i> + Add</button>
+					</div>
+				</div>
+
+				<div class="projects-table-container">
+					<div class="table-toolbar">
+						<div class="search-box">
+							<input type="text" id="projects-filter-input" class="form-control input-sm" placeholder="Filter projects...">
+						</div>
+					</div>
+					<table class="table table-hover projects-table" id="table-active-projects">
+						<thead>
+							<tr>
+								<th width="40">FAV</th>
+								<th>NAME</th>
+								<th width="120">STATUS</th>
+								<th width="80">PUBLIC</th>
+								<th width="120">CREATED ON</th>
+								<th width="140">LATEST ACTIVITY</th>
+								<th width="120">STORAGE</th>
+							</tr>
+						</thead>
+						<tbody id="projects-table-body">
+							<!-- Rendered via JS -->
+						</tbody>
+					</table>
+					<div id="projects-table-summary" class="projects-table-footer text-muted"></div>
+				</div>
+			</section>
+
+			<!-- TAB 1: PROJECT HOME DASHBOARD (Screenshot 2) -->
+			<section id="view-home" class="studio-tab-view">
+				<div class="dashboard-grid">
+					<!-- Top Row: Overview Summary & Status Narrative -->
+					<div class="dashboard-card card-summary">
+						<div class="card-header">
+							<h3><i class="fa fa-info-circle text-primary"></i> Project Overview</h3>
+						</div>
+						<div class="card-body">
+							<p id="overview-description" class="overview-desc-text">Loading description...</p>
+							<div class="overview-meta-row">
+								<span><strong>Dates:</strong> <span id="overview-dates">--</span></span>
+								<span><strong>Progress:</strong> <span id="overview-progress">0%</span></span>
+							</div>
+						</div>
+					</div>
+
+					<div class="dashboard-card card-status">
+						<div class="card-header flex-between">
+							<h3>Status</h3>
+							<div class="status-dropdown-container">
+								<select id="select-project-health" class="form-control input-sm health-select">
+									<option value="On Track">🟢 On track</option>
+									<option value="At Risk">🟠 At risk</option>
+									<option value="Off Track">🔴 Off track</option>
+								</select>
+							</div>
+						</div>
+						<div class="card-body">
+							<h4 class="text-muted status-subheading">Status Description</h4>
+							<p id="overview-status-narrative" class="status-narrative-text">Loading...</p>
+							<button id="btn-edit-status-narrative" class="btn btn-default btn-xs"><i class="fa fa-pencil"></i> Edit status note</button>
+						</div>
+					</div>
+
+					<!-- Middle Row: Milestone Diamond Timeline -->
+					<div class="dashboard-card card-timeline full-width">
+						<div class="card-header flex-between">
+							<h3><i class="fa fa-calendar-check-o text-primary"></i> Project timeline</h3>
+							<span class="text-muted"><small>Milestone stage delivery</small></span>
+						</div>
+						<div class="card-body">
+							<div id="project-diamond-timeline" class="timeline-container">
+								<div class="timeline-axis" id="timeline-axis-bar"></div>
+								<div class="timeline-markers" id="timeline-markers-container">
+									<!-- Milestone diamonds rendered here -->
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Bottom Row: Subprojects, Meetings, Members, News -->
+					<div class="dashboard-card card-subprojects">
+						<div class="card-header flex-between">
+							<h3>Subitems</h3>
+							<button id="btn-add-subproject" class="btn btn-default btn-xs" title="Add Subproject"><i class="fa fa-plus"></i></button>
+						</div>
+						<div class="card-body">
+							<ul id="subprojects-list" class="subprojects-list">
+								<!-- Subprojects list -->
+							</ul>
+						</div>
+					</div>
+
+					<div class="dashboard-card card-meetings">
+						<div class="card-header flex-between">
+							<h3>My meetings & Toolboxes</h3>
+							<button id="btn-add-meeting" class="btn btn-default btn-xs"><i class="fa fa-plus"></i> Meeting</button>
+						</div>
+						<div class="card-body">
+							<div id="meetings-list-container">
+								<!-- Meetings list -->
+							</div>
+						</div>
+					</div>
+
+					<div class="dashboard-card card-members">
+						<div class="card-header flex-between">
+							<h3>Members</h3>
+							<a href="javascript:void(0)" class="view-members-link text-muted"><small>View all</small></a>
+						</div>
+						<div class="card-body">
+							<div id="members-avatars-grid" class="members-grid">
+								<!-- Members rendered here -->
+							</div>
+						</div>
+					</div>
+
+					<div class="dashboard-card card-news">
+						<div class="card-header">
+							<h3>News & Safety Bulletins</h3>
+						</div>
+						<div class="card-body">
+							<div id="news-feed-container">
+								<!-- News rendered here -->
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- TAB 2: WORK PACKAGES GRID (Screenshot 3) -->
+			<section id="view-work-packages" class="studio-tab-view" style="display: none;">
+				<div class="work-packages-layout">
+					<!-- Sidebar Filter Column -->
+					<div class="wp-sidebar-filter">
+						<div class="wp-search-box">
+							<input type="text" id="wp-filter-search" class="form-control input-sm" placeholder="Search by name...">
+						</div>
+						<div class="wp-filter-group">
+							<div class="filter-header">Default</div>
+							<ul class="filter-list">
+								<li class="active" data-filter="all_open"><a href="javascript:void(0)">All open</a></li>
+								<li data-filter="latest_activity"><a href="javascript:void(0)">Latest activity</a></li>
+								<li data-filter="recently_created"><a href="javascript:void(0)">Recently created</a></li>
+								<li data-filter="overdue"><a href="javascript:void(0)">Overdue</a></li>
+								<li data-filter="assigned_to_me"><a href="javascript:void(0)">Assigned to me</a></li>
+								<li data-filter="created_by_me"><a href="javascript:void(0)">Created by me</a></li>
+							</ul>
+						</div>
+						<div class="wp-filter-group">
+							<div class="filter-header">Work Package Type</div>
+							<ul class="filter-list">
+								<li data-type="all" class="active"><a href="javascript:void(0)">All types</a></li>
+								<li data-type="clash"><a href="javascript:void(0)"><span class="dot-clash"></span> Clashes</a></li>
+								<li data-type="issue"><a href="javascript:void(0)"><span class="dot-issue"></span> Issues</a></li>
+								<li data-type="milestone"><a href="javascript:void(0)"><span class="dot-milestone"></span> Milestones</a></li>
+								<li data-type="phase"><a href="javascript:void(0)"><span class="dot-phase"></span> Phases</a></li>
+								<li data-type="request"><a href="javascript:void(0)"><span class="dot-request"></span> Requests</a></li>
+								<li data-type="task"><a href="javascript:void(0)"><span class="dot-task"></span> Tasks</a></li>
+							</ul>
+						</div>
+					</div>
+
+					<!-- Main Tree Table Column -->
+					<div class="wp-main-table">
+						<div class="table-top-bar flex-between">
+							<div class="bar-left">
+								<h3 id="wp-active-filter-title">All open</h3>
+							</div>
+							<div class="bar-right">
+								<button class="btn btn-success btn-sm action-quick-add" data-type="TASK"><i class="fa fa-plus"></i> + Create</button>
+							</div>
+						</div>
+						<div class="table-responsive">
+							<table class="table table-hover wp-table" id="table-work-packages">
+								<thead>
+									<tr>
+										<th width="70">ID</th>
+										<th>SUBJECT</th>
+										<th width="110">TYPE</th>
+										<th width="120">STATUS</th>
+										<th width="160">ASSIGNEE</th>
+										<th width="100">PRIORITY</th>
+										<th width="120">DUE DATE</th>
+									</tr>
+								</thead>
+								<tbody id="wp-table-body">
+									<!-- Work packages rendered here -->
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- TAB 3: KANBAN BOARDS (OpenProject Boards) -->
+			<section id="view-boards" class="studio-tab-view" style="display: none;">
+				<div class="board-top-controls flex-between">
+					<div class="board-title-box">
+						<h2>Kanban Boards</h2>
+					</div>
+					<div class="board-grouping-selector form-inline">
+						<label class="control-label mr-2">Group by: </label>
+						<select id="select-board-group-by" class="form-control input-sm">
+							<option value="status">Status (New, In Progress, Resolved, Closed)</option>
+							<option value="priority">Priority (Low, Normal, High, Urgent)</option>
+							<option value="assignee">Assignee (Team Member)</option>
+						</select>
+					</div>
+				</div>
+
+				<div class="kanban-board-container" id="kanban-columns-wrapper">
+					<!-- Kanban columns rendered dynamically -->
+				</div>
+			</section>
+
+			<!-- TAB 4: GANTT CHARTS -->
+			<section id="view-gantt" class="studio-tab-view" style="display: none;">
+				<div class="view-header">
+					<h2>Gantt Schedule</h2>
+				</div>
+				<div id="gantt-chart-container" class="gantt-wrapper p-3">
+					<div id="frappe-gantt-target"></div>
+				</div>
+			</section>
+
+			<!-- TAB 5: BIM / BCF COORDINATION 2-PANE VIEWER (Screenshot 4) -->
+			<section id="view-bcf" class="studio-tab-view" style="display: none;">
+				<div class="bcf-coordination-layout">
+					<!-- Left Pane: Spatial Hierarchy & Model Tree -->
+					<div class="bcf-left-panel">
+						<div class="bcf-panel-header">
+							<h4>Models & Spatial Tree</h4>
+						</div>
+						<div class="bcf-panel-controls">
+							<button id="btn-load-all-models" class="btn btn-default btn-xs">Load all</button>
+							<button id="btn-unload-all-models" class="btn btn-default btn-xs">Unload all</button>
+						</div>
+						<div id="bcf-models-tree" class="bcf-tree-view">
+							<!-- Model checkboxes rendered here -->
+						</div>
+					</div>
+
+					<!-- Center Canvas: 3D WebGL Viewer -->
+					<div class="bcf-center-canvas">
+						<div class="bcf-canvas-hud">
+							<button id="btn-bcf-create-topic" class="btn btn-success btn-xs"><i class="fa fa-plus"></i> + Create Issue</button>
+							<button id="btn-bcf-toggle-drawer" class="btn btn-default btn-xs"><i class="fa fa-list"></i> BCF Topics Drawer</button>
+							<button id="btn-bcf-fit-view" class="btn btn-default btn-xs"><i class="fa fa-crosshairs"></i> Fit</button>
+							<button id="btn-bcf-section" class="btn btn-default btn-xs"><i class="fa fa-scissors"></i> Section</button>
+						</div>
+						<div id="bcf-webgl-container" class="webgl-canvas-host">
+							<!-- Three.js Canvas mounts here -->
+						</div>
+					</div>
+
+					<!-- Floating / Collapsible Right Drawer: BCF Topics Cards -->
+					<div id="bcf-floating-drawer" class="bcf-cards-drawer" style="display: none;">
+						<div class="drawer-header flex-between">
+							<h4>BCF Topics (<span id="bcf-topic-count">0</span>)</h4>
+							<button id="btn-close-bcf-drawer" class="btn btn-default btn-xs"><i class="fa fa-times"></i></button>
+						</div>
+						<div id="bcf-cards-container" class="drawer-cards-stream">
+							<!-- Topic cards rendered here -->
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- TAB 6: 2D CAD DWG/DXF STUDIO -->
+			<section id="view-cad" class="studio-tab-view" style="display: none;">
+				<div class="cad-studio-wrapper">
+					<div class="view-header flex-between">
+						<h2>2D CAD Drawing Studio</h2>
+						<button id="btn-open-dwg-fullscreen" class="btn btn-default btn-sm"><i class="fa fa-external-link"></i> Standalone DWG Page</button>
+					</div>
+					<div id="cad-embed-host" class="cad-viewport-host">
+						<iframe id="iframe-dwg-viewer" src="/app/dwg-viewer" style="width: 100%; height: 700px; border: none;"></iframe>
+					</div>
+				</div>
+			</section>
+
+			<!-- TAB 7: PDF PLANS TAKEOFF -->
+			<section id="view-pdf" class="studio-tab-view" style="display: none;">
+				<div class="pdf-studio-wrapper">
+					<div class="view-header flex-between">
+						<h2>PDF Plan Sheets Takeoff</h2>
+						<button id="btn-open-pdf-fullscreen" class="btn btn-default btn-sm"><i class="fa fa-external-link"></i> Standalone PDF Page</button>
+					</div>
+					<div id="pdf-embed-host" class="pdf-viewport-host">
+						<iframe id="iframe-pdf-viewer" src="/app/pdf-takeoff" style="width: 100%; height: 700px; border: none;"></iframe>
+					</div>
+				</div>
+			</section>
+
+			<!-- TAB 8: PROJECT DOCUMENTS TREE -->
+			<section id="view-documents" class="studio-tab-view" style="display: none;">
+				<div class="documents-layout">
+					<div class="view-header flex-between">
+						<div>
+							<h2>Project Documents</h2>
+							<p class="text-muted">Structured document repository with one-click interactive viewers</p>
+						</div>
+						<div>
+							<button id="btn-upload-document" class="btn btn-primary btn-sm"><i class="fa fa-upload"></i> Upload File</button>
+						</div>
+					</div>
+					<div class="document-folders-grid" id="document-folders-container">
+						<!-- 5 Folders with files rendered here -->
+					</div>
+				</div>
+			</section>
+
+			<!-- TAB 9: MEETINGS & TOOLBOX TALKS -->
+			<section id="view-meetings" class="studio-tab-view" style="display: none;">
+				<div class="view-header flex-between">
+					<h2>Meetings & Daily Safety Briefings</h2>
+					<button class="btn btn-primary btn-sm" id="btn-schedule-meeting"><i class="fa fa-plus"></i> New Meeting</button>
+				</div>
+				<div class="meetings-container" id="meetings-tab-container">
+					<!-- Meetings stream -->
+				</div>
+			</section>
+
+			<!-- TAB 10: MEMBERS & ROLES -->
+			<section id="view-members" class="studio-tab-view" style="display: none;">
+				<div class="view-header flex-between">
+					<h2>Project Members & Permissions</h2>
+					<button class="btn btn-primary btn-sm action-quick-add" data-type="user"><i class="fa fa-user-plus"></i> Invite Member</button>
+				</div>
+				<div class="members-table-container">
+					<table class="table table-hover" id="table-project-members">
+						<thead>
+							<tr>
+								<th>NAME</th>
+								<th>EMAIL</th>
+								<th>ROLE</th>
+								<th>STATUS</th>
+							</tr>
+						</thead>
+						<tbody id="members-table-body">
+							<!-- Members list -->
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+			<!-- TAB 11: PROJECT SETTINGS -->
+			<section id="view-settings" class="studio-tab-view" style="display: none;">
+				<div class="settings-layout">
+					<div class="view-header">
+						<h2>Project Settings</h2>
+					</div>
+					<div class="settings-card card-general">
+						<h3>General Information</h3>
+						<div class="form-group">
+							<label>Project Name</label>
+							<input type="text" id="setting-project-name" class="form-control">
+						</div>
+						<div class="form-group">
+							<label>Status Narrative</label>
+							<textarea id="setting-status-narrative" class="form-control" rows="3"></textarea>
+						</div>
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" id="setting-is-template"> <strong>Set as Project Template</strong> (allows cloning phases, gates, and tasks into new projects)
+							</label>
+						</div>
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" id="setting-is-favorite"> <strong>Favorite Project</strong> (pin to top of dashboard)
+							</label>
+						</div>
+						<button id="btn-save-project-settings" class="btn btn-primary"><i class="fa fa-check"></i> Save Settings</button>
+					</div>
+
+					<div class="settings-card card-danger-zone mt-4">
+						<h3 class="text-danger">Danger Zone</h3>
+						<p class="text-muted">Archive or delete this project.</p>
+						<button id="btn-toggle-archive-project" class="btn btn-warning mr-2"><i class="fa fa-archive"></i> Archive Project</button>
+						<button id="btn-delete-project" class="btn btn-danger"><i class="fa fa-trash"></i> Delete Project</button>
+					</div>
+				</div>
+			</section>
+		</main>
+	</div>
+</div>

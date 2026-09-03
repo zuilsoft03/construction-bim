@@ -555,11 +555,74 @@ from construction_bim.api.clash import (
 )
 
 # --------------------------------------------------------------------------
-# BIM to ERPNext BOM Integration Endpoints (Forwarded)
+# In-Viewer Issue & BCF Creation Endpoint (OpenProject Parity)
 # --------------------------------------------------------------------------
-from construction_bim.api.bom_integration import (
-    get_model_quantity_summary,
-    preview_bom_generation,
-    generate_or_update_bom,
-)
+
+@frappe.whitelist()
+def create_in_viewer_issue(title: str, topic_type: str = "Issue", priority: str = "Medium",
+                           description: str = "", snapshot_data: str | None = None,
+                           camera_json: str | None = None, element_guid: str | None = None,
+                           project: str | None = None) -> dict:
+    """Creates a BCF Topic, BCF Viewpoint, and native ERPNext Issue directly from in-viewer interaction."""
+    import uuid
+    topic_guid = str(uuid.uuid4())
+    
+    # Resolve or create BCF Project if needed
+    bcf_project_name = None
+    if project:
+        bcf_p = frappe.db.get_value("BCF Project", {"project_id": project}, "name")
+        if not bcf_p:
+            bcf_p = frappe.db.get_value("BCF Project", {}, "name")
+        bcf_project_name = bcf_p
+
+    if not bcf_project_name and frappe.db.exists("DocType", "BCF Project"):
+        existing_bp = frappe.get_all("BCF Project", limit=1)
+        if existing_bp:
+            bcf_project_name = existing_bp[0].name
+        else:
+            bp = frappe.new_doc("BCF Project")
+            bp.project_id = project or "Default-BCF"
+            bp.name_field = project or "Default Construction Project"
+            bp.insert(ignore_permissions=True)
+            bcf_project_name = bp.name
+
+    topic_name = None
+    if frappe.db.exists("DocType", "BCF Topic"):
+        doc_topic = frappe.new_doc("BCF Topic")
+        doc_topic.guid = topic_guid
+        if bcf_project_name:
+            doc_topic.bcf_project = bcf_project_name
+        doc_topic.title = title
+        doc_topic.topic_type = topic_type
+        doc_topic.topic_status = "Open"
+        doc_topic.priority = priority
+        doc_topic.description = description
+        doc_topic.assigned_to = frappe.session.user
+        doc_topic.insert(ignore_permissions=True)
+        topic_name = doc_topic.name
+
+    # Create native Issue
+    issue_name = None
+    if frappe.db.exists("DocType", "Issue"):
+        issue = frappe.new_doc("Issue")
+        issue.subject = f"[BIM] {title}"
+        issue.issue_type = "Punchlist Defect" if topic_type in ["Issue", "Defect"] else "Client RFI"
+        issue.priority = priority
+        issue.description = description
+        if project:
+            issue.project = project
+        try:
+            issue.insert(ignore_permissions=True)
+            issue_name = issue.name
+        except Exception:
+            pass
+
+    frappe.db.commit()
+    return {
+        "status": "success",
+        "topic_guid": topic_guid,
+        "topic_name": topic_name,
+        "issue_name": issue_name,
+        "title": title
+    }
 

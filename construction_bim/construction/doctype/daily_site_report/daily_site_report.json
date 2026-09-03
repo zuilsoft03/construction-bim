@@ -1,0 +1,178 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:DSR-{project}-{YYYYMMDD}",
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "date",
+  "project",
+  "prepared_by",
+  "column_break_1",
+  "status",
+  "weather",
+  "site_temperature",
+  "total_manpower",
+  "work_shift",
+  "section_break_trades",
+  "subcontractors",
+  "section_break_narrative",
+  "major_activities_today",
+  "delays_or_impediments",
+  "section_break_safety",
+  "safety_and_environmental_notes",
+  "visitors_log",
+  "site_photos"
+ ],
+ "fields": [
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Report Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Project",
+   "options": "Project",
+   "reqd": 1
+  },
+  {
+   "fieldname": "prepared_by",
+   "fieldtype": "Link",
+   "label": "Prepared By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nSubmitted\nApproved"
+  },
+  {
+   "default": "Clear / Sunny",
+   "fieldname": "weather",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Weather Condition",
+   "options": "Clear / Sunny\nCloudy\nIntermittent Rain\nHeavy Downpour\nTyphoon / Work Suspension"
+  },
+  {
+   "fieldname": "site_temperature",
+   "fieldtype": "Data",
+   "label": "Site Temperature (e.g. 32°C)"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_manpower",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Total Manpower on Site",
+   "read_only": 1
+  },
+  {
+   "default": "Day Shift",
+   "fieldname": "work_shift",
+   "fieldtype": "Select",
+   "label": "Shift",
+   "options": "Day Shift\nNight Shift\n24-Hour Continuous Pour"
+  },
+  {
+   "fieldname": "section_break_trades",
+   "fieldtype": "Section Break",
+   "label": "Trade & Subcontractor Workforce Breakdown"
+  },
+  {
+   "fieldname": "subcontractors",
+   "fieldtype": "Table",
+   "label": "Subcontractor Activities",
+   "options": "Daily Site Subcontractor Activity"
+  },
+  {
+   "fieldname": "section_break_narrative",
+   "fieldtype": "Section Break",
+   "label": "Site Execution Narrative"
+  },
+  {
+   "fieldname": "major_activities_today",
+   "fieldtype": "Text Editor",
+   "label": "Major Construction Activities Executed Today"
+  },
+  {
+   "fieldname": "delays_or_impediments",
+   "fieldtype": "Small Text",
+   "label": "Site Delays, Idle Time, or Material Blockers"
+  },
+  {
+   "fieldname": "section_break_safety",
+   "fieldtype": "Section Break",
+   "label": "Safety, Quality & Visitors"
+  },
+  {
+   "fieldname": "safety_and_environmental_notes",
+   "fieldtype": "Small Text",
+   "label": "Safety Observations / Incidents"
+  },
+  {
+   "fieldname": "visitors_log",
+   "fieldtype": "Small Text",
+   "label": "Site Visitors / Client Inspections"
+  },
+  {
+   "fieldname": "site_photos",
+   "fieldtype": "Attach Image",
+   "label": "Daily Site Photo"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Construction",
+ "name": "Daily Site Report",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "date",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

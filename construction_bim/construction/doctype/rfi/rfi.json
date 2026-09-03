@@ -1,0 +1,234 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:RFI-{YYYY}-{#####}",
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "subject",
+  "project",
+  "discipline",
+  "rfi_type",
+  "column_break_1",
+  "status",
+  "priority",
+  "date_raised",
+  "response_due_date",
+  "section_break_parties",
+  "from_party",
+  "to_party",
+  "column_break_bim",
+  "bcf_topic",
+  "bim_element_group",
+  "drawings_referenced",
+  "section_break_question",
+  "question",
+  "section_break_impact",
+  "cost_impact",
+  "schedule_impact",
+  "section_break_response",
+  "response",
+  "responded_by",
+  "response_date",
+  "official_response_attachment"
+ ],
+ "fields": [
+  {
+   "fieldname": "subject",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "RFI Subject",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Project",
+   "options": "Project",
+   "reqd": 1
+  },
+  {
+   "fieldname": "discipline",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Trade / Discipline",
+   "options": "Architectural\nStructural\nMechanical / HVAC\nElectrical\nPlumbing & Sanitary\nFire Protection\nCivil & Geotechnical"
+  },
+  {
+   "default": "Design Clarification",
+   "fieldname": "rfi_type",
+   "fieldtype": "Select",
+   "label": "RFI Classification",
+   "options": "Design Clarification\nSite Condition Conflict\nSpecification Ambiguity\nMaterial Approval / Submittal\nCoordination Clash"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nSubmitted\nUnder Review\nResponded\nClosed\nVoid"
+  },
+  {
+   "default": "Normal",
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Priority",
+   "options": "Low\nNormal\nHigh\nUrgent (Work Stoppage)"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_raised",
+   "fieldtype": "Date",
+   "label": "Date Raised"
+  },
+  {
+   "fieldname": "response_due_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Required Response Due Date"
+  },
+  {
+   "fieldname": "section_break_parties",
+   "fieldtype": "Section Break",
+   "label": "Routing & BIM Links"
+  },
+  {
+   "fieldname": "from_party",
+   "fieldtype": "Data",
+   "label": "From (Party / Subcontractor)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "to_party",
+   "fieldtype": "Data",
+   "label": "To (Consultant / Architect / Client)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_bim",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "bcf_topic",
+   "fieldtype": "Link",
+   "label": "Linked BCF Topic",
+   "options": "BCF Topic"
+  },
+  {
+   "fieldname": "bim_element_group",
+   "fieldtype": "Link",
+   "label": "Linked BIM Element Group",
+   "options": "BIM Element Group"
+  },
+  {
+   "fieldname": "drawings_referenced",
+   "fieldtype": "Data",
+   "label": "Drawings / Specs Referenced"
+  },
+  {
+   "fieldname": "section_break_question",
+   "fieldtype": "Section Break",
+   "label": "Question / Ambiguity Details"
+  },
+  {
+   "fieldname": "question",
+   "fieldtype": "Text Editor",
+   "label": "Question / Clarification Required",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_impact",
+   "fieldtype": "Section Break",
+   "label": "Commercial & Schedule Assessment"
+  },
+  {
+   "default": "No",
+   "fieldname": "cost_impact",
+   "fieldtype": "Select",
+   "label": "Cost Impact Expected?",
+   "options": "No\nYes\nPotential"
+  },
+  {
+   "default": "No",
+   "fieldname": "schedule_impact",
+   "fieldtype": "Select",
+   "label": "Schedule Delay Expected?",
+   "options": "No\nYes\nPotential"
+  },
+  {
+   "fieldname": "section_break_response",
+   "fieldtype": "Section Break",
+   "label": "Consultant / Client Official Response"
+  },
+  {
+   "fieldname": "response",
+   "fieldtype": "Text Editor",
+   "label": "Official Response & Clarification"
+  },
+  {
+   "fieldname": "responded_by",
+   "fieldtype": "Link",
+   "label": "Responded By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "response_date",
+   "fieldtype": "Date",
+   "label": "Response Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "official_response_attachment",
+   "fieldtype": "Attach",
+   "label": "Signed Response Letter / Sketched Detail"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Construction",
+ "name": "RFI",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

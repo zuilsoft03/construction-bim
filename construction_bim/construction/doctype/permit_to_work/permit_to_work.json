@@ -1,0 +1,212 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:PTW-{YYYY}-{#####}",
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "permit_type",
+  "project",
+  "location",
+  "column_break_1",
+  "status",
+  "valid_from",
+  "valid_to",
+  "section_break_personnel",
+  "requester",
+  "safety_officer",
+  "supervisor_in_charge",
+  "column_break_rescue",
+  "emergency_rescue_plan_ready",
+  "precautions_checked",
+  "section_break_confined",
+  "gas_test_required",
+  "gas_reading_oxygen",
+  "gas_reading_combustible",
+  "section_break_risk",
+  "risk_assessment_summary",
+  "closure_remarks",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "permit_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "High-Risk Permit Type",
+   "options": "Hot Work (Welding/Cutting)\nConfined Space Entry\nWorking at Height (>2m)\nDeep Excavation (>1.5m)\nHeavy Crane Lifting\nHigh Voltage Electrical",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Project",
+   "options": "Project",
+   "reqd": 1
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Specific Grid / Level Location",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nRequested\nApproved & Active\nExpired\nClosed\nSuspended"
+  },
+  {
+   "fieldname": "valid_from",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Valid From",
+   "reqd": 1
+  },
+  {
+   "fieldname": "valid_to",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Valid To",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_personnel",
+   "fieldtype": "Section Break",
+   "label": "Responsible Personnel"
+  },
+  {
+   "fieldname": "requester",
+   "fieldtype": "Link",
+   "label": "Permit Requester",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "safety_officer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Authorizing Safety Officer",
+   "options": "User"
+  },
+  {
+   "fieldname": "supervisor_in_charge",
+   "fieldtype": "Data",
+   "label": "Site Supervisor in Charge"
+  },
+  {
+   "fieldname": "column_break_rescue",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "emergency_rescue_plan_ready",
+   "fieldtype": "Check",
+   "label": "Emergency Response & Rescue Plan Verified"
+  },
+  {
+   "default": "1",
+   "fieldname": "precautions_checked",
+   "fieldtype": "Check",
+   "label": "All Safety Precautions Checked On-Site"
+  },
+  {
+   "fieldname": "section_break_confined",
+   "fieldtype": "Section Break",
+   "label": "Atmospheric Gas Monitoring (Confined Space / Hot Work)"
+  },
+  {
+   "default": "0",
+   "fieldname": "gas_test_required",
+   "fieldtype": "Check",
+   "label": "Gas Test Mandatory"
+  },
+  {
+   "fieldname": "gas_reading_oxygen",
+   "fieldtype": "Data",
+   "label": "Oxygen Level (% O2, Normal: 19.5 - 23.5%)"
+  },
+  {
+   "fieldname": "gas_reading_combustible",
+   "fieldtype": "Data",
+   "label": "Combustible Gas / LEL (% LEL, Must be <10%)"
+  },
+  {
+   "fieldname": "section_break_risk",
+   "fieldtype": "Section Break",
+   "label": "Risk Assessment & Mitigation"
+  },
+  {
+   "fieldname": "risk_assessment_summary",
+   "fieldtype": "Small Text",
+   "label": "Job Hazard Analysis (JHA) Summary"
+  },
+  {
+   "fieldname": "closure_remarks",
+   "fieldtype": "Small Text",
+   "label": "Permit Handover & Closure Remarks"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Permit to Work",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Construction",
+ "name": "Permit to Work",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "valid_from",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

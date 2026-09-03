@@ -1,0 +1,229 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:PC-{YYYY}-{#####}",
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "contract",
+  "project",
+  "claim_date",
+  "column_break_1",
+  "status",
+  "billing_period_start",
+  "billing_period_end",
+  "section_break_items",
+  "items",
+  "section_break_certs",
+  "gross_claim_amount",
+  "retention_rate",
+  "retention_deduction",
+  "column_break_cert2",
+  "advance_payment_deduction",
+  "net_certified_amount",
+  "sales_invoice",
+  "section_break_signoff",
+  "certified_by",
+  "certification_date",
+  "remarks",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "contract",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Construction Contract",
+   "options": "Construction Contract",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Project",
+   "options": "Project"
+  },
+  {
+   "default": "Today",
+   "fieldname": "claim_date",
+   "fieldtype": "Date",
+   "label": "Claim Date"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nSubmitted\nUnder Review\nCertified\nInvoiced\nPaid\nRejected"
+  },
+  {
+   "fieldname": "billing_period_start",
+   "fieldtype": "Date",
+   "label": "Billing Period Start",
+   "reqd": 1
+  },
+  {
+   "fieldname": "billing_period_end",
+   "fieldtype": "Date",
+   "label": "Billing Period End",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_items",
+   "fieldtype": "Section Break",
+   "label": "Claimed BOQ Line Items"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Line Items",
+   "options": "Progress Claim Item"
+  },
+  {
+   "fieldname": "section_break_certs",
+   "fieldtype": "Section Break",
+   "label": "Certification & Deduction Breakdown"
+  },
+  {
+   "fieldname": "gross_claim_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Gross Claim Amount",
+   "options": "PHP",
+   "read_only": 1
+  },
+  {
+   "fieldname": "retention_rate",
+   "fieldtype": "Percent",
+   "label": "Retention Rate %",
+   "read_only": 1
+  },
+  {
+   "fieldname": "retention_deduction",
+   "fieldtype": "Currency",
+   "label": "Retention Deduction",
+   "options": "PHP",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_cert2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "advance_payment_deduction",
+   "fieldtype": "Currency",
+   "label": "Advance Payment Recovery",
+   "options": "PHP"
+  },
+  {
+   "fieldname": "net_certified_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Net Certified Amount",
+   "options": "PHP",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Linked Sales Invoice",
+   "options": "Sales Invoice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_signoff",
+   "fieldtype": "Section Break",
+   "label": "Sign-Off & Audit"
+  },
+  {
+   "fieldname": "certified_by",
+   "fieldtype": "Link",
+   "label": "Certified By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "certification_date",
+   "fieldtype": "Date",
+   "label": "Certification Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Progress Claim",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Construction",
+ "name": "Progress Claim",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

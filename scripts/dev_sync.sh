@@ -6,6 +6,7 @@ for svc in erpnext-full-backend-1 erpnext-full-frontend-1 erpnext-full-queue-sho
   docker cp "$APP_SRC/." "$svc:/home/frappe/frappe-bench/apps/construction_bim/"
 done
 docker exec erpnext-full-frontend-1 ln -sfn /home/frappe/frappe-bench/apps/construction_bim/construction_bim/public /home/frappe/frappe-bench/assets/construction_bim 2>/dev/null || true
+docker exec -u root erpnext-full-frontend-1 bash -lc 'grep -q "mjs" /etc/nginx/mime.types || { sed -i "s/application\/javascript                js;/application\/javascript                js mjs;/" /etc/nginx/mime.types && nginx -s reload; }' 2>/dev/null || true
 # docker cp lands files as root; the bench runs as frappe and build needs write access
 docker exec -u root erpnext-full-backend-1 bash -lc 'chown -R frappe:frappe /home/frappe/frappe-bench/apps/construction_bim' 2>/dev/null || true
 docker exec erpnext-full-backend-1 bash -lc 'grep -Fxq "construction_bim" /home/frappe/frappe-bench/sites/apps.txt || { [ -n "$(tail -c1 /home/frappe/frappe-bench/sites/apps.txt 2>/dev/null)" ] && echo "" >> /home/frappe/frappe-bench/sites/apps.txt; echo "construction_bim" >> /home/frappe/frappe-bench/sites/apps.txt; }'

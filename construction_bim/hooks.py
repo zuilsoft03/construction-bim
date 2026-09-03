@@ -167,11 +167,11 @@ add_to_apps_screen = [
 
 # linked-doc events
 # ---------------------------
-# doc_events = {
-# 	"BIM Model": {
-# 		"on_trash": "construction_bim.hooks.on_bim_model_trash"
-# 	}
-# }
+doc_events = {
+	"Task": {
+		"on_update": "construction_bim.bim.bcf.task_sync.sync_task_to_bcf_topic"
+	}
+}
 
 # Scheduled Tasks
 # ---------------

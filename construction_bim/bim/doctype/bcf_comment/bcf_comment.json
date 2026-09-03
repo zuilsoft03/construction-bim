@@ -1,0 +1,139 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:BCF-COMM-{YYYY}-{#####}",
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "guid",
+  "topic",
+  "viewpoint",
+  "status",
+  "verbal_status",
+  "column_break_1",
+  "author",
+  "date",
+  "modified_author",
+  "modified_date",
+  "section_break_comment",
+  "comment"
+ ],
+ "fields": [
+  {
+   "description": "RFC 4122 UUID v4 (36 chars)",
+   "fieldname": "guid",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Comment GUID",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "topic",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "BCF Topic",
+   "options": "BCF Topic",
+   "reqd": 1
+  },
+  {
+   "description": "Optional viewpoint showing the exact 3D state when comment was authored.",
+   "fieldname": "viewpoint",
+   "fieldtype": "Link",
+   "label": "Attached Viewpoint",
+   "options": "BCF Viewpoint"
+  },
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Topic Status at Comment"
+  },
+  {
+   "default": "Open",
+   "fieldname": "verbal_status",
+   "fieldtype": "Data",
+   "label": "Verbal Status"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "author",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Author (Email / User)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Comment Date (UTC)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "modified_author",
+   "fieldtype": "Data",
+   "label": "Modified Author"
+  },
+  {
+   "fieldname": "modified_date",
+   "fieldtype": "Datetime",
+   "label": "Modified Date (UTC)"
+  },
+  {
+   "fieldname": "section_break_comment",
+   "fieldtype": "Section Break",
+   "label": "Comment Body (Markdown Supported)"
+  },
+  {
+   "fieldname": "comment",
+   "fieldtype": "Text Editor",
+   "label": "Comment Text",
+   "reqd": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "BIM",
+ "name": "BCF Comment",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "topic,author,guid",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "author"
+}

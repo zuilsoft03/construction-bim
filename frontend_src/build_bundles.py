@@ -13,7 +13,7 @@ SRC = ROOT / "frontend_src"
 NODE_BIN = os.environ.get("NODE_BIN") or shutil.which("node")
 if not NODE_BIN:
     raise SystemExit("node not found on PATH; install Node.js or set NODE_BIN")
-PAGES = ["bim_viewer", "pdf_takeoff"]
+PAGES = ["bim_viewer", "pdf_takeoff", "dwg_viewer"]
 
 
 def extract(page: str) -> None:
