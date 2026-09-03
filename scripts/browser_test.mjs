@@ -206,8 +206,20 @@ async function run() {
   fs.writeFileSync(shotPath, shotBuffer);
   console.log("Screenshot saved to:", shotPath);
 
-  // Test clicking tabs
-  const tabsToClick = ["work-packages", "boards", "gantt", "bcf", "documents", "meetings", "settings"];
+  // Test clicking all project tabs
+  const tabsToClick = [
+    "home",
+    "work-packages",
+    "boards",
+    "gantt",
+    "bcf",
+    "cad",
+    "pdf",
+    "documents",
+    "meetings",
+    "members",
+    "settings"
+  ];
   for (const tab of tabsToClick) {
     console.log(`Testing click on tab [${tab}]...`);
     const clickRes = await send("Runtime.evaluate", {
@@ -233,6 +245,18 @@ async function run() {
     const tabShot = await send("Page.captureScreenshot", { format: "png" });
     fs.writeFileSync(`C:/Users/gavie/.gemini/antigravity/brain/2dd394fd-82af-44f8-b50d-5723a4284a51/tab_${tab}.png`, Buffer.from(tabShot.data, "base64"));
   }
+
+  // Test navigating to All Projects (Hub) via project switcher
+  console.log("Testing click on [all-projects] in switcher...");
+  await send("Runtime.evaluate", {
+    expression: `(() => {
+      const allLink = document.querySelector('#project-switcher-list [data-project="all"]');
+      if (allLink) allLink.click();
+    })()`,
+  });
+  await new Promise((r) => setTimeout(r, 1500));
+  const allProjShot = await send("Page.captureScreenshot", { format: "png" });
+  fs.writeFileSync("C:/Users/gavie/.gemini/antigravity/brain/2dd394fd-82af-44f8-b50d-5723a4284a51/tab_all-projects.png", Buffer.from(allProjShot.data, "base64"));
 
   // Test Quick Create (+) Task modal
   console.log("Testing Quick Create (+) Task modal...");
