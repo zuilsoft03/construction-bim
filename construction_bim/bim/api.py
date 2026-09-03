@@ -436,10 +436,24 @@ def save_measurement(pdf_file: str, page_no: int = 1, measurement_type: str = "D
     if not frappe.db.exists("File", pdf_file):
         file_doc = _find_file(pdf_file)
         pdf_file = file_doc.name
+    type_map = {
+        "dist": "Distance",
+        "distance": "Distance",
+        "polyline": "Polyline",
+        "poly": "Polyline",
+        "area": "Area",
+        "polygon": "Area",
+        "count": "Count",
+        "rect": "Rectangle",
+        "rectangle": "Rectangle",
+        "highlight": "Highlight"
+    }
+    normalized_type = type_map.get(str(measurement_type).strip().lower(), measurement_type)
+
     doc = frappe.new_doc("PDF Measurement")
     doc.pdf_file = pdf_file
     doc.page_no = int(page_no)
-    doc.measurement_type = measurement_type
+    doc.measurement_type = normalized_type
     doc.points = points
     doc.scale = scale
     doc.real_value = real_value

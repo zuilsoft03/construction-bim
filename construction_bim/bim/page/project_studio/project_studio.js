@@ -5,6 +5,22 @@ frappe.pages['project-studio'].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
+	// Hide native Frappe page-head for pure full-screen OpenProject Studio look
+	page.page_head.hide();
+	$(page.wrapper).find('.page-head').hide();
+	$(page.wrapper).find('.page-header').hide();
+	page.body.css({ padding: '0', margin: '0', height: '100%' });
+	$(wrapper).closest('.main-section').css({ padding: '0' });
+
+	// Load Font Awesome icons
+	if (!document.getElementById('font-awesome-css')) {
+		var fa = document.createElement('link');
+		fa.id = 'font-awesome-css';
+		fa.rel = 'stylesheet';
+		fa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css';
+		document.head.appendChild(fa);
+	}
+
 	// Load Project Studio CSS
 	if (!document.getElementById('project-studio-css')) {
 		var link = document.createElement('link');

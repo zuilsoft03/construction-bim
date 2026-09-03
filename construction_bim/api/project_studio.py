@@ -181,10 +181,24 @@ def get_project_overview(project):
 	# 4. Meetings & Daily Toolbox Talks
 	meetings = []
 	if _doctype_exists("Toolbox Talk"):
+		fields = ["name", "date", "attendee_count"]
+		meta_fields = [f.fieldname for f in frappe.get_meta("Toolbox Talk").fields] if hasattr(frappe, "get_meta") else []
+		if "topic" in meta_fields:
+			fields.append("topic")
+		elif "topic_category" in meta_fields:
+			fields.append("topic_category")
+		else:
+			fields.append("topic")
+
+		if "conducted_by" in meta_fields:
+			fields.append("conducted_by")
+		elif "conductor_name" in meta_fields:
+			fields.append("conductor_name")
+
 		tbts = frappe.get_all(
 			"Toolbox Talk",
 			filters={"project": project},
-			fields=["name", "topic_category", "date", "attendee_count", "conductor_name"],
+			fields=fields,
 			order_by="date desc",
 			limit_page_length=5
 		)
@@ -192,10 +206,10 @@ def get_project_overview(project):
 			meetings.append({
 				"type": "Toolbox Talk",
 				"name": tb.name,
-				"title": tb.topic_category,
+				"title": getattr(tb, "topic", None) or getattr(tb, "topic_category", None) or tb.name,
 				"date": str(tb.date),
-				"host": tb.conductor_name,
-				"participants": tb.attendee_count
+				"host": getattr(tb, "conducted_by", None) or getattr(tb, "conductor_name", None) or "Safety Officer",
+				"participants": getattr(tb, "attendee_count", 0)
 			})
 
 	# Native Event / Meetings
@@ -500,6 +514,52 @@ def update_work_package_status(task_name, new_column, group_by="status"):
 
 
 @frappe.whitelist()
+def get_bcf_coordination_data(project):
+	"""Returns BIM models and BCF topics associated with the project."""
+	models = []
+	if _doctype_exists("BIM Model"):
+		m_list = frappe.get_all(
+			"BIM Model",
+			filters={"project": project},
+			fields=["name", "model_name", "original_file", "geometry_file", "discipline"],
+			limit_page_length=50
+		)
+		for m in m_list:
+			models.append({
+				"name": m.name,
+				"model_name": m.model_name or m.name,
+				"file_url": getattr(m, "original_file", None) or getattr(m, "geometry_file", None),
+				"discipline": getattr(m, "discipline", "Architecture")
+			})
+
+	topics = []
+	if _doctype_exists("BCF Topic"):
+		bcf_projs = frappe.get_all("BCF Project", filters={"erpnext_project": project}, pluck="name") if _doctype_exists("BCF Project") else []
+		topic_filters = {}
+		if bcf_projs:
+			topic_filters["bcf_project"] = ["in", bcf_projs]
+
+		t_list = frappe.get_all(
+			"BCF Topic",
+			filters=topic_filters if bcf_projs else None,
+			fields=["name", "title", "topic_type", "priority", "topic_status", "creation", "assigned_to"],
+			limit_page_length=50
+		)
+		for t in t_list:
+			topics.append({
+				"name": t.name,
+				"title": t.title,
+				"topic_type": t.topic_type or "Clash",
+				"priority": t.priority or "Normal",
+				"status": getattr(t, "topic_status", "Open"),
+				"creation": str(t.creation),
+				"assigned_to": t.assigned_to
+			})
+
+	return {"models": models, "topics": topics}
+
+
+@frappe.whitelist()
 def get_project_document_tree(project):
 	"""Returns the 5-folder project taxonomy with auto-launchers for BIM, CAD, and PDF."""
 	if not frappe.db.exists("Project", project):
@@ -524,13 +584,14 @@ def get_project_document_tree(project):
 
 	# Also gather BIM Models
 	if _doctype_exists("BIM Model"):
-		models = frappe.get_all("BIM Model", filters={"project": project}, fields=["name", "model_name", "ifc_file"])
+		models = frappe.get_all("BIM Model", filters={"project": project}, fields=["name", "model_name", "original_file", "geometry_file"])
 		for m in models:
-			if m.ifc_file:
+			file_url = getattr(m, "original_file", None) or getattr(m, "geometry_file", None)
+			if file_url:
 				folder_map["03 BIM Models"]["files"].append({
 					"id": m.name,
-					"file_name": m.model_name or os.path.basename(m.ifc_file),
-					"file_url": m.ifc_file,
+					"file_name": m.model_name or os.path.basename(file_url),
+					"file_url": file_url,
 					"file_size": 0,
 					"extension": "ifc",
 					"route_target": "bim",

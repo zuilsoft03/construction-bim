@@ -432,10 +432,13 @@ class ProjectStudioApp {
 		const $markers = $('#timeline-markers-container');
 		$markers.empty();
 
-		if (milestones.length === 0) {
-			$markers.append('<div class="text-muted p-2 text-center" style="width:100%;"><small>No delivery milestones recorded yet.</small></div>');
+		if (!milestones || milestones.length === 0) {
+			$('#timeline-axis-bar').hide();
+			$markers.html('<div class="text-center" style="width: 100%;"><span class="timeline-empty-msg text-muted"><i class="fa fa-info-circle"></i> No delivery milestones recorded yet.</span></div>');
 			return;
 		}
+
+		$('#timeline-axis-bar').show();
 
 		const self = this;
 		milestones.forEach(m => {
@@ -741,16 +744,15 @@ class ProjectStudioApp {
 	// -------------------------------------------------------------------------
 	renderBcfViewer() {
 		const self = this;
-		// Fetch BIM models for project
 		frappe.call({
-			method: 'frappe.client.get_list',
-			args: {
-				doctype: 'BIM Model',
-				filters: { project: self.currentProject },
-				fields: ['name', 'model_name', 'ifc_file']
-			}
+			method: 'construction_bim.api.project_studio.get_bcf_coordination_data',
+			args: { project: self.currentProject }
 		}).then(r => {
-			const models = r.message || [];
+			const data = r.message || { models: [], topics: [] };
+			const models = data.models || [];
+			const topics = data.topics || [];
+
+			// 1. Populate Spatial Model Tree
 			const $tree = $('#bcf-models-tree');
 			$tree.empty();
 
@@ -761,40 +763,34 @@ class ProjectStudioApp {
 					$tree.append(`
 						<div class="model-tree-row p-1">
 							<label style="font-weight: normal; font-size: 12px; cursor: pointer;">
-								<input type="checkbox" checked data-model="${m.name}"> ${m.model_name || m.name}
+								<input type="checkbox" checked data-model="${m.name}"> <strong>[${m.discipline || 'IFC'}]</strong> ${m.model_name || m.name}
 							</label>
 						</div>
 					`);
 				});
 			}
-		});
 
-		// Fetch BCF Topics
-		frappe.call({
-			method: 'frappe.client.get_list',
-			args: {
-				doctype: 'BCF Topic',
-				filters: { project: self.currentProject },
-				fields: ['name', 'title', 'topic_type', 'priority', 'status', 'creation']
-			}
-		}).then(r => {
-			const topics = r.message || [];
+			// 2. Populate BCF Topics
 			$('#bcf-topic-count').text(topics.length);
 			const $stream = $('#bcf-cards-container');
 			$stream.empty();
 
-			topics.forEach(top => {
-				$stream.append(`
-					<div class="bcf-topic-card p-2" style="border: 1px solid #e2e8f0; border-radius: 6px; background: #fff;">
-						<div class="flex-between">
-							<span class="badge badge-warning">${top.topic_type}</span>
-							<small class="text-muted">${top.status}</small>
+			if (topics.length === 0) {
+				$stream.append('<div class="text-muted p-3 text-center"><small>No BCF topics logged for this project.</small></div>');
+			} else {
+				topics.forEach(top => {
+					$stream.append(`
+						<div class="bcf-topic-card p-2 mb-2" style="border: 1px solid #e2e8f0; border-radius: 6px; background: #fff;">
+							<div class="flex-between">
+								<span class="badge badge-warning">${top.topic_type}</span>
+								<small class="text-muted">${top.status}</small>
+							</div>
+							<h5 class="mt-1 mb-1 font-weight-bold">${top.title}</h5>
+							<small class="text-muted"><i class="fa fa-clock-o"></i> ${top.creation ? top.creation.split(' ')[0] : '--'} &nbsp;|&nbsp; ${top.assigned_to || 'Unassigned'}</small>
 						</div>
-						<h5 class="mt-1 mb-1">${top.title}</h5>
-						<small class="text-muted"><i class="fa fa-clock-o"></i> ${top.creation.split(' ')[0]}</small>
-					</div>
-				`);
-			});
+					`);
+				});
+			}
 		});
 	}
 
