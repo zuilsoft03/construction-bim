@@ -563,7 +563,22 @@ def create_in_viewer_issue(title: str, topic_type: str = "Issue", priority: str 
                            description: str = "", snapshot_data: str | None = None,
                            camera_json: str | None = None, element_guid: str | None = None,
                            project: str | None = None) -> dict:
-    """Creates a BCF Topic, BCF Viewpoint, and native ERPNext Issue directly from in-viewer interaction."""
+    """
+                           Creates a BCF topic and, when supported, a native ERPNext issue from an in-viewer interaction.
+                           
+                           Parameters:
+                           	title (str): Title for the topic and issue.
+                           	topic_type (str): Topic classification used to determine the issue type.
+                           	priority (str): Priority assigned to the topic and issue.
+                           	description (str): Description included in the topic and issue.
+                           	snapshot_data (str | None): Optional viewer snapshot data.
+                           	camera_json (str | None): Optional camera configuration.
+                           	element_guid (str | None): Optional identifier of the related model element.
+                           	project (str | None): Optional ERPNext project identifier used to associate the issue.
+                           
+                           Returns:
+                           	dict: A success status, generated topic GUID, created topic and issue names, and the supplied title.
+                           """
     import uuid
     topic_guid = str(uuid.uuid4())
     

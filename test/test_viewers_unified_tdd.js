@@ -32,6 +32,11 @@ console.log("===================================================================
 let testsPassed = 0;
 let testsFailed = 0;
 
+/**
+ * Executes a test case and records whether it passes or fails.
+ * @param {string} name - The test case name.
+ * @param {Function} fn - The test function to execute.
+ */
 function test(name, fn) {
   try {
     fn();
@@ -46,7 +51,13 @@ function test(name, fn) {
 
 // ======================================================================
 // SEAM 1: 3D BIM FEDERATED VIEWER & SPATIAL BVH COLLISION SEAM
-// ======================================================================
+/**
+ * Determines whether two meshes intersect in world space.
+ * @param {Object} meshA - The first mesh to test.
+ * @param {Object} meshB - The second mesh to test.
+ * @param {number} [tolerance=0] - The distance by which to expand each mesh's bounds before testing.
+ * @returns {boolean} `true` if the meshes intersect within the specified tolerance, `false` otherwise.
+ */
 
 function detectMeshClash(meshA, meshB, tolerance = 0.0) {
   if (!meshA.geometry.boundsTree) meshA.geometry.computeBoundsTree();
@@ -78,6 +89,12 @@ function detectMeshClash(meshA, meshB, tolerance = 0.0) {
   return collisionFound;
 }
 
+/**
+ * Generate a BCF viewpoint from a Three.js camera and target point.
+ * @param {THREE.Camera} camera - The camera defining the viewpoint, field of view, and aspect ratio.
+ * @param {THREE.Vector3} target - The point the camera is directed toward.
+ * @return {Object} The BCF viewpoint with converted coordinates and camera properties.
+ */
 function generateBcfViewpoint(camera, target) {
   const dir = new THREE.Vector3().subVectors(target, camera.position).normalize();
   return {

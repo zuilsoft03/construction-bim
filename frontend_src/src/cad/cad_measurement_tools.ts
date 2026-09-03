@@ -95,6 +95,12 @@ export class CADMeasurementEngine {
     let closest: SnapTarget | null = null;
     let minDistance = tolerance;
 
+    /**
+     * Updates the nearest snap candidate when the specified point is closer to the query point.
+     *
+     * @param pt - Candidate snap point to evaluate
+     * @param type - Type of snap target represented by the point
+     */
     function checkCandidate(pt: CADPoint, type: SnapTarget["type"]) {
       const dist = Math.sqrt(Math.pow(pt.x - queryPoint.x, 2) + Math.pow(pt.y - queryPoint.y, 2));
       if (dist < minDistance) {

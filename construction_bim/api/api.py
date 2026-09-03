@@ -74,7 +74,12 @@ __all__ = [
 
 @frappe.whitelist()
 def purge_test_bim_data() -> dict:
-    """Purge orphaned BIM BOQ Links, test BOMs, and test Items."""
+    """
+    Purge BIM BOQ links, test BOMs, and designated test items.
+    
+    Returns:
+    	dict: A success status and counts of deleted BIM BOQ links, BOMs, and items.
+    """
     deleted_boq_links = 0
     deleted_boms = 0
     deleted_items = 0
@@ -118,14 +123,14 @@ def purge_test_bim_data() -> dict:
 
 @frappe.whitelist()
 def get_4d_schedule_coloring(project_id: str) -> dict:
-    """Retrieve 4D visual schedule simulation color mapping for 3D elements in a project.
-
-    Status Color Palette:
-    - Completed:  #00AA00 (Green)
-    - Working:    #0088FF (Blue - Active Installation)
-    - Overdue:    #FF0000 (Red - Critical Schedule Delay)
-    - Scheduled:  #FFAA00 (Yellow - Upcoming Work Package)
-    - Unlinked:   #CCCCCC (Grey - 15% Ghosting)
+    """
+    Map project BIM elements to schedule-status colors based on linked tasks and BCF viewpoints.
+    
+    Parameters:
+        project_id (str): Identifier of the project whose tasks and BIM elements are mapped.
+    
+    Returns:
+        dict: A mapping containing the project identifier, total element count, element color and status data, and the status color legend.
     """
     import json
     import time
@@ -217,6 +222,16 @@ def get_4d_schedule_coloring(project_id: str) -> dict:
 
 
 def _calculate_4d_color(task: Any, today: str) -> tuple[str, str]:
+    """
+    Assign a color and schedule label based on a task's status and expected end date.
+    
+    Parameters:
+        task (Any): Task containing status and expected end date attributes.
+        today (str): Current date used to identify overdue tasks.
+    
+    Returns:
+        tuple[str, str]: A color code and status label.
+    """
     t_status = getattr(task, "status", "Open")
     exp_end = str(getattr(task, "exp_end_date", "") or "")
 

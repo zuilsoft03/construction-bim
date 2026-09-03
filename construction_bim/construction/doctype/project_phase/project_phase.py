@@ -9,9 +9,21 @@ from frappe.utils import nowdate
 
 class ProjectPhase(Document):
 	def validate(self):
+		"""
+		Validate the project phase and enforce completion gate requirements.
+		"""
 		self.validate_gate_completion()
 
 	def validate_gate_completion(self):
+		"""
+		Validate mandatory gate completion for a completed project phase.
+		
+		Raises:
+			frappe.ValidationError: If any required gate checklist item is incomplete.
+		
+		Updates the phase completion date and gate approval details when all required
+		gate checklist items are complete.
+		"""
 		if self.status == "Completed":
 			uncompleted_mandatory = []
 			for gate in self.get("gate_checklist", []):
@@ -34,7 +46,15 @@ class ProjectPhase(Document):
 
 @frappe.whitelist()
 def initialize_pm2_project_phases(project):
-	"""Initializes the standard 6 PM² project lifecycle phases with stage gates."""
+	"""
+	Initialize the standard six PM² lifecycle phases for a project.
+	
+	Parameters:
+		project (str): The project identifier.
+	
+	Returns:
+		list[str]: The names of existing or newly created project phases.
+	"""
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
 

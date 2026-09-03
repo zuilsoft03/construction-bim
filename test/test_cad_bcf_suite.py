@@ -26,6 +26,12 @@ class TestCADAndBCFCollaboration(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        """
+        Initialize the shared Frappe context and BIM models required by the test suite.
+        
+        Raises:
+            unittest.SkipTest: If a live Frappe bench site is unavailable.
+        """
         if hasattr(frappe.db, "_tables") and not hasattr(frappe, "get_installed_apps"):
             raise unittest.SkipTest("TestCADAndBCFCollaboration requires live Frappe bench site.")
         frappe.set_user("Administrator")

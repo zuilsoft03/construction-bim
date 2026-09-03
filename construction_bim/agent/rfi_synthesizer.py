@@ -23,10 +23,20 @@ def generate_rfi_from_clash(
     proposed_solution: Optional[str] = None,
     assigned_to: Optional[str] = None
 ) -> Dict[str, Any]:
-    """Synthesize a formal Request for Information (RFI) from an engineering clash.
-
-    Connects spatial collision coordinates, element classifications, and proposed remedies
-    into a standardized BCF Topic (TopicType='Request') and ERPNext Issue/Task.
+    """
+    Create a formal BCF Request for Information from a BIM clash.
+    
+    Parameters:
+        clash_name (str): Name of the BIM Clash to convert into an RFI.
+        question_context (Optional[str]): Clarification question to include in the RFI.
+        proposed_solution (Optional[str]): Proposed resolution to include in the RFI.
+        assigned_to (Optional[str]): User to assign the BCF topic to.
+    
+    Returns:
+        Dict[str, Any]: Success metadata containing the RFI title, narrative, BCF topic and viewpoint identifiers, and clash name.
+    
+    Raises:
+        frappe.ValidationError: If the specified BIM Clash does not exist.
     """
     if not frappe.db.exists("BIM Clash", clash_name):
         frappe.throw(_("BIM Clash {0} does not exist").format(clash_name))

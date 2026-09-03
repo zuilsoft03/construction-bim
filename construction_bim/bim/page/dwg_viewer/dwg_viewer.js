@@ -1,3 +1,7 @@
+/**
+ * Initializes the DWG/CAD viewer page and its navigation controls.
+ * @param {HTMLElement} wrapper - The container in which to create the page.
+ */
 function initPage(wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
@@ -45,6 +49,10 @@ function initPage(wrapper) {
 		});
 }
 
+/**
+ * Refreshes the DWG viewer after the page becomes visible.
+ * @param {HTMLElement} wrapper - The page wrapper.
+ */
 function onShow(wrapper) {
 	setTimeout(function () {
 		if (window.dwgApp && window.dwgApp.renderer) {

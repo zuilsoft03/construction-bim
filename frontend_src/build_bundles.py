@@ -17,7 +17,15 @@ PAGES = ["bim_viewer", "pdf_takeoff", "dwg_viewer"]
 
 
 def extract(page: str) -> None:
-    """Extract script from page HTML if present; fallback to existing app js."""
+    """
+    Extract the page's module script into its application JavaScript file.
+    
+    Parameters:
+    	page (str): Page name used to locate the HTML file and application script.
+    
+    Raises:
+    	SystemExit: If neither a module script nor an existing application script is available.
+    """
     html_path = ROOT / "construction_bim" / "bim" / "page" / page / f"{page}.html"
     if html_path.exists():
         html = html_path.read_text(encoding="utf-8")

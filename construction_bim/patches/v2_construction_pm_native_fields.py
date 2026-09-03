@@ -154,7 +154,11 @@ CUSTOM_FIELDS = {
 
 
 def execute():
-	"""Idempotently adds construction custom fields to native ERPNext doctypes."""
+	"""
+	Add configured construction fields and quality inspection presets to supported ERPNext doctypes.
+	
+	The operation is idempotent and commits the resulting metadata changes.
+	"""
 	for dt, fields in CUSTOM_FIELDS.items():
 		if not frappe.db.exists("DocType", dt):
 			continue
@@ -171,7 +175,11 @@ def execute():
 
 
 def setup_quality_inspection_presets():
-	"""Seeds standard civil/structural Quality Inspection Templates if Quality module exists."""
+	"""
+	Seed standard civil and structural quality inspection templates when the Quality Inspection module is available.
+	
+	Existing templates are preserved, and missing quality parameters are created when supported.
+	"""
 	if frappe.db.exists("DocType", "DocType") and not frappe.db.exists("DocType", "Quality Inspection Template"):
 		return
 

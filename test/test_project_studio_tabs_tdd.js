@@ -16,6 +16,11 @@ const jsContent = fs.readFileSync(jsAppPath, "utf-8");
 let passed = 0;
 let failed = 0;
 
+/**
+ * Runs a test assertion and records whether it passes or fails.
+ * @param {string} title - The test description displayed in the result output.
+ * @param {Function} fn - The assertion function to execute.
+ */
 function test(title, fn) {
 	try {
 		fn();

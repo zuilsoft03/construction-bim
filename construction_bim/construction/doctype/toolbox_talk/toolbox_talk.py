@@ -6,4 +6,7 @@ from frappe.model.document import Document
 
 class ToolboxTalk(Document):
 	def validate(self):
+		"""
+		Update the toolbox talk's attendee count.
+		"""
 		self.attendee_count = len(self.get("attendees", []))

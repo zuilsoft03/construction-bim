@@ -33,6 +33,11 @@ def _get_or_create_project(project_name: str = "_Test BIM Integrated Project") -
 class TestBIMClashAndBOMSuite(FrappeTestCase):
     @classmethod
     def setUpClass(cls):
+        """Initialize shared BIM integration-test fixtures for the test class.
+        
+        Creates or retrieves the test project and its structural and MEP models. Skips
+        the suite when a live Frappe bench site is unavailable.
+        """
         if hasattr(frappe.db, "_tables") and not hasattr(frappe, "get_installed_apps"):
             raise unittest.SkipTest("TestBIMClashAndBOMSuite requires live Frappe bench site.")
         super().setUpClass()

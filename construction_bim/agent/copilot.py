@@ -31,13 +31,22 @@ def query_copilot_assistant(
     model_id: Optional[str] = None,
     selected_guid: Optional[str] = None
 ) -> Dict[str, Any]:
-    """Process a natural language coordination query from the 3D viewer or desk interface.
-
-    Answers questions regarding:
-    1. 3D Model spatial quantities and materials.
-    2. Clashes and BCF coordination status.
-    3. ERPNext Project schedules and overdue work packages.
-    4. Subcontractor quality issues and BOM takeoffs.
+    """
+    Process a natural-language BIM and construction coordination query using project and model context.
+    
+    Parameters:
+        prompt (str): The coordination question or request.
+        role (str): The assistant persona to use; unknown roles use the Project Manager persona.
+        project_id (Optional[str]): Project identifier used to gather task and clash context.
+        model_id (Optional[str]): BIM model identifier associated with the query.
+        selected_guid (Optional[str]): IFC or BIM element GUID used to retrieve selected-element data.
+    
+    Returns:
+        Dict[str, Any]: A success response containing the selected role, generated response text,
+            viewer actions, and gathered context.
+    
+    Raises:
+        frappe.ValidationError: If prompt is empty or contains only whitespace.
     """
     if not prompt or not prompt.strip():
         frappe.throw(_("Prompt cannot be empty"))

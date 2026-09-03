@@ -9,20 +9,35 @@ from frappe.utils import add_days, flt, nowdate
 
 class VariationOrder(Document):
 	def validate(self):
+		"""
+		Assign the project associated with the selected construction contract when no project is specified.
+		"""
 		if not self.project and self.contract:
 			self.project = frappe.db.get_value("Construction Contract", self.contract, "project")
 
 	def on_submit(self):
+		"""
+		Approve the variation order and apply its financial impact to the associated contract.
+		"""
 		self.status = "Approved"
 		self.approved_by = frappe.session.user
 		self.approval_date = nowdate()
 		self.update_contract_financials(revert=False)
 
 	def on_cancel(self):
+		"""
+		Mark the variation order as rejected and reverse its financial impact on the contract.
+		"""
 		self.status = "Rejected"
 		self.update_contract_financials(revert=True)
 
 	def update_contract_financials(self, revert=False):
+		"""
+		Apply the variation order's financial impact to its construction contract.
+		
+		Parameters:
+			revert (bool): Whether to reverse the variation's financial impact instead of applying it.
+		"""
 		if not self.contract or not frappe.db.exists("Construction Contract", self.contract):
 			return
 

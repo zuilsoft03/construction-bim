@@ -69,7 +69,16 @@ BOQ_COLUMN_SYNONYMS = {
 
 
 def detect_discipline(filename: str, ifc_types: Optional[List[str]] = None) -> str:
-    """Heuristic determination of BIM discipline from filename or entity distribution."""
+    """
+    Determine the BIM discipline from a filename and, when needed, IFC entity types.
+    
+    Parameters:
+    	filename (str): BIM model filename used for discipline pattern matching.
+    	ifc_types (Optional[List[str]]): IFC entity types used as a fallback when the filename does not identify a discipline.
+    
+    Returns:
+    	str: The detected discipline: "Architecture", "Structural", or "MEP". Defaults to "Architecture" when no stronger match is found.
+    """
     clean_name = re.sub(r"[_\-.]+", " ", os.path.basename(filename))
     for pattern, disc in DISCIPLINE_PATTERNS:
         if re.search(pattern, clean_name):
@@ -89,7 +98,15 @@ def detect_discipline(filename: str, ifc_types: Optional[List[str]] = None) -> s
 
 
 def fuzzy_match_columns(headers: List[str]) -> Dict[str, Optional[str]]:
-    """Match raw spreadsheet column headers to standard BOQ fieldnames."""
+    """
+    Map spreadsheet headers to standard BOQ field names using normalized synonym matching.
+    
+    Parameters:
+    	headers (List[str]): Spreadsheet column headers to match.
+    
+    Returns:
+    	Dict[str, Optional[str]]: A mapping from each standard BOQ field to its matched source header, or `None` when no match is found.
+    """
     mapping: Dict[str, Optional[str]] = {col: None for col in STANDARD_BOQ_COLUMNS}
     cleaned_headers = [(idx, h.strip(), re.sub(r"[^a-zA-Z0-9 ]", "", h.lower().strip())) for idx, h in enumerate(headers)]
 
@@ -120,7 +137,16 @@ def fuzzy_match_columns(headers: List[str]) -> Dict[str, Optional[str]]:
 
 
 def parse_boq_csv_data(raw_csv_text: str, custom_mapping: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
-    """Parse CSV text into normalized BOQ items and summary totals."""
+    """
+    Parse CSV text into normalized BOQ line items and summary totals.
+    
+    Parameters:
+    	raw_csv_text (str): CSV content containing BOQ headers and rows.
+    	custom_mapping (Optional[Dict[str, str]]): Optional mapping from standard BOQ fields to CSV headers.
+    
+    Returns:
+    	Dict[str, Any]: Parsed headers, column mapping, normalized items, total amount, and line count.
+    """
     f = io.StringIO(raw_csv_text.strip())
     reader = csv.reader(f)
     try:
@@ -135,6 +161,17 @@ def parse_boq_csv_data(raw_csv_text: str, custom_mapping: Optional[Dict[str, str
     col_idx = {h: idx for idx, h in enumerate(headers)}
 
     def get_val(row: List[str], standard_col: str, default: Any = "") -> Any:
+        """
+        Retrieve a mapped column value from a CSV row, or return a default value when the column is unavailable.
+        
+        Parameters:
+        	row (List[str]): The CSV row values.
+        	standard_col (str): The standard field name to retrieve.
+        	default (Any): The value to return when the field is unavailable.
+        
+        Returns:
+        	Any: The stripped field value, or the specified default.
+        """
         header_name = mapping.get(standard_col)
         if header_name and header_name in col_idx:
             idx = col_idx[header_name]
@@ -210,13 +247,18 @@ def generate_standard_boq_csv_template() -> str:
 
 
 def evaluate_coordinate_drift(models_bboxes: List[Dict[str, Any]], max_drift_threshold: float = 100.0) -> Dict[str, Any]:
-    """Inspect spatial bounding boxes of federated models to detect origin translation drift.
-
-    models_bboxes format:
-    [
-        {"name": "ARK", "min": [x, y, z], "max": [x, y, z]},
-        {"name": "STRUC", "min": [x, y, z], "max": [x, y, z]}
-    ]
+    """
+    Determine whether federated model bounding-box centers exceed the allowed spatial drift.
+    
+    Parameters:
+        models_bboxes (List[Dict[str, Any]]): Model records containing optional ``name``,
+            ``min``, and ``max`` three-dimensional bounding-box coordinates.
+        max_drift_threshold (float): Maximum allowed center-to-reference distance.
+    
+    Returns:
+        Dict[str, Any]: Alignment status, drift flag, maximum center distance, message,
+            and details for models exceeding the threshold. Fewer than two models are
+            considered aligned.
     """
     if len(models_bboxes) < 2:
         return {
@@ -278,7 +320,21 @@ def compute_initiation_readiness(
     contract_amount: float = 0.0,
     estimated_cost: float = 0.0,
 ) -> Dict[str, Any]:
-    """Check whether a project meets all 4 formal stage-gate requirements for kickoff."""
+    """
+    Evaluate project initiation gates for commercial, BIM, and cost readiness.
+    
+    Parameters:
+        has_contract (bool): Whether a project contract is available.
+        has_models (bool): Whether BIM models are available.
+        has_boq (bool): Whether a BOQ or estimate is available.
+        models_aligned (bool): Whether the available BIM models meet alignment requirements.
+        contract_amount (float): Contract value used to assess the commercial baseline.
+        estimated_cost (float): Estimated cost used to assess the cost baseline.
+    
+    Returns:
+        Dict[str, Any]: Gate results, readiness status, contract amount, estimated cost,
+            and the rounded variance between the contract amount and estimated cost.
+    """
     gates = [
         {
             "id": "gate_contract",
@@ -326,7 +382,15 @@ if frappe:
 
     @frappe.whitelist()
     def get_initiation_status(project: str) -> Dict[str, Any]:
-        """Fetch real-time initiation status, checklist gates, and drive tree links."""
+        """
+        Fetch the project's initiation status, verification data, alignment report, and readiness assessment.
+        
+        Parameters:
+        	project (str): The project identifier to inspect.
+        
+        Returns:
+        	Dict[str, Any]: A status report containing project details, Drive readiness, contracts, BIM models, estimates, CAD measurement count, coordinate alignment, and initiation readiness.
+        """
         if not frappe.db.exists("Project", project):
             frappe.throw(f"Project '{project}' not found.", frappe.DoesNotExistError)
 
@@ -407,7 +471,22 @@ if frappe:
         filename: str,
         discipline: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Route uploaded intake file into Drive and instantiate linked DocType."""
+        """
+        Route an intake file to the project Drive folder and create applicable linked records.
+        
+        Parameters:
+            project (str): Name of the project receiving the file.
+            category (str): Intake category used to determine routing and record creation.
+            file_url (str): URL of the uploaded file.
+            filename (str): Original file name used for linked record details and discipline detection.
+            discipline (Optional[str]): Discipline to assign to a BIM model; detected from the filename when omitted.
+        
+        Returns:
+            Dict[str, Any]: Processing status, project, category, routed folder, and created record references.
+        
+        Raises:
+            frappe.ValidationError: If the project does not exist.
+        """
         if not frappe.db.exists("Project", project):
             frappe.throw(f"Project '{project}' not found.")
 
@@ -459,7 +538,16 @@ if frappe:
 
     @frappe.whitelist()
     def parse_boq_file(file_url: str) -> Dict[str, Any]:
-        """Inspect and parse an uploaded BOQ spreadsheet (CSV)."""
+        """
+        Inspect and parse an uploaded BOQ CSV file.
+        
+        Parameters:
+        	file_url (str): URL of the uploaded Frappe File containing the BOQ data.
+        
+        Returns:
+        	Dict[str, Any]: Parsing status, detected headers, suggested column mapping,
+        		up to 10 preview items, total item count, and total amount.
+        """
         file_doc = frappe.get_doc("File", {"file_url": file_url})
         content = file_doc.get_content()
         if isinstance(content, bytes):
@@ -481,7 +569,16 @@ if frappe:
         file_url: str,
         mapping_json: str,
     ) -> Dict[str, Any]:
-        """Commit parsed BOQ items into Construction Estimate and create BIM BOQ Links."""
+        """Import parsed BOQ data into a project's baseline construction estimate.
+        
+        Parameters:
+            project (str): The project receiving the BOQ estimate.
+            file_url (str): URL of the uploaded BOQ file.
+            mapping_json (str): JSON-encoded mapping between BOQ fields and source headers.
+        
+        Returns:
+            Dict[str, Any]: Import status, project identifier, estimate name, imported line count, and total amount.
+        """
         if not frappe.db.exists("Project", project):
             frappe.throw(f"Project '{project}' not found.")
 
@@ -538,7 +635,21 @@ if frappe:
         offset_y: float,
         offset_z: float,
     ) -> Dict[str, Any]:
-        """Store coordinate translation offset vector for an IFC BIM Model."""
+        """
+        Store the coordinate translation offset for an IFC BIM model.
+        
+        Parameters:
+        	model_name (str): Name of the BIM Model record.
+        	offset_x (float): Translation offset along the X axis.
+        	offset_y (float): Translation offset along the Y axis.
+        	offset_z (float): Translation offset along the Z axis.
+        
+        Returns:
+        	Dict[str, Any]: Status, model name, and stored offset vector.
+        
+        Raises:
+        	frappe.ValidationError: If the BIM Model does not exist.
+        """
         if not frappe.db.exists("BIM Model", model_name):
             frappe.throw(f"BIM Model '{model_name}' not found.")
 
@@ -554,7 +665,15 @@ if frappe:
 
     @frappe.whitelist()
     def approve_project_initiation(project: str) -> Dict[str, Any]:
-        """Execute formal Stage-Gate Sign-Off, freeze baseline, and flip status to Open/In Progress."""
+        """
+        Approve project initiation after all readiness gates pass.
+        
+        Raises:
+            frappe.ValidationError: If one or more initiation requirements are unmet.
+        
+        Returns:
+            Dict[str, Any]: Approval status, project identifier, updated project status, and next workflow mode.
+        """
         status = get_initiation_status(project)
         readiness = status.get("readiness", {})
 

@@ -60,7 +60,16 @@ def get_bcf_auth() -> Dict[str, Any]:
 
 @frappe.whitelist()
 def list_projects(limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
-    """List all active BCF projects accessible to current user."""
+    """
+    List BCF projects available to the current user.
+    
+    Parameters:
+    	limit (int): Maximum number of projects to return.
+    	offset (int): Number of projects to skip before collecting results.
+    
+    Returns:
+    	List[Dict[str, Any]]: Project metadata, including identifiers, version, status, and topic counts.
+    """
     projects = frappe.get_all(
         "BCF Project",
         fields=["name", "project_name", "project_id", "erpnext_project", "bcf_version", "status", "topic_count", "open_topic_count"],
@@ -84,7 +93,15 @@ def list_projects(limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
 
 @frappe.whitelist()
 def get_project(project_id: str) -> Dict[str, Any]:
-    """Get single BCF Project metadata by project_id GUID."""
+    """
+    Retrieve metadata for a BCF project identified by its GUID.
+    
+    Parameters:
+        project_id (str): The BCF project GUID.
+    
+    Returns:
+        Dict[str, Any]: The project's identifier, name, ERPNext linkage, BCF version, status, and topic counts.
+    """
     p = frappe.get_doc("BCF Project", {"project_id": project_id})
     return {
         "project_id": p.project_id,
@@ -99,7 +116,15 @@ def get_project(project_id: str) -> Dict[str, Any]:
 
 @frappe.whitelist()
 def get_extensions(project_id: str) -> Dict[str, Any]:
-    """Get allowed topic types, statuses, priorities, labels for a project."""
+    """
+    Retrieve the configured topic and snippet options for a BCF project.
+    
+    Parameters:
+        project_id (str): The BCF project identifier.
+    
+    Returns:
+        Dict[str, Any]: The project's allowed topic types, statuses, priorities, labels, stages, and snippet types.
+    """
     p = frappe.get_doc("BCF Project", {"project_id": project_id})
     return {
         "topic_type": json.loads(p.topic_types or "[]"),
@@ -119,7 +144,20 @@ def get_extensions(project_id: str) -> Dict[str, Any]:
 def topics_collection(project_id: str, topic_type: Optional[str] = None,
                       topic_status: Optional[str] = None, assigned_to: Optional[str] = None,
                       limit: int = 100, offset: int = 0) -> Any:
-    """Handle GET (list) and POST (create) on topics collection."""
+    """
+                      List topics for a project or create a new topic from the request payload.
+                      
+                      Parameters:
+                      	project_id (str): Identifier of the BCF project.
+                      	topic_type (Optional[str]): Topic type used to filter listed topics.
+                      	topic_status (Optional[str]): Topic status used to filter listed topics.
+                      	assigned_to (Optional[str]): Assignee used to filter listed topics.
+                      	limit (int): Maximum number of topics to return.
+                      	offset (int): Number of topics to skip before listing results.
+                      
+                      Returns:
+                      	Any: The serialized topic when creating one, or a list of matching topics when listing.
+                      """
     proj = frappe.get_doc("BCF Project", {"project_id": project_id})
 
     method = frappe.local.request.method if hasattr(frappe, "local") and hasattr(frappe.local, "request") else "GET"
@@ -169,7 +207,16 @@ def topics_collection(project_id: str, topic_type: Optional[str] = None,
 
 @frappe.whitelist()
 def topic_resource(project_id: str, topic_guid: str) -> Any:
-    """Handle GET, PUT, DELETE for a specific BCF topic."""
+    """
+    Retrieve, update, or delete a BCF topic identified by its GUID.
+    
+    Parameters:
+        project_id (str): BCF project identifier associated with the topic.
+        topic_guid (str): Unique identifier of the topic.
+    
+    Returns:
+        dict: A deletion status for DELETE requests or the serialized topic for other requests.
+    """
     doc_topic = frappe.get_doc("BCF Topic", {"guid": topic_guid})
     method = frappe.local.request.method if hasattr(frappe, "local") and hasattr(frappe.local, "request") else "GET"
 
@@ -198,7 +245,16 @@ def topic_resource(project_id: str, topic_guid: str) -> Any:
 
 @frappe.whitelist()
 def comments_collection(project_id: str, topic_guid: str) -> Any:
-    """List or create comments for a topic."""
+    """
+    List comments for a topic or create a new comment.
+    
+    Parameters:
+        project_id (str): BCF project identifier.
+        topic_guid (str): GUID of the topic associated with the comments.
+    
+    Returns:
+        list or dict: Existing comments, or the newly created comment.
+    """
     doc_topic = frappe.get_doc("BCF Topic", {"guid": topic_guid})
     method = frappe.local.request.method if hasattr(frappe, "local") and hasattr(frappe.local, "request") else "GET"
 
@@ -234,7 +290,15 @@ def comments_collection(project_id: str, topic_guid: str) -> Any:
 
 @frappe.whitelist()
 def viewpoints_collection(project_id: str, topic_guid: str) -> Any:
-    """List or create viewpoints for a topic."""
+    """List or create viewpoints associated with a topic.
+    
+    Parameters:
+        project_id (str): Identifier of the project containing the topic.
+        topic_guid (str): GUID of the topic whose viewpoints are listed or created.
+    
+    Returns:
+        Any: The serialized created viewpoint or a list of viewpoint summaries.
+    """
     doc_topic = frappe.get_doc("BCF Topic", {"guid": topic_guid})
     method = frappe.local.request.method if hasattr(frappe, "local") and hasattr(frappe.local, "request") else "GET"
 
@@ -270,7 +334,17 @@ def viewpoints_collection(project_id: str, topic_guid: str) -> Any:
 
 @frappe.whitelist()
 def viewpoint_resource(project_id: str, topic_guid: str, viewpoint_guid: str) -> Dict[str, Any]:
-    """Get single viewpoint full spatial definition."""
+    """
+    Retrieve the complete spatial definition for a viewpoint.
+    
+    Parameters:
+    	project_id (str): Identifier of the project containing the topic.
+    	topic_guid (str): GUID of the topic containing the viewpoint.
+    	viewpoint_guid (str): GUID of the viewpoint to retrieve.
+    
+    Returns:
+    	Dict[str, Any]: Serialized viewpoint data, including camera, selection, and spatial information.
+    """
     vp = frappe.get_doc("BCF Viewpoint", {"guid": viewpoint_guid})
     return _serialize_viewpoint(vp)
 
@@ -281,7 +355,16 @@ def viewpoint_resource(project_id: str, topic_guid: str, viewpoint_guid: str) ->
 
 @frappe.whitelist()
 def import_bcf_archive(project_name: Optional[str] = None, erpnext_project: Optional[str] = None) -> Dict[str, Any]:
-    """Import an uploaded BCF-XML ZIP file."""
+    """
+    Import a BCF-XML ZIP archive from an uploaded file or Frappe file URL.
+    
+    Parameters:
+        project_name (Optional[str]): BCF project to associate with the imported archive.
+        erpnext_project (Optional[str]): ERPNext project to associate with the imported archive.
+    
+    Returns:
+        Dict[str, Any]: The import results produced by the BCF importer.
+    """
     files = frappe.request.files if hasattr(frappe, "request") and hasattr(frappe.request, "files") else {}
     file_content = None
 
@@ -300,7 +383,16 @@ def import_bcf_archive(project_name: Optional[str] = None, erpnext_project: Opti
 
 @frappe.whitelist()
 def export_bcf_archive(bcf_project_name: str, bcf_version: str = "2.1") -> Dict[str, Any]:
-    """Export a BCF Project to a downloadable BCF-XML zip archive."""
+    """
+    Export a BCF project as a base64-encoded BCF-XML ZIP archive.
+    
+    Parameters:
+        bcf_project_name (str): Name of the BCF project to export.
+        bcf_version (str): BCF specification version for the archive.
+    
+    Returns:
+        Dict[str, Any]: Project name, BCF version, archive filename, and base64-encoded archive content.
+    """
     exporter = BCFExporter(bcf_project_name, bcf_version=bcf_version)
     zip_bytes = exporter.export_bytes()
     b64_content = base64.b64encode(zip_bytes).decode("utf-8")
@@ -313,6 +405,15 @@ def export_bcf_archive(bcf_project_name: str, bcf_version: str = "2.1") -> Dict[
 
 
 def _serialize_topic(doc_topic) -> Dict[str, Any]:
+    """
+    Serialize a topic document into its BCF API representation.
+    
+    Parameters:
+    	doc_topic: The topic document whose fields are serialized.
+    
+    Returns:
+    	Dict[str, Any]: A dictionary containing the topic's identifiers, metadata, status, assignment, dates, description, and default viewpoint.
+    """
     return {
         "guid": doc_topic.guid,
         "topic_type": doc_topic.topic_type,
@@ -330,6 +431,15 @@ def _serialize_topic(doc_topic) -> Dict[str, Any]:
 
 
 def _serialize_viewpoint(vp) -> Dict[str, Any]:
+    """
+    Serialize a viewpoint document into its API representation.
+    
+    Parameters:
+    	vp: The viewpoint document to serialize.
+    
+    Returns:
+    	Dict[str, Any]: A dictionary containing viewpoint metadata, camera vectors, selection data, and snapshot information.
+    """
     return {
         "guid": vp.guid,
         "viewpoint_type": vp.viewpoint_type,

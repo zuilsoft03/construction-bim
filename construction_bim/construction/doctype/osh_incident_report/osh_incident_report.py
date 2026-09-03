@@ -7,6 +7,11 @@ from frappe.model.document import Document
 
 class OSHIncidentReport(Document):
 	def validate(self):
+		"""
+		Set default reporting information and Dole-reportable status for the incident.
+		
+		If no reporter is specified, assigns the current session user. Incidents classified as Lost Time Injury (LTI) or Fatality are marked as Dole-reportable.
+		"""
 		if not self.reported_by:
 			self.reported_by = frappe.session.user
 

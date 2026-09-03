@@ -365,6 +365,9 @@ function unloadAllModels() {
   setStatus('All models cleared');
 }
 
+/**
+ * Rebuilds the indexed list of element meshes and refreshes the spatial hierarchy.
+ */
 function updateElementMeshesList() {
   elementMeshes = [];
   loadedModels.forEach((entry, modelDocName) => {
@@ -379,6 +382,9 @@ function updateElementMeshesList() {
   renderSpatialHierarchyTree();
 }
 
+/**
+ * Renders the loaded models and their storeys as visibility controls in the spatial hierarchy tree.
+ */
 function renderSpatialHierarchyTree() {
   const treeEl = document.getElementById('bim-spatial-tree');
   if (!treeEl) return;
@@ -455,6 +461,10 @@ function renderSpatialHierarchyTree() {
   });
 }
 
+/**
+ * Releases the geometries and materials used by meshes in a group.
+ * @param {THREE.Group} group - The group whose mesh resources should be disposed.
+ */
 function disposeGroup(group) {
   group.traverse(o => {
     if (o.isMesh) {
@@ -1739,6 +1749,12 @@ function initUiEvents() {
   }
 }
 
+/**
+ * Applies URL and Frappe route options to initialize the viewer context.
+ *
+ * Loads requested models, selects or focuses a specified clash or element, sets
+ * the active project, and switches between initiation and coordination modes.
+ */
 async function handleRouteParams() {
   const params = new URLSearchParams(window.location.search);
   const routeOpts = (window.frappe && frappe.route_options) || {};
@@ -1799,6 +1815,10 @@ let initiationData = null;
 let stagedBoqFileUrl = null;
 let detectedDriftModels = [];
 
+/**
+ * Switches the BIM viewer between project initiation and coordination modes.
+ * @param {string} mode - The mode to activate; `initiation` selects project initiation, and any other value selects coordination.
+ */
 function setAppMode(mode) {
   currentAppMode = mode;
   const leftInit = document.getElementById('bim-left-initiation');
@@ -1826,6 +1846,10 @@ function setAppMode(mode) {
   }
 }
 
+/**
+ * Switches the active viewport tab and updates the corresponding viewport visibility.
+ * @param {string} tab - The viewport tab to activate: `3d`, `cad`, or `pdf`.
+ */
 function setViewportTab(tab) {
   currentViewportTab = tab;
   const vpTabs = document.querySelectorAll('.bim-vp-tab');
@@ -1847,6 +1871,9 @@ function setViewportTab(tab) {
   }
 }
 
+/**
+ * Refreshes the project initiation status and updates the initiation workspace.
+ */
 async function refreshInitiationStatus() {
   if (!activeProject) return;
   try {
@@ -1862,6 +1889,10 @@ async function refreshInitiationStatus() {
   }
 }
 
+/**
+ * Renders project initiation status, intake badges, loaded models, verification metrics, stage gates, and kickoff approval state.
+ * @param {Object} data - Project initiation data used to update the workspace.
+ */
 function renderInitiationWorkspace(data) {
   const readiness = data.readiness || {};
   const gates = readiness.gates || [];
@@ -2049,6 +2080,12 @@ function renderInitiationWorkspace(data) {
   }
 }
 
+/**
+ * Uploads an intake file, routes it to the selected project category, and refreshes the initiation status.
+ * @param {File} file - The file to upload.
+ * @param {string} category - The intake category, such as `boq` or `ifc`.
+ * @param {string} discipline - The discipline associated with the file.
+ */
 async function uploadIntakeFile(file, category, discipline) {
   showLoading(`Uploading ${file.name} to 0${category}…`, true);
   try {
@@ -2102,6 +2139,10 @@ async function uploadIntakeFile(file, category, discipline) {
   }
 }
 
+/**
+ * Open the BOQ column-mapping modal with parsed spreadsheet headers, suggested mappings, preview items, and summary totals.
+ * @param {string} fileUrl - The URL of the spreadsheet to analyze.
+ */
 async function openBoqColumnMappingModal(fileUrl) {
   showLoading('Analyzing spreadsheet columns…', true);
   try {
@@ -2165,6 +2206,9 @@ async function openBoqColumnMappingModal(fileUrl) {
   }
 }
 
+/**
+ * Commits the staged BOQ file as a construction estimate using the selected column mappings.
+ */
 async function commitBoqMapping() {
   if (!stagedBoqFileUrl) return;
   const mapping = {
@@ -2201,6 +2245,9 @@ async function commitBoqMapping() {
   }
 }
 
+/**
+ * Downloads the standard BOQ template as a CSV file.
+ */
 async function downloadBoqTemplate() {
   try {
     const res = await frappe.call({ method: API.download_boq_template });
@@ -2216,6 +2263,12 @@ async function downloadBoqTemplate() {
   }
 }
 
+/**
+ * Highlights elements associated with mapped takeoff quantities.
+ *
+ * Mapped elements are shown in green at full opacity, while unmapped elements
+ * are displayed as translucent geometry.
+ */
 function crossHighlightMappedQuantities() {
   if (!elementMeshes.length) {
     frappe.msgprint(__('Load IFC models in the viewer to highlight takeoff quantities.'));
@@ -2241,6 +2294,9 @@ function crossHighlightMappedQuantities() {
   setStatus('Cross-highlighted mapped takeoff elements (Green = Costed, Ghost = Unmapped)');
 }
 
+/**
+ * Aligns detected drifted models to the project origin and updates the viewer.
+ */
 async function autoAlignModels() {
   if (!detectedDriftModels.length) {
     frappe.msgprint(__('No models currently require coordinate alignment.'));
@@ -2278,6 +2334,9 @@ async function autoAlignModels() {
   }
 }
 
+/**
+ * Approves project initiation and transitions the active project to Active Construction after confirmation.
+ */
 async function approveProjectKickoff() {
   frappe.confirm(
     `Are you sure you want to approve Project Initiation for <b>${activeProject}</b> and transition to Active Construction? This freezes the baseline contract and BOQ.`,
@@ -2304,6 +2363,9 @@ async function approveProjectKickoff() {
   );
 }
 
+/**
+ * Bind event handlers for project initiation and coordination controls, including mode switching, viewport tabs, file intake, BOQ mapping, alignment, and kickoff approval.
+ */
 function initInitiationEvents() {
   const btnInit = document.getElementById('btn-mode-initiation');
   const btnCoord = document.getElementById('btn-mode-coordination');
@@ -2399,6 +2461,12 @@ const clipPlaneY = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1000);
 const clipPlaneZ = new THREE.Plane(new THREE.Vector3(0, 0, -1), 1000);
 let clippingActive = false;
 
+/**
+ * Initializes the section clipping controls for the BIM viewer.
+ *
+ * Binds the section tool, axis clipping controls, and reset control to update
+ * the renderer's active clipping planes.
+ */
 function initSectionClipping() {
   const btnSection = document.getElementById('tool-section');
   const panel = document.getElementById('bim-clipping-controls');
@@ -2455,7 +2523,12 @@ function initSectionClipping() {
   }
 }
 
-// ---------------- In-Viewer BCF Issue / Defect Creation (OpenProject Parity) ----------------
+/**
+ * Initializes the in-viewer issue creation controls.
+ *
+ * Captures a viewport snapshot, collects issue details and camera context,
+ * and submits them to create a BCF-style issue.
+ */
 function initInViewerIssueCreation() {
   const btnCreate = document.getElementById('tool-create-issue');
   const modal = document.getElementById('modal-create-issue');

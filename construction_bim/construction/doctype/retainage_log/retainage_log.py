@@ -8,6 +8,9 @@ from frappe.utils import flt
 
 class RetainageLog(Document):
 	def validate(self):
+		"""
+		Populate missing retained amount and project details from the linked construction contract.
+		"""
 		if self.contract and not self.total_retained_amount:
 			retained = frappe.db.get_value("Construction Contract", self.contract, "total_retention_withheld")
 			self.total_retained_amount = flt(retained)

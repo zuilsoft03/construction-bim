@@ -41,7 +41,16 @@ BCF_TO_TASK_PRIORITY = {
 
 @frappe.whitelist()
 def create_task_from_bcf_topic(topic_name_or_guid: str, project: Optional[str] = None) -> Dict[str, Any]:
-    """Generate a native ERPNext Task from an existing BCF Topic."""
+    """
+    Create an ERPNext Task from a BCF Topic and link the Task to the topic.
+    
+    Parameters:
+        topic_name_or_guid (str): BCF Topic name or GUID used to identify the topic.
+        project (str, optional): ERPNext project to assign to the Task. If omitted, the project linked to the BCF Project is used.
+    
+    Returns:
+        Dict[str, Any]: Result containing the operation status, topic name, and task details.
+    """
     topic = None
     if frappe.db.exists("BCF Topic", topic_name_or_guid):
         topic = frappe.get_doc("BCF Topic", topic_name_or_guid)
@@ -85,7 +94,12 @@ def create_task_from_bcf_topic(topic_name_or_guid: str, project: Optional[str] =
 
 @frappe.whitelist()
 def sync_bcf_topic_to_task(topic_doc) -> None:
-    """Propagate changes from BCF Topic to the linked ERPNext Task."""
+    """
+    Synchronize the linked ERPNext Task with the BCF Topic's status and priority.
+    
+    Parameters:
+        topic_doc: A BCF Topic document or its name.
+    """
     if isinstance(topic_doc, str):
         topic_doc = frappe.get_doc("BCF Topic", topic_doc)
 
@@ -112,7 +126,12 @@ def sync_bcf_topic_to_task(topic_doc) -> None:
 
 @frappe.whitelist()
 def sync_task_to_bcf_topic(task_doc) -> None:
-    """Propagate changes from ERPNext Task back to the linked BCF Topic."""
+    """
+    Synchronize the linked BCF Topic's status with an ERPNext Task.
+    
+    Parameters:
+    	task_doc: An ERPNext Task document or its name.
+    """
     if isinstance(task_doc, str):
         task_doc = frappe.get_doc("Task", task_doc)
 

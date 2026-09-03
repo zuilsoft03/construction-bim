@@ -544,6 +544,11 @@ export class DWGViewerApp {
   }
 }
 
+/**
+ * Initialize or reuse the global DWG viewer application.
+ * @param {HTMLCanvasElement} [canvasElement] - Canvas to use; defaults to the element with ID `cad-canvas`.
+ * @return {DWGViewerApp|null} The viewer application, or `null` when no canvas is available.
+ */
 export function initDWGViewer(canvasElement?: HTMLCanvasElement) {
   const canvas = canvasElement || (document.getElementById("cad-canvas") as HTMLCanvasElement);
   if (!canvas) {

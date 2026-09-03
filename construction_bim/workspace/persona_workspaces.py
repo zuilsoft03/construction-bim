@@ -21,7 +21,13 @@ logger = logging.getLogger(__name__)
 
 @frappe.whitelist()
 def get_available_personas() -> List[Dict[str, Any]]:
-    """Return catalog of supported professional persona cockpits."""
+    """
+    List the supported professional persona cockpits and their dashboard metadata.
+    
+    Returns:
+        List[Dict[str, Any]]: Persona definitions containing identifiers, titles, icons,
+        descriptions, and metric labels.
+    """
     return [
         {
             "id": "Architect",
@@ -63,7 +69,16 @@ def get_available_personas() -> List[Dict[str, Any]]:
 
 @frappe.whitelist()
 def get_persona_dashboard_metrics(persona: str, project_id: Optional[str] = None) -> Dict[str, Any]:
-    """Retrieve tailored KPI cards, quick actions, and data tables for a specific professional role."""
+    """
+    Build KPI cards and quick actions for the selected construction BIM persona.
+    
+    Parameters:
+        persona (str): Persona identifier used to select the dashboard configuration.
+        project_id (Optional[str]): Project identifier used to restrict project-related metrics.
+    
+    Returns:
+        Dict[str, Any]: Dashboard data containing the resolved persona, title, KPI cards, and quick actions. Unsupported personas use the Site Supervisor configuration.
+    """
     proj_filter = {"project": project_id} if project_id else {}
 
     if persona == "Architect":

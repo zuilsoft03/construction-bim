@@ -23,13 +23,20 @@ def synthesize_daily_site_diary(
     weather_summary: Optional[str] = "Clear, 24°C, Wind 10km/h NW",
     site_notes: Optional[str] = None
 ) -> Dict[str, Any]:
-    """Synthesize an authoritative Daily Construction Site Diary.
-
-    Aggregates:
-    1. Labor headcounts & hours from Timesheets.
-    2. Work packages completed or in progress from Tasks.
-    3. Spatial defects and BCF coordination issues logged today.
-    4. Equipment logs and material receipts.
+    """
+    Generate a Markdown daily construction diary for a project.
+    
+    Parameters:
+    	project_id (str): Identifier of the project to summarize.
+    	date (Optional[str]): Diary date in ``YYYY-MM-DD`` format; defaults to the current date.
+    	weather_summary (Optional[str]): Weather information included in the diary.
+    	site_notes (Optional[str]): Optional field remarks included in the diary.
+    
+    Returns:
+    	Dict[str, Any]: Success metadata, workforce and task counts, open clash count, project details, and the generated Markdown diary.
+    
+    Raises:
+    	frappe.ValidationError: If ``project_id`` is not provided.
     """
     if not project_id:
         frappe.throw(_("project_id is required"))

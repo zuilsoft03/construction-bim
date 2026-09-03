@@ -451,6 +451,17 @@ class MockDoc:
             super().__setattr__(key, value)
 
     def __getattr__(self, key: str) -> Any:
+        """Retrieve a dynamic document field by attribute name.
+        
+        Parameters:
+        	key (str): The attribute name to retrieve.
+        
+        Returns:
+        	Any: The stored field value, or `None` when the field is not present.
+        
+        Raises:
+        	AttributeError: If the requested name is `_data` or a double-underscore attribute.
+        """
         if key == "_data" or (key.startswith("__") and key.endswith("__")):
             raise AttributeError(key)
         if "_data" in self.__dict__ and key in self._data:
@@ -458,6 +469,16 @@ class MockDoc:
         return None
 
     def get(self, key: str, default: Any = None) -> Any:
+        """
+        Retrieve a document value by key with a fallback for missing or null values.
+        
+        Parameters:
+        	key (str): The field name to retrieve.
+        	default (Any): The value to return when the field is missing or null.
+        
+        Returns:
+        	Any: The stored field value, or `default` when the field is missing or null.
+        """
         if hasattr(self, "_data") and key in self._data:
             val = self._data[key]
             return default if val is None else val
@@ -470,6 +491,14 @@ class MockDoc:
         setattr(self, key, value)
 
     def db_set(self, fieldname_or_dict: Union[str, Dict[str, Any]], value: Any = None, update_modified: bool = True):
+        """
+        Update one or more fields on the document and persist the changes in the mock database.
+        
+        Parameters:
+            fieldname_or_dict (Union[str, Dict[str, Any]]): A field name or mapping of field names to values.
+            value (Any): The value to assign when a single field name is provided.
+            update_modified (bool): Whether to update the document's modified timestamp.
+        """
         mock_frappe_db.set_value(self.doctype, self.name, fieldname_or_dict, value, update_modified)
         if isinstance(fieldname_or_dict, dict):
             for k, v in fieldname_or_dict.items():
@@ -478,6 +507,12 @@ class MockDoc:
             setattr(self, fieldname_or_dict, value)
 
     def as_dict(self) -> FrappeDict:
+        """
+        Create a deep-copied dictionary representation of the document, including its metadata and dynamic fields.
+        
+        Returns:
+        	FrappeDict: An independent mapping containing the document's metadata and field values.
+        """
         d = FrappeDict({
             "name": self.name,
             "doctype": self.doctype,
@@ -490,6 +525,15 @@ class MockDoc:
         return copy.deepcopy(d)
 
     def insert(self, ignore_permissions: bool = False) -> MockDoc:
+        """
+        Insert the document into the mock database after running its applicable lifecycle hooks.
+        
+        Parameters:
+        	ignore_permissions (bool): Whether to bypass permission checks.
+        
+        Returns:
+        	MockDoc: The inserted document.
+        """
         if callable(getattr(self, "before_insert", None)):
             self.before_insert()
         if callable(getattr(self, "validate", None)):
@@ -502,6 +546,15 @@ class MockDoc:
         return res
 
     def save(self, ignore_permissions: bool = False) -> MockDoc:
+        """
+        Persist the document after running its validation and pre-save hooks.
+        
+        Parameters:
+        	ignore_permissions (bool): Whether to bypass permission checks during saving.
+        
+        Returns:
+        	MockDoc: The saved document.
+        """
         if callable(getattr(self, "validate", None)):
             self.validate()
         if callable(getattr(self, "before_save", None)):
@@ -509,6 +562,11 @@ class MockDoc:
         return mock_frappe_db.save(self)
 
     def submit(self) -> MockDoc:
+        """Submit the document and persist its submitted state.
+        
+        Returns:
+        	MockDoc: The submitted and saved document.
+        """
         if callable(getattr(self, "before_submit", None)):
             self.before_submit()
         self.docstatus = 1
@@ -519,6 +577,11 @@ class MockDoc:
         return mock_frappe_db.save(self)
 
     def cancel(self) -> MockDoc:
+        """Cancel the document and persist its cancelled state.
+        
+        Returns:
+        	MockDoc: The saved document with a cancelled status.
+        """
         if callable(getattr(self, "before_cancel", None)):
             self.before_cancel()
         self.docstatus = 2
@@ -527,6 +590,7 @@ class MockDoc:
         return mock_frappe_db.save(self)
 
     def delete(self, ignore_permissions: bool = False) -> None:
+        """Delete this document from the mock database."""
         mock_frappe_db.delete(self.doctype, self.name)
 
     def append(self, table_fieldname: str, value_dict: Optional[Dict[str, Any]] = None) -> Any:
@@ -603,6 +667,16 @@ class MockDB:
             del table[name]
 
     def exists(self, doctype: str, filters: Union[str, Dict[str, Any]]) -> bool:
+        """
+        Check whether a document exists by name or matches all specified field filters.
+        
+        Parameters:
+        	doctype (str): The document type to search.
+        	filters (str | dict): A document name or field-value filters.
+        
+        Returns:
+        	bool: `true` if a matching document exists, `false` otherwise.
+        """
         table = self._tables.get(doctype, {})
         if isinstance(filters, str):
             return filters in table
@@ -619,6 +693,18 @@ class MockDB:
         return False
 
     def get_value(self, doctype: str, name_or_filters: Union[str, Dict[str, Any]], fieldname: Union[str, List[str]], as_dict: bool = False) -> Any:
+        """
+        Retrieve one or more field values from a document identified by name or filters.
+        
+        Parameters:
+        	doctype (str): The document type to search.
+        	name_or_filters (str | dict): A document name or field-value filters.
+        	fieldname (str | list[str]): The field name or names to retrieve.
+        	as_dict (bool): Return multiple values as a mapping when true.
+        
+        Returns:
+        	Any: The requested value, a list of values, or a mapping of field names to values. Returns None when no matching document exists.
+        """
         table = self._tables.get(doctype, {})
         target_doc = None
         if isinstance(name_or_filters, str):
@@ -642,6 +728,15 @@ class MockDB:
         return getattr(target_doc, fieldname, None)
 
     def set_value(self, doctype: str, name: str, fieldname_or_dict: Union[str, Dict[str, Any]], value: Any = None, update_modified: bool = True) -> None:
+        """Update one or more fields on an in-memory document.
+        
+        Parameters:
+            doctype (str): The document type containing the document.
+            name (str): The document name.
+            fieldname_or_dict (Union[str, Dict[str, Any]]): A field name or mapping of field names to values.
+            value (Any, optional): The value to assign when a single field name is provided.
+            update_modified (bool): Whether to update the document's modified timestamp.
+        """
         table = self._tables.get(doctype, {})
         doc = table.get(name)
         if not doc:
@@ -668,6 +763,17 @@ class MockDB:
         return cnt
 
     def sql(self, query: str, values: Optional[Union[List, Tuple, Dict]] = None, as_dict: bool = False) -> List[Any]:
+        """
+        Execute a limited SQL query against the in-memory database.
+        
+        Parameters:
+        	query (str): SQL query to execute.
+        	values (Optional[Union[List, Tuple, Dict]]): Values supplied for query parameters.
+        	as_dict (bool): Whether to return matching rows as dictionaries.
+        
+        Returns:
+        	List[Any]: Query results represented as row lists or dictionaries.
+        """
         self._sql_log.append(query)
         q_upper = query.upper().strip()
 
@@ -726,6 +832,7 @@ mock_frappe_db = MockDB()
 _DOCTYPE_CLASSES: Dict[str, Any] = {}
 
 def register_doctype_class(doctype: str, cls: Any):
+    """Register a custom class for a Frappe DocType."""
     _DOCTYPE_CLASSES[doctype] = cls
 
 
@@ -767,11 +874,33 @@ class MockFrappeModule:
 
     @staticmethod
     def new_doc(doctype: str, **kwargs) -> MockDoc:
+        """Create a new mock document for the specified DocType.
+        
+        Parameters:
+        	doctype (str): The DocType to instantiate.
+        	**kwargs: Initial field values for the document.
+        
+        Returns:
+        	MockDoc: A document instance using the registered DocType class when available.
+        """
         cls = _DOCTYPE_CLASSES.get(doctype, MockDoc)
         return cls(doctype, **kwargs)
 
     @staticmethod
     def get_doc(doctype: Union[str, Dict[str, Any]], name: Optional[str] = None, **kwargs) -> MockDoc:
+        """
+        Retrieve an existing document by name or field filters, or create a new document from a field mapping.
+        
+        Parameters:
+            doctype (str | dict): DocType name, or a mapping containing the DocType and document fields.
+            name (str | dict | None): Document name, or field filters used to locate a document.
+        
+        Returns:
+            MockDoc: The matching or newly created document.
+        
+        Raises:
+            DoesNotExistError: If no document matches the requested name or filters.
+        """
         if isinstance(doctype, dict):
             dt = doctype.get("doctype", "MockDoc")
             fields = {k: v for k, v in doctype.items() if k != "doctype"}
@@ -811,10 +940,35 @@ class MockFrappeModule:
 
     @staticmethod
     def has_permission(doctype: str, ptype: str = "read", doc: Any = None, user: Optional[str] = None) -> bool:
+        """Allow the requested operation on the specified document type.
+        
+        Parameters:
+        	doctype (str): The document type being accessed.
+        	ptype (str): The permission type being checked.
+        	doc (Any): The document involved in the permission check.
+        	user (Optional[str]): The user requesting permission.
+        
+        Returns:
+        	bool: Always `True`.
+        """
         return True
 
     @staticmethod
     def get_all(doctype: str, filters: Optional[Dict[str, Any]] = None, fields: Optional[List[str]] = None, order_by: Optional[str] = None, limit_page_length: int = 500, pluck: Optional[str] = None) -> List[Any]:
+        """
+        Retrieve documents of a DocType matching the specified filters.
+        
+        Parameters:
+        	doctype (str): The DocType to query.
+        	filters (Optional[Dict[str, Any]]): Field values or comparison conditions used to select documents.
+        	fields (Optional[List[str]]): Fields to include in each result.
+        	order_by (Optional[str]): Ordering specification for the results.
+        	limit_page_length (int): Maximum number of results to return.
+        	pluck (Optional[str]): Field whose values should be returned directly.
+        
+        Returns:
+        	List[Any]: Matching documents, selected field mappings, or values from the plucked field.
+        """
         table = mock_frappe_db._tables.get(doctype, {})
         results = []
         for doc in table.values():
@@ -877,7 +1031,9 @@ class MockFrappeModule:
 
 
 def setup_frappe_test_environment():
-    """Ensure frappe module exists in sys.modules, using MockFrappe if not present."""
+    """
+    Install a minimal Frappe-compatible test environment in `sys.modules` when one is unavailable or incomplete.
+    """
     if "frappe" not in sys.modules or not hasattr(sys.modules["frappe"], "session"):
         mod = types.ModuleType("frappe")
         for k in dir(MockFrappeModule):

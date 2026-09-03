@@ -16,7 +16,12 @@ class BIMIssue(Document):
     """BCF-compliant issue record for 2D DWG/CAD and 3D BIM coordination."""
 
     def validate(self) -> None:
-        """Validate fields and manage status transition lifecycle."""
+        """
+        Validate required fields, apply defaults, and update issue lifecycle metadata.
+        
+        Raises:
+        	frappe.ValidationError: If the issue has no title.
+        """
         if not self.title:
             frappe.throw(frappe._("Title is required for a BIM Issue."))
 
@@ -47,7 +52,16 @@ class BIMIssue(Document):
                 self.resolution_date = None
 
     def add_discussion_comment(self, comment_text: str, new_status: str | None = None) -> dict[str, Any]:
-        """Add a threaded collaboration comment and optionally update issue status."""
+        """
+        Add a collaboration comment to the issue and optionally update its status.
+        
+        Parameters:
+            comment_text (str): The comment text to add.
+            new_status (str | None): The issue status to apply when valid.
+        
+        Returns:
+            dict[str, Any]: Metadata for the created comment and the resulting issue status.
+        """
         self.check_permission("write")
         clean_comment = frappe.utils.escape_html(comment_text.strip())
         if not clean_comment:
@@ -88,7 +102,12 @@ class BIMIssue(Document):
             return {}
 
     def to_bcf_topic_dict(self) -> dict[str, Any]:
-        """Serialize into buildingSMART BCF 2.1 / 3.0 topic representation."""
+        """
+        Build a BCF topic representation containing issue metadata, viewpoint data, and comments.
+        
+        Returns:
+        	dict[str, Any]: A topic dictionary with topic details, viewpoints, and chronologically ordered comments.
+        """
         topic_guid = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"bim_issue_{self.name}"))
         viewpoint_guid = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"vp_{self.name}"))
         vp_dict = self.get_viewpoint_dict()
@@ -141,7 +160,11 @@ class BIMIssue(Document):
         }
 
     def to_bcf_xml(self) -> tuple[str, str]:
-        """Generate buildingSMART BCF 2.1 compliant markup.bcf and viewpoint.bcfv XML."""
+        """Generate BCF 2.1 XML documents for the issue markup and viewpoint.
+        
+        Returns:
+            tuple[str, str]: The `markup.bcf` XML and `viewpoint.bcfv` XML content.
+        """
         data = self.to_bcf_topic_dict()
         top = data["topic"]
 

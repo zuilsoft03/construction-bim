@@ -23,12 +23,23 @@ class BCFExporter:
     """Serializes Frappe BCF records into a standard BCF-XML zip archive."""
 
     def __init__(self, bcf_project_name: str, bcf_version: str = "2.1"):
+        """Initialize an exporter for a BCF project and selected BCF version.
+        
+        Parameters:
+        	bcf_project_name (str): Name of the BCF Project record to export.
+        	bcf_version (str): BCF version to use. Defaults to the project's configured version or 2.1.
+        """
         self.project = frappe.get_doc("BCF Project", bcf_project_name)
         self.bcf_version = bcf_version or self.project.bcf_version or "2.1"
         self.zip_buffer = io.BytesIO()
 
     def export_bytes(self) -> bytes:
-        """Generate zip archive bytes."""
+        """
+        Create a BCF-XML ZIP archive for the configured project.
+        
+        Returns:
+        	bytes: The generated archive contents.
+        """
         with zipfile.ZipFile(self.zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
             # 1. bcf.version
             zf.writestr("bcf.version", self._build_version_xml())
@@ -52,6 +63,11 @@ class BCFExporter:
         return self.zip_buffer.getvalue()
 
     def _build_version_xml(self) -> str:
+        """Builds the BCF version metadata document.
+        
+        Returns:
+        	str: XML containing the configured BCF version.
+        """
         return (
             f'<?xml version="1.0" encoding="UTF-8"?>\n'
             f'<Version VersionId="{self.bcf_version}">'
@@ -60,6 +76,12 @@ class BCFExporter:
         )
 
     def _build_extensions_xml(self) -> str:
+        """
+        Build BCF 2.1 extensions XML from the project's topic types, statuses, and priorities.
+        
+        Returns:
+        	str: XML containing the configured topic types, topic statuses, and priorities.
+        """
         types = json.loads(self.project.topic_types or "[]")
         statuses = json.loads(self.project.topic_statuses or "[]")
         priorities = json.loads(self.project.priorities or "[]")
@@ -73,6 +95,12 @@ class BCFExporter:
         return xml
 
     def _build_extensions_json(self) -> str:
+        """
+        Serialize the project's BCF 3.x extension definitions as formatted JSON.
+        
+        Returns:
+        	str: A JSON document containing topic types, statuses, priorities, labels, and stages.
+        """
         return json.dumps({
             "topic_type": json.loads(self.project.topic_types or "[]"),
             "topic_status": json.loads(self.project.topic_statuses or "[]"),
@@ -82,6 +110,13 @@ class BCFExporter:
         }, indent=2)
 
     def _write_topic_package(self, zf: zipfile.ZipFile, doc_t):
+        """
+        Write a topic package containing markup, comments, viewpoints, and available snapshots to a ZIP archive.
+        
+        Parameters:
+            zf (zipfile.ZipFile): Archive to which the topic files are written.
+            doc_t: BCF topic document whose metadata and related records are exported.
+        """
         t_guid = doc_t.guid
 
         # 1. markup.bcf
@@ -137,6 +172,15 @@ class BCFExporter:
                     logger.warning(f"Could not attach snapshot file for {vp_doc.guid}: {e}")
 
     def _build_viewpoint_xml(self, vp) -> str:
+        """
+        Build viewpoint visualization XML for the configured BCF version.
+        
+        Parameters:
+        	vp: Viewpoint record containing camera settings and optional component selections.
+        
+        Returns:
+        	str: XML describing the viewpoint camera and selected IFC components.
+        """
         ns = (
             "http://www.buildingsmart-tech.org/specifications/bcf/2.1/viewpoint.xsd"
             if not self.bcf_version.startswith("3")
@@ -178,6 +222,14 @@ class BCFExporter:
 
 
 def _escape_xml(text: str) -> str:
+    """Escape XML-sensitive characters in text.
+    
+    Parameters:
+        text (str): Text to escape.
+    
+    Returns:
+        str: XML-escaped text, or an empty string for a falsy value.
+    """
     if not text:
         return ""
     return (
@@ -190,6 +242,16 @@ def _escape_xml(text: str) -> str:
 
 
 def _safe_json_dict(val: Any, default: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Convert a dictionary or JSON object string to a dictionary.
+    
+    Parameters:
+        val (Any): Value to parse.
+        default (Dict[str, Any]): Value returned when parsing fails or the input is not an object.
+    
+    Returns:
+        Dict[str, Any]: The parsed dictionary or the supplied default.
+    """
     if not val:
         return default
     if isinstance(val, dict):
@@ -202,6 +264,14 @@ def _safe_json_dict(val: Any, default: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _safe_json_list(val: Any) -> List[Any]:
+    """Return a list value from a native list or a JSON array string.
+    
+    Parameters:
+    	val (Any): A list or JSON-encoded array value.
+    
+    Returns:
+    	List[Any]: The parsed list, or an empty list if the value is missing, invalid, or does not represent an array.
+    """
     if not val:
         return []
     if isinstance(val, list):

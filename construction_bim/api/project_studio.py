@@ -19,7 +19,16 @@ def _doctype_exists(doctype):
 
 @frappe.whitelist()
 def list_projects(include_archived=0, search_query=None):
-	"""Returns all projects with hierarchical structure, health status, favorites, and storage stats."""
+	"""
+	List projects with hierarchy, status, activity, and related resource statistics.
+	
+	Parameters:
+		include_archived (int): Whether to include inactive projects.
+		search_query (str, optional): Text used to filter project names and identifiers.
+	
+	Returns:
+		list: Up to 500 project records containing project metadata, status, progress, hierarchy, storage usage, and related item counts.
+	"""
 	include_archived = cint(include_archived)
 	
 	filters = {}
@@ -104,7 +113,18 @@ def list_projects(include_archived=0, search_query=None):
 
 @frappe.whitelist()
 def get_project_overview(project):
-	"""Returns the 7-widget dashboard metrics matching OpenProject BIM Project Home."""
+	"""
+	Build the project dashboard overview, including summary details, milestones, subprojects, meetings, members, and news.
+	
+	Parameters:
+		project (str): The name of the project to summarize.
+	
+	Returns:
+		dict: Dashboard data grouped under summary, milestones, subprojects, meetings, members, and news.
+	
+	Raises:
+		frappe.ValidationError: If the project does not exist.
+	"""
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
 
@@ -276,7 +296,18 @@ def get_project_overview(project):
 
 @frappe.whitelist()
 def list_work_packages(project, filter_key=None, type_filter=None, search=None):
-	"""Returns hierarchical work packages with color-coded type pills, status, assignees, and filters."""
+	"""
+	Retrieve project work packages with optional status, type, assignment, creator, and text filters.
+	
+	Parameters:
+		project (str): The project whose work packages to retrieve.
+		filter_key (str, optional): Filters for all open, overdue, current-user-assigned, or current-user-created work packages.
+		type_filter (str, optional): Restricts results to a specific work package type.
+		search (str, optional): Matches work package names or subjects.
+	
+	Returns:
+		list: Hierarchical work package records containing task details, assignment information, progress, and linked BCF or RFI records.
+	"""
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
 
@@ -357,7 +388,25 @@ def list_work_packages(project, filter_key=None, type_filter=None, search=None):
 
 @frappe.whitelist()
 def quick_create_work_package(project, wp_type, subject, description=None, priority="Normal", assignee=None, due_date=None, parent_wp=None):
-	"""Polymorphically creates a work package (Task, Milestone, Phase, Issue, Remark, Request, Clash)."""
+	"""
+	Create a project work package and optionally link it to a domain record.
+	
+	Parameters:
+		project (str): The project to which the work package belongs.
+		wp_type (str): The work package type, such as milestone, clash, request, or issue.
+		subject (str): The work package title.
+		description (str, optional): Detailed description; defaults to the subject.
+		priority (str, optional): Work package priority.
+		assignee (str, optional): User to assign the work package to.
+		due_date (date, optional): Work package due date.
+		parent_wp (str, optional): Parent work package identifier.
+	
+	Returns:
+		dict: Metadata containing the created task ID, subject, uppercase type, status, and linked domain record ID when applicable.
+	
+	Raises:
+		frappe.ValidationError: If the specified project does not exist.
+	"""
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
 
@@ -424,7 +473,16 @@ def quick_create_work_package(project, wp_type, subject, description=None, prior
 
 @frappe.whitelist()
 def get_kanban_board_data(project, group_by="status"):
-	"""Returns kanban columns and cards grouped by status, priority, or assignee."""
+	"""
+	Group open project work packages into Kanban columns by status, priority, or assignee.
+	
+	Parameters:
+		project (str): The project whose open work packages are grouped.
+		group_by (str): The grouping criterion: ``"status"``, ``"priority"``, or ``"assignee"``.
+	
+	Returns:
+		dict: A mapping containing the requested grouping criterion and the resulting Kanban columns with their cards.
+	"""
 	items = list_work_packages(project, filter_key="all_open")
 
 	if group_by == "priority":
@@ -482,7 +540,21 @@ def get_kanban_board_data(project, group_by="status"):
 
 @frappe.whitelist()
 def update_work_package_status(task_name, new_column, group_by="status"):
-	"""Updates task property on Kanban drag-and-drop."""
+	"""
+	Update a work package property from a Kanban column selection.
+	
+	Args:
+	    task_name (str): Name of the task to update.
+	    new_column (str): Value selected in the destination Kanban column.
+	    group_by (str): Task property represented by the columns: ``"status"``,
+	        ``"priority"``, or ``"assignee"``.
+	
+	Returns:
+	    dict: A success response containing the task name and applied value.
+	
+	Raises:
+	    frappe.ValidationError: If the task does not exist.
+	"""
 	if not frappe.db.exists("Task", task_name):
 		frappe.throw(_("Task {0} not found.").format(task_name))
 
@@ -501,7 +573,18 @@ def update_work_package_status(task_name, new_column, group_by="status"):
 
 @frappe.whitelist()
 def get_project_document_tree(project):
-	"""Returns the 5-folder project taxonomy with auto-launchers for BIM, CAD, and PDF."""
+	"""
+	Build the categorized document tree for a project.
+	
+	Parameters:
+		project (str): The project identifier.
+	
+	Returns:
+		list: Five project folders containing categorized files and routing metadata.
+	
+	Raises:
+		frappe.ValidationError: If the project does not exist.
+	"""
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
 
@@ -579,7 +662,19 @@ def get_project_document_tree(project):
 
 @frappe.whitelist()
 def update_project_settings(project, settings_json):
-	"""Updates project properties (health_status, status_narrative, is_template, is_favorite, parent_project)."""
+	"""
+	Update editable settings for a project and save the changes.
+	
+	Parameters:
+		project (str): The project name to update.
+		settings_json (dict or str): Project settings as a mapping or a JSON-encoded mapping.
+	
+	Returns:
+		dict: A success status and the updated project name.
+	
+	Raises:
+		Exception: If the project does not exist.
+	"""
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
 
@@ -607,7 +702,21 @@ def update_project_settings(project, settings_json):
 
 @frappe.whitelist()
 def clone_project_from_template(template_project, new_project_name, client=None, expected_start_date=None):
-	"""Clones a project from a template project including PM² phases and milestones."""
+	"""
+	Create an active project from a template, including its phases, checklist items, tasks, and milestones.
+	
+	Parameters:
+		template_project (str): Name of the project to use as the template.
+		new_project_name (str): Name for the new project.
+		client (str, optional): Customer to assign to the new project. Uses the template customer when omitted.
+		expected_start_date (str, optional): Planned start date for the new project. Uses the current date when omitted.
+	
+	Returns:
+		dict: A success status and the new project's name and project name.
+	
+	Raises:
+		frappe.ValidationError: If the template project does not exist.
+	"""
 	if not frappe.db.exists("Project", template_project):
 		frappe.throw(_("Template Project {0} not found.").format(template_project))
 
@@ -661,7 +770,15 @@ def clone_project_from_template(template_project, new_project_name, client=None,
 
 
 def _format_bytes(bytes_val):
-	"""Helper to format byte count into readable KB/MB/GB string."""
+	"""
+	Format a byte count using an appropriate human-readable unit.
+	
+	Parameters:
+		bytes_val: The byte count to format.
+	
+	Returns:
+		str: The formatted value in Bytes, KB, MB, or GB.
+	"""
 	bytes_val = flt(bytes_val)
 	if bytes_val < 1024:
 		return f"{int(bytes_val)} Bytes"

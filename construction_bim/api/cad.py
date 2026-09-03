@@ -16,6 +16,14 @@ from frappe.utils import now_datetime
 
 
 def _resolve_bim_model(model_ref: str | None) -> str | None:
+    """Resolve a BIM Model reference by document name or model name.
+    
+    Parameters:
+    	model_ref (str | None): A BIM Model document name or model name.
+    
+    Returns:
+    	str | None: The matching BIM Model document name, or `None` if the reference is empty or unresolved.
+    """
     if not model_ref:
         return None
     if frappe.db.exists("BIM Model", model_ref):
@@ -25,7 +33,15 @@ def _resolve_bim_model(model_ref: str | None) -> str | None:
 
 @frappe.whitelist()
 def save_cad_issue(issue_data: str | dict[str, Any]) -> dict[str, Any]:
-    """Create or update a BCF BIM Issue for CAD drawings."""
+    """
+    Create a BIM Issue for a CAD drawing from structured or JSON-encoded data.
+    
+    Parameters:
+    	issue_data (str | dict[str, Any]): Issue details, provided as a mapping or a JSON string.
+    
+    Returns:
+    	dict[str, Any]: A success response containing the created issue.
+    """
     if not frappe.has_permission("BIM Issue", "create"):
         frappe.throw(_("Not permitted to create BIM Issues."), frappe.PermissionError)
 
@@ -93,7 +109,21 @@ def get_cad_issues(
     priority: str | None = None,
     topic_type: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Retrieve filtered BIM Issues with viewpoint metadata and comment counts."""
+    """
+    Retrieve BIM Issues filtered by model, status, priority, and topic type.
+    
+    Parameters:
+        model_name: Optional BIM Model name or reference used to filter issues.
+        status: Optional issue status filter.
+        priority: Optional issue priority filter.
+        topic_type: Optional issue topic type filter.
+    
+    Returns:
+        A list of issues including comment counts and parsed viewpoint metadata.
+    
+    Raises:
+        frappe.PermissionError: If the current user cannot read BIM Issues.
+    """
     if not frappe.has_permission("BIM Issue", "read"):
         frappe.throw(_("Not permitted to view BIM Issues."), frappe.PermissionError)
 
@@ -155,7 +185,20 @@ def get_cad_issues(
 
 @frappe.whitelist()
 def add_issue_comment(issue_name: str, comment: str, new_status: str | None = None) -> dict[str, Any]:
-    """Add a threaded comment to a BIM Issue and optionally update its status."""
+    """
+    Add a threaded comment to a BIM Issue and optionally update its status.
+    
+    Parameters:
+        issue_name (str): The name of the BIM Issue to comment on.
+        comment (str): The comment text.
+        new_status (str | None): The status to assign to the issue, if provided.
+    
+    Returns:
+        dict[str, Any]: A success response containing the added comment.
+    
+    Raises:
+        frappe.PermissionError: If the caller cannot update BIM Issues.
+    """
     if not frappe.has_permission("BIM Issue", "write"):
         frappe.throw(_("Not permitted to update BIM Issues."), frappe.PermissionError)
 
@@ -167,7 +210,15 @@ def add_issue_comment(issue_name: str, comment: str, new_status: str | None = No
 
 @frappe.whitelist()
 def update_issue_status(issue_name: str, status: str) -> dict[str, Any]:
-    """Update topic status of a BIM Issue."""
+    """Update the status of a BIM Issue.
+    
+    Parameters:
+        issue_name (str): Name of the BIM Issue to update.
+        status (str): New topic status.
+    
+    Returns:
+        dict[str, Any]: A success indicator and the updated topic status.
+    """
     if not frappe.has_permission("BIM Issue", "write"):
         frappe.throw(_("Not permitted to update BIM Issues."), frappe.PermissionError)
 
@@ -180,7 +231,16 @@ def update_issue_status(issue_name: str, status: str) -> dict[str, Any]:
 
 @frappe.whitelist()
 def export_bcf_zip(model_name: str | None = None, issue_names: str | list[str] | None = None) -> dict[str, Any]:
-    """Export BIM Issues as a buildingSMART BCF 2.1 compliant .bcfzip package."""
+    """
+    Export BIM Issues as a buildingSMART BCF 2.1-compliant archive.
+    
+    Parameters:
+    	model_name (str | None): Optional BIM Model reference used to filter issues.
+    	issue_names (str | list[str] | None): Optional issue name or names to export.
+    
+    Returns:
+    	dict[str, Any]: Export status, generated filename, base64-encoded BCFZIP data, and exported issue count.
+    """
     if not frappe.has_permission("BIM Issue", "export"):
         frappe.throw(_("Not permitted to export BIM Issues."), frappe.PermissionError)
 
@@ -240,7 +300,15 @@ def export_bcf_zip(model_name: str | None = None, issue_names: str | list[str] |
 
 @frappe.whitelist()
 def import_bcf_zip(zip_base64: str, reference_model: str | None = None) -> dict[str, Any]:
-    """Import a buildingSMART BCF 2.1/3.0 .bcfzip package into ERPNext BIM Issues."""
+    """Import a buildingSMART BCF package and create corresponding BIM Issues.
+    
+    Parameters:
+    	zip_base64 (str): Base64-encoded BCF 2.1 or 3.0 ZIP package.
+    	reference_model (str | None): BIM Model name or model name to associate with the imported issues.
+    
+    Returns:
+    	dict[str, Any]: A result containing the import status and number of successfully imported issues.
+    """
     if not frappe.has_permission("BIM Issue", "create"):
         frappe.throw(_("Not permitted to create BIM Issues."), frappe.PermissionError)
 
@@ -350,7 +418,12 @@ def import_bcf_zip(zip_base64: str, reference_model: str | None = None) -> dict[
 
 @frappe.whitelist()
 def get_sample_cad_drawing() -> dict[str, Any]:
-    """Generate a high-fidelity multi-discipline architectural and structural CAD drawing dataset."""
+    """
+    Generate a multi-discipline CAD drawing dataset for a commercial floor plan.
+    
+    Returns:
+    	drawing (dict[str, Any]): A DWG-format drawing dataset in millimeters, including model metadata, spaces, layers, architectural, structural, mechanical, plumbing, electrical, and annotation entities, extents, and entity count.
+    """
     layers = {
         "S-GRID": {"color": "#ff3b30", "aci": 1, "visible": True, "description": "Structural Column Grids"},
         "S-COLS": {"color": "#ff9500", "aci": 2, "visible": True, "description": "Reinforced Concrete Columns"},

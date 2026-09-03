@@ -147,6 +147,14 @@ var ACI_COLOR_MAP = {
   254: "#bebebe",
   255: "#ffffff"
 };
+/**
+ * Interpolates points along the circular arc defined by two endpoints and a polyline bulge.
+ * @param {{x: number, y: number, z?: number}} p1 - The arc's starting point.
+ * @param {{x: number, y: number, z?: number}} p2 - The arc's ending point.
+ * @param {number} bulge - The signed bulge value defining the arc's curvature and direction.
+ * @param {number} [segments=16] - The number of intervals used to interpolate the arc.
+ * @returns {Array<{x: number, y: number, z: number}>} The interpolated arc points, or the applicable endpoint points for a negligible or coincident segment.
+ */
 function calculateBulgeArcPoints(p1, p2, bulge, segments = 16) {
   if (Math.abs(bulge) < 1e-6) {
     return [p1, p2];
@@ -183,6 +191,11 @@ function calculateBulgeArcPoints(p1, p2, bulge, segments = 16) {
   }
   return points;
 }
+/**
+ * Parse DXF text into structured drawing data, including layers, entities, blocks, and extents.
+ * @param {string} dxfContent - Raw DXF content containing group-code/value lines.
+ * @return {Object} Parsed drawing metadata, layers, supported entities, block definitions, drawing extents, and entity count.
+ */
 function parseDXFText(dxfContent) {
   const lines = dxfContent.split(/\r?\n/);
   let i = 0;
@@ -1031,6 +1044,11 @@ var CADMeasurementEngine = class {
   findSnapTarget(queryPoint, entities, tolerance = 200) {
     let closest = null;
     let minDistance = tolerance;
+    /**
+     * Updates the closest snap candidate when the point is within the current distance threshold.
+     * @param {{x: number, y: number}} pt - Candidate point to evaluate.
+     * @param {string} type - Type of snap candidate.
+     */
     function checkCandidate(pt, type) {
       const dist = Math.sqrt(Math.pow(pt.x - queryPoint.x, 2) + Math.pow(pt.y - queryPoint.y, 2));
       if (dist < minDistance) {
@@ -1713,6 +1731,11 @@ var DWGViewerApp = class {
     }
   }
 };
+/**
+ * Initialize the DWG viewer on a canvas element.
+ * @param {HTMLCanvasElement} [canvasElement] - The canvas to use; defaults to the element with ID `cad-canvas`.
+ * @return {DWGViewerApp|null} The initialized viewer, or `null` when no canvas is available.
+ */
 function initDWGViewer(canvasElement) {
   const canvas = canvasElement || document.getElementById("cad-canvas");
   if (!canvas) {

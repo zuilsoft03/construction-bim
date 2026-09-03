@@ -283,6 +283,10 @@ els.canvas.addEventListener('click', async (ev) => {
   }
 });
 
+/**
+ * Calculates and rounds the real-world value of a measurement using the configured scale.
+ * @param {Object} m - The measurement to finalize.
+ */
 function finalizeMeasurement(m) {
   const ppm = state.pixelsPerMeter;
   if (!ppm) { m.real_value = 0; return; }

@@ -29,10 +29,17 @@ def save_clashes_batch(
     model_a: str | None = None,
     model_b: str | None = None,
 ) -> dict[str, Any]:
-    """Save multiple detected clashes in bulk with deduplication.
-
-    Deduplicates against existing open/resolved clashes matching the same
-    (model_a, model_b, guid_a, guid_b) or symmetric (model_b, model_a, guid_b, guid_a).
+    """
+    Save detected clashes in bulk, updating matching active records and creating new records as needed.
+    
+    Parameters:
+    	clashes (str | list[dict[str, Any]]): Clash data as a list of dictionaries or a JSON string.
+    	project (str | None): Default project applied when an item does not specify one.
+    	model_a (str | None): Default first model applied when an item does not specify one.
+    	model_b (str | None): Default second model applied when an item does not specify one.
+    
+    Returns:
+    	dict[str, Any]: A result containing the operation status and counts of created, updated, and skipped clashes, along with the affected record names.
     """
     if hasattr(frappe, "has_permission") and not frappe.has_permission("BIM Clash", "create"):
         frappe.throw(_("Not permitted to create or update BIM Clash records"), frappe.PermissionError)
@@ -429,7 +436,15 @@ def update_clash_status(
 
 @frappe.whitelist()
 def delete_clash(clash_name: str) -> dict[str, str]:
-    """Delete a clash record."""
+    """
+    Delete a BIM clash record.
+    
+    Parameters:
+    	clash_name (str): Name of the clash record to delete.
+    
+    Returns:
+    	dict[str, str]: A mapping containing the name of the deleted clash.
+    """
     if hasattr(frappe, "has_permission") and not frappe.has_permission("BIM Clash", "delete"):
         frappe.throw(_("Not permitted to delete BIM Clash records"), frappe.PermissionError)
 
@@ -444,7 +459,14 @@ def delete_clash(clash_name: str) -> dict[str, str]:
 
 @frappe.whitelist()
 def sync_clash_to_bcf(clash: str | Any) -> dict[str, Any]:
-    """Ensure a BIM Clash record is synchronized to a buildingSMART BCF Topic and Viewpoint."""
+    """Ensure a BIM Clash record is synchronized with its BCF project, topic, and viewpoint.
+    
+    Parameters:
+    	clash (str | Any): A BIM Clash document name or document object to synchronize.
+    
+    Returns:
+    	dict[str, Any]: Synchronization status and the identifiers of the clash, BCF topic, BCF GUID, and viewpoint.
+    """
     if isinstance(clash, str):
         clash_doc = frappe.get_doc("BIM Clash", clash)
     else:

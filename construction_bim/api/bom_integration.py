@@ -111,16 +111,17 @@ DEFAULT_MAPPING_RULES = [
 
 @frappe.whitelist()
 def get_model_quantity_summary(model: str) -> dict[str, Any]:
-    """Parse and aggregate physical quantities from a BIM Model.
-
-    Extracts:
-    - Concrete volumes (m3) by element type (IfcWall, IfcSlab, IfcColumn, IfcBeam, IfcFooting)
-    - Rebar weight (kg) from reinforcing entities or volume ratios
-    - Pipe lengths (m) and diameters from IfcPipeSegment
-    - Duct surface area (m2) and lengths (m) from IfcDuctSegment
-    - Structural steel weights (kg) from IfcBeam, IfcColumn, IfcMember, IfcPlate
-    - Formwork contact areas (m2)
-    - Door, Window, and Equipment counts (Nos)
+    """
+    Aggregate BIM element quantities into a material takeoff and grouped summaries.
+    
+    Parameters:
+    	model (str): Name of the BIM Model to analyze.
+    
+    Returns:
+    	dict[str, Any]: Model metadata, element count, material takeoff totals, and summaries grouped by element type, discipline, and storey.
+    
+    Raises:
+    	frappe.ValidationError: If the specified BIM Model does not exist.
     """
     if not frappe.db.exists("BIM Model", model):
         frappe.throw(_("BIM Model {0} does not exist").format(model))
@@ -593,7 +594,17 @@ def _ensure_default_company() -> str:
 
 
 def _create_boq_traceability_links(model: str, bom_name: str, calculated_items: list[dict[str, Any]]) -> int:
-    """Create BIM BOQ Link audit records connecting model elements to generated BOM lines."""
+    """
+    Create BIM BOQ traceability links between model elements and generated BOM items.
+    
+    Parameters:
+    	model (str): BIM model identifier whose elements should be linked.
+    	bom_name (str): BOM identifier recorded in each link.
+    	calculated_items (list[dict[str, Any]]): Calculated BOM items used to match elements to item codes.
+    
+    Returns:
+    	int: Number of new traceability links created.
+    """
     created = 0
     # Link first 50 representative elements of the model to the BOM
     elements = frappe.get_all("BIM Element", filters={"model": model}, fields=["name", "element_type"], limit_page_length=100)
@@ -645,7 +656,23 @@ def generate_material_request_from_bim(
     warehouse: str | None = None,
     material_request_type: str = "Purchase"
 ) -> dict[str, Any]:
-    """Generate a formal ERPNext Material Request directly from BIM extracted quantities."""
+    """
+    Create an ERPNext Material Request from quantities extracted from a BIM model.
+    
+    Parameters:
+    	model_id (str): Identifier of the BIM Model to use.
+    	cost_center (str | None): Optional cost center assigned to the request and its items.
+    	warehouse (str | None): Optional warehouse assigned to each request item.
+    	material_request_type (str): Material Request type, defaulting to ``"Purchase"``.
+    
+    Returns:
+    	dict[str, Any]: Result containing the created Material Request identifier, item count,
+    	total estimated cost, and associated project.
+    
+    Raises:
+    	frappe.PermissionError: If the user cannot create Material Requests.
+    	frappe.ValidationError: If the model contains no quantifiable items.
+    """
     if hasattr(frappe, "has_permission") and not frappe.has_permission("Material Request", "create"):
         frappe.throw(_("Not permitted to create Material Request"), frappe.PermissionError)
 

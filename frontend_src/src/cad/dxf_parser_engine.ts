@@ -108,8 +108,13 @@ export interface CADDrawingData {
 }
 
 /**
- * Calculates arc curve points from two polyline vertices and a bulge factor.
- * Bulge = tan(included_angle / 4).
+ * Generates interpolated points along the circular arc defined by two polyline vertices and a bulge factor.
+ *
+ * @param p1 - The arc's starting vertex.
+ * @param p2 - The arc's ending vertex.
+ * @param bulge - The bulge factor, defined as the tangent of one-fourth of the included angle.
+ * @param segments - The number of subdivisions used to approximate the arc.
+ * @returns The interpolated arc points, including both endpoints; returns the input endpoints for a near-zero bulge and the first vertex when both vertices coincide.
  */
 export function calculateBulgeArcPoints(
   p1: CADPoint,
@@ -167,12 +172,20 @@ export function calculateBulgeArcPoints(
 }
 
 /**
- * Parses raw DXF text into a structured CADDrawingData object.
+ * Parses DXF group-code/value pairs into structured drawing data, including layers, entities, blocks, and drawing extents.
+ *
+ * @param dxfContent - Raw DXF file content
+ * @returns Parsed drawing data with DXF metadata, model-space entities, blocks, layers, and extents
  */
 export function parseDXFText(dxfContent: string): CADDrawingData {
   const lines = dxfContent.split(/\r?\n/);
   let i = 0;
 
+  /**
+   * Reads the next DXF group-code and value pair.
+   *
+   * @returns The parsed group pair, or `null` when no complete pair remains.
+   */
   function nextGroup(): { code: number; value: string } | null {
     if (i >= lines.length - 1) return null;
     const code = parseInt(lines[i++].trim(), 10);
@@ -398,6 +411,9 @@ export function parseDXFText(dxfContent: string): CADDrawingData {
   let minX = Infinity, minY = Infinity;
   let maxX = -Infinity, maxY = -Infinity;
 
+  /**
+   * Expands the current drawing bounds to include a coordinate.
+   */
   function updateBounds(x: number, y: number) {
     if (isNaN(x) || isNaN(y)) return;
     if (x < minX) minX = x;

@@ -24,6 +24,11 @@ console.log("===================================================================
 let testsPassed = 0;
 let testsFailed = 0;
 
+/**
+ * Executes a test case and records whether it succeeds or fails.
+ * @param {string} description - A description of the test case.
+ * @param {Function} fn - The test case to execute.
+ */
 function test(description, fn) {
   try {
     fn();

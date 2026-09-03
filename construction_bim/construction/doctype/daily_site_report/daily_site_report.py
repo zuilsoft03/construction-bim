@@ -9,6 +9,11 @@ from frappe.utils import nowdate
 
 class DailySiteReport(Document):
 	def validate(self):
+		"""
+		Set default report metadata and calculate total manpower from subcontractor entries.
+		
+		The prepared-by user and report date are populated when absent. Total manpower is the sum of worker counts across all subcontractor entries, with missing counts treated as zero.
+		"""
 		if not self.prepared_by:
 			self.prepared_by = frappe.session.user
 		if not self.date:
@@ -21,7 +26,16 @@ class DailySiteReport(Document):
 
 @frappe.whitelist()
 def fetch_daily_site_activity(project, date=None):
-	"""Aggregates labor hours, logged site issues, and equipment active for the day."""
+	"""
+	Aggregate daily labor activity, site issues, and active permits for a project.
+	
+	Parameters:
+		project (str): The project identifier.
+		date (str, optional): The date to report, defaulting to the current date.
+	
+	Returns:
+		dict: The project, report date, timesheet aggregates by activity type, new issue count, and active permit count.
+	"""
 	if not date:
 		date = nowdate()
 

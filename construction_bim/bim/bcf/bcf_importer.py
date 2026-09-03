@@ -25,6 +25,13 @@ class BCFImporter:
     """Processes buildingSMART BCF-XML archives and persists them to Frappe DocTypes."""
 
     def __init__(self, zip_bytes: bytes, project_name: Optional[str] = None, erpnext_project: Optional[str] = None):
+        """Initialize an importer for a BCF-XML ZIP archive.
+        
+        Parameters:
+        	zip_bytes (bytes): The ZIP archive contents.
+        	project_name (Optional[str]): The name to assign to the imported BCF project.
+        	erpnext_project (Optional[str]): The ERPNext project reference to associate with the import.
+        """
         self.zip_bytes = zip_bytes
         self.project_name = project_name
         self.erpnext_project = erpnext_project
@@ -33,7 +40,13 @@ class BCFImporter:
         self.bcf_version: str = "2.1"
 
     def process(self) -> Dict[str, Any]:
-        """Execute extraction and database insertion."""
+        """
+        Import the BCF archive and create the corresponding project and topic records.
+        
+        Returns:
+        	dict: Import details containing the project name, project identifier, number
+        	of imported topics, and detected BCF version.
+        """
         with zipfile.ZipFile(io.BytesIO(self.zip_bytes), "r") as zf:
             self.zf = zf
             self.file_list = zf.namelist()
@@ -63,6 +76,11 @@ class BCFImporter:
             }
 
     def _detect_version(self):
+        """
+        Detects the BCF version from the archive's version metadata.
+        
+        Parsing failures are logged and leave the default BCF version unchanged.
+        """
         if "bcf.version" in self.file_list and self.zf:
             try:
                 root = ET.fromstring(self.zf.read("bcf.version"))
@@ -71,6 +89,12 @@ class BCFImporter:
                 logger.warning(f"Failed to parse bcf.version: {e}")
 
     def _create_bcf_project(self):
+        """
+        Create and insert a BCF Project document with archive metadata and extension values.
+        
+        Returns:
+        	BCF Project: The inserted project document.
+        """
         proj = frappe.new_doc("BCF Project")
         proj.project_name = self.project_name or f"Imported BCF {datetime.now().strftime('%Y-%m-%d %H:%M')}"
         proj.project_id = str(uuid.uuid4())
@@ -101,6 +125,16 @@ class BCFImporter:
         return proj
 
     def _import_topic(self, topic_guid: str, bcf_project_name: str) -> bool:
+        """
+        Import a BCF topic and its associated comments and viewpoints.
+        
+        Parameters:
+        	topic_guid (str): Directory identifier for the topic in the BCF archive.
+        	bcf_project_name (str): Name of the BCF project to associate with the topic.
+        
+        Returns:
+        	bool: `True` if the topic is imported successfully, `False` if its markup is missing, invalid, or does not contain a topic element.
+        """
         markup_path = f"{topic_guid}/markup.bcf"
         if markup_path not in self.file_list or not self.zf:
             return False
@@ -169,6 +203,13 @@ class BCFImporter:
         return True
 
     def _import_viewpoints(self, topic_guid: str, doc_topic):
+        """
+        Import viewpoints and associated snapshot images for a BCF topic.
+        
+        Parameters:
+            topic_guid (str): GUID identifying the topic directory in the archive.
+            doc_topic: Frappe document representing the topic to associate with the viewpoints.
+        """
         vp_files = [
             f for f in self.file_list
             if f.startswith(f"{topic_guid}/") and f.endswith(".bcfv")
@@ -234,6 +275,16 @@ class BCFImporter:
 
 
 def _get_xml_text(element: ET.Element, tag: str) -> Optional[str]:
+    """
+    Retrieve trimmed text from a direct or nested XML element.
+    
+    Parameters:
+        element (ET.Element): XML element to search.
+        tag (str): Element name to find, or "." to read the current element's text.
+    
+    Returns:
+        Optional[str]: Trimmed element text, or None when no text is available.
+    """
     if tag == ".":
         return element.text.strip() if element.text else None
     el = element.find(f"./{tag}") or element.find(f"./{{*}}{tag}")
@@ -243,6 +294,16 @@ def _get_xml_text(element: ET.Element, tag: str) -> Optional[str]:
 
 
 def _extract_point(parent: ET.Element, tag: str) -> Dict[str, float]:
+    """
+    Extract a three-dimensional point from an XML element.
+    
+    Parameters:
+        parent (ET.Element): XML element containing the point.
+        tag (str): Point element tag to locate.
+    
+    Returns:
+        Dict[str, float]: Point coordinates with `x`, `y`, and `z` keys. Missing points or coordinates use `0.0`.
+    """
     el = parent.find(f".//{tag}") or parent.find(f"{{*}}{tag}")
     if el is None:
         return {"x": 0.0, "y": 0.0, "z": 0.0}

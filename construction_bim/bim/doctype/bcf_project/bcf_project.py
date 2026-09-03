@@ -9,6 +9,11 @@ from frappe.model.document import Document
 
 class BCFProject(Document):
     def before_insert(self):
+        """
+        Initialize project and user metadata before inserting the project.
+        
+        Sets a project identifier and creator when they are absent, and records the current session user as the modifier.
+        """
         if not self.project_id:
             self.project_id = str(uuid.uuid4())
         if not self.created_by_user:
@@ -16,6 +21,7 @@ class BCFProject(Document):
         self.modified_by_user = frappe.session.user
 
     def on_update(self):
+        """Update the project modifier to the current session user."""
         self.modified_by_user = frappe.session.user
 
     def update_counters(self):

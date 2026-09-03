@@ -29,12 +29,16 @@ def filter_and_group_clashes(
     clash_names: Optional[List[str]] = None,
     min_penetration_mm: float = 5.0
 ) -> Dict[str, Any]:
-    """Filter false-positive clashes, evaluate structural risk, and cluster by trade runs.
-
+    """
+    Filter BIM clashes, classify false positives, assess structural risk, and group genuine clashes by trade pair and storey.
+    
+    Parameters:
+        project_id (Optional[str]): Project identifier used to limit the clashes evaluated.
+        clash_names (Optional[List[str]]): Clash names used to limit the clashes evaluated.
+        min_penetration_mm (float): Minimum positive penetration depth considered significant.
+    
     Returns:
-    - real_clashes: Genuine physical interferences requiring engineering resolution.
-    - false_positives: Intentional sleeves or sub-tolerance surface contacts.
-    - trade_clusters: Grouped clashes by (Discipline A, Discipline B, Storey).
+        Dict[str, Any]: A result containing evaluation counts, genuine clashes with risk classifications, false positives with reasons, trade-and-storey clusters, and a success status.
     """
     filters = {}
     if project_id:

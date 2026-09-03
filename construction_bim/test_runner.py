@@ -5,7 +5,15 @@ import sys
 import frappe
 
 def run_all_tests():
-    """Execute all construction_bim backend unit tests."""
+    """
+    Run all Construction BIM backend unit tests.
+    
+    Returns:
+        dict: Test counts and a ``successful`` status.
+    
+    Raises:
+        Exception: If any test fails or produces an error.
+    """
     print("======================================================================")
     print("Starting Construction BIM Backend Test Runner (Clash & BOM Suite)")
     print("======================================================================")
