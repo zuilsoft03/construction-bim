@@ -337,6 +337,59 @@ class TestProjectStudio(unittest.TestCase):
         master = next(p for p in projects if p["name"] == self.project.name)
         self.assertEqual(master["subprojects_count"], 2)
 
+    # --------------------------------------------------------------------------
+    # 9. All Studio Tabs API Accessibility Verification
+    # --------------------------------------------------------------------------
+    def test_all_tabs_api_endpoints_accessible(self):
+        """Verify that every tab and pane in the Project Studio has accessible and functional APIs."""
+        proj = self.project.name
+
+        # Tab 0: All Projects Portfolio
+        all_projs = project_studio.list_projects(include_archived=0)
+        self.assertIsInstance(all_projs, list)
+        self.assertTrue(any(p["name"] == proj for p in all_projs))
+
+        # Tab 1: Project Home Cockpit (7 Widgets)
+        overview = project_studio.get_project_overview(proj)
+        self.assertIn("summary", overview)
+        self.assertIn("health_status", overview["summary"])
+        self.assertIn("milestones", overview)
+        self.assertIn("subprojects", overview)
+        self.assertIn("meetings", overview)
+        self.assertIn("members", overview)
+        self.assertIn("news", overview)
+
+        # Tab 2: Work Packages Tree Grid
+        wps = project_studio.list_work_packages(proj, filter_key="all_open")
+        self.assertIsInstance(wps, list)
+
+        # Tab 3: Kanban Boards (Status, Priority, Assignee)
+        for group in ["status", "priority", "assignee"]:
+            board = project_studio.get_kanban_board_data(proj, group_by=group)
+            self.assertIn("columns", board)
+            self.assertTrue(len(board["columns"]) > 0)
+
+        # Tab 4: Gantt Timeline
+        gantt_items = project_studio.list_work_packages(proj, filter_key="all_open")
+        self.assertIsInstance(gantt_items, list)
+
+        # Tab 8: Document Tree (5 Folders)
+        doc_tree = project_studio.get_project_document_tree(proj)
+        self.assertEqual(len(doc_tree), 5)
+        folder_names = [f["folder_name"] for f in doc_tree]
+        self.assertIn("01 Contracts & NTP", folder_names)
+        self.assertIn("02 Drawings & Specs", folder_names)
+        self.assertIn("03 BIM Models", folder_names)
+        self.assertIn("04 BOQ & Estimates", folder_names)
+        self.assertIn("05 Site Media", folder_names)
+
+        # Tab 11: Settings
+        settings_res = project_studio.update_project_settings(
+            project=proj,
+            settings_json=json.dumps({"project_name": "Updated Metro Station", "is_favorite": 1})
+        )
+        self.assertEqual(settings_res["status"], "success")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
