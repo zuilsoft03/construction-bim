@@ -162,22 +162,22 @@ var ProjectStudioApp = class {
   renderProjectSwitcher() {
     const $list = $("#project-switcher-list");
     $list.empty();
-    $list.append('<li><a href="javascript:void(0)" data-project="all"><i class="fa fa-th-list text-muted"></i> <strong>All projects (Hub)</strong></a></li>');
+    $list.append('<li><a href="javascript:void(0)" class="action-select-proj" data-project="all"><i class="fa fa-th-list text-muted"></i> <strong>All projects (Hub)</strong></a></li>');
     $list.append('<li role="separator" class="divider"></li>');
     const self = this;
     this.allProjects.forEach((p) => {
       const favIcon = p.is_favorite ? "\u2B50 " : "";
       const tmplBadge = p.is_template ? ' <span class="badge">Template</span>' : "";
-      const $item = $(`<li><a href="javascript:void(0)" data-project="${p.name}">${favIcon}${p.project_name}${tmplBadge}</a></li>`);
-      $item.find("a").on("click", function() {
-        const proj = $(this).data("project");
-        if (proj === "all") {
-          self.switchTab("all-projects");
-        } else {
-          self.selectProject(proj);
-        }
-      });
+      const $item = $(`<li><a href="javascript:void(0)" class="action-select-proj" data-project="${p.name}">${favIcon}${p.project_name}${tmplBadge}</a></li>`);
       $list.append($item);
+    });
+    $list.off("click", ".action-select-proj").on("click", ".action-select-proj", function() {
+      const proj = $(this).data("project");
+      if (proj === "all") {
+        self.switchTab("all-projects");
+      } else {
+        self.selectProject(proj);
+      }
     });
   }
   selectProject(projectName, tab = "home") {
@@ -806,12 +806,16 @@ var ProjectStudioApp = class {
     const $tbody = $("#members-table-body");
     $tbody.empty();
     const members = this.projectOverviewData && this.projectOverviewData.members || [];
+    if (members.length === 0) {
+      $tbody.append('<tr><td colspan="4" class="text-center text-muted p-4"><small>No team members assigned to this project.</small></td></tr>');
+      return;
+    }
     members.forEach((m) => {
       $tbody.append(`
 				<tr>
 					<td><strong>${m.full_name || m.user}</strong></td>
 					<td>${m.user}</td>
-					<td><span class="badge">${m.role}</span></td>
+					<td><span class="badge">${m.role || "Member"}</span></td>
 					<td><span class="label label-success">Active</span></td>
 				</tr>
 			`);
