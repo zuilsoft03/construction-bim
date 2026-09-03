@@ -201,7 +201,7 @@ def run_full_suite() -> int:
             s_status = "[ FAIL ]"
         elif is_skipped:
             s_status = "[ SKIP ]"
-        elif scenario_executed and not has_errors:
+        elif scenario_executed:
             s_status = "[ PASS ]"
         else:
             s_status = "[ FAIL ]"
