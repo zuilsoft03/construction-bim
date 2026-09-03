@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Direct IfcAPI geometry probe — construction_bim</title>
+<style>
+  #out { font: 11px monospace; white-space: pre; color: #9fd8ff; background: #101418; padding: 10px; }
+  #err { font: 11px monospace; white-space: pre; color: #ff9a9a; background: #101418; padding: 10px; }
+</style>
+</head>
+<body>
+<pre id="err">loading…</pre>
+<pre id="out"></pre>
+<script src="/assets/construction_bim/js/webifc-api-iife.js"></script>
+<script>
+(async function(){
+  var err = document.getElementById('err');
+  var out = document.getElementById('out');
+  function log(s){ out.textContent += s + '\n'; }
+  try {
+    if (!window.WebIFC) { err.textContent = 'WebIFC global missing'; return; }
+    log('WebIFC loaded, version=' + (window.WebIFC.version || '?'));
+    var api = new WebIFC.IfcAPI();
+    api.SetWasmPath('/assets/construction_bim/js/webifc/', true);
+    await api.Init();
+    log('Init OK');
+    var resp = await fetch('/files/ARK_NordicLCA_Housing_Concrete_BuildingPermit_Revit.ifc');
+    var buf = new Uint8Array(await resp.arrayBuffer());
+    var modelID = api.OpenModel(buf, { COORDINATE_TO_ORIGIN: true, USE_FAST_BVH: true });
+    log('OpenModel OK, modelID=' + modelID);
+    var walls = api.GetLineIDsWithType(modelID, WebIFC.IFCWALL);
+    log('IFCWALL=' + walls.size());
+    // probe a wall's flat mesh
+    var wid = walls.get(0);
+    var fm = api.GetFlatMesh(modelID, wid);
+    log('FlatMesh keys: ' + Object.keys(fm).join(','));
+    log('  expressID=' + fm.expressID);
+    log('  geometries size=' + (fm.geometries ? fm.geometries.size() : 'null'));
+    if (fm.geometries && fm.geometries.size()) {
+      var g0 = fm.geometries.get(0);
+      log('  placedGeom keys: ' + Object.keys(g0).join(','));
+      log('    geometryExpressID=' + g0.geometryExpressID);
+      var gd = api.GetGeometry(modelID, g0.geometryExpressID);
+      log('  GetGeometry keys: ' + Object.keys(gd).join(','));
+      log('    type=' + gd.type + ' verts=' + gd.vertices + ' indices=' + gd.indices + ' vertexCount=' + gd.vertexCount + ' indexCount=' + gd.indexCount);
+      var verts = api.GetVertexArray(gd.vertices, gd.vertexCount);
+      var idx = api.GetIndexArray(gd.indices, gd.indexCount);
+      log('  verts array len=' + (verts ? verts.length : 'null') + ' idx len=' + (idx ? idx.length : 'null'));
+    }
+    var t = fm.transforms;
+    log('transforms size=' + (t ? t.size() : 'null'));
+    if (t && t.size()) {
+      var tr = t.get(0);
+      log('  transform keys: ' + Object.keys(tr).join(','));
+      log('  matrix: ' + (tr.matrix ? tr.matrix.join(',') : String(tr)));
+    }
+  } catch (e) {
+    err.textContent += 'EX: ' + (e && e.message || e) + '\n';
+  }
+})();
+</script>
+</body>
+</html>

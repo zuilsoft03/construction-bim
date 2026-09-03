@@ -1,0 +1,3 @@
+# Patches for construction_bim
+# Format: module.path.of_patch_function
+construction_bim.patches.v1_project_construction_fields

@@ -1,0 +1,163 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2026-09-02 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "model",
+  "stable_id",
+  "element_type",
+  "name",
+  "storey",
+  "discipline",
+  "column_break_1",
+  "geometry_hash",
+  "mesh_ref",
+  "bounding_box",
+  "is_tracked_asset",
+  "section_break_1",
+  "properties",
+  "quantities",
+  "asset_info"
+ ],
+ "fields": [
+  {
+   "fieldname": "model",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Model",
+   "options": "BIM Model",
+   "reqd": 1
+  },
+  {
+   "fieldname": "stable_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Stable ID",
+   "reqd": 1,
+   "unique": 0
+  },
+  {
+   "fieldname": "element_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Element Type"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Element Name"
+  },
+  {
+   "fieldname": "storey",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Storey"
+  },
+  {
+   "fieldname": "discipline",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Discipline"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "geometry_hash",
+   "fieldtype": "Data",
+   "label": "Geometry Hash",
+   "read_only": 1
+  },
+  {
+   "fieldname": "mesh_ref",
+   "fieldtype": "Data",
+   "label": "Mesh Ref",
+   "description": "Node name / id in the GLB that matches this element"
+  },
+  {
+   "fieldname": "bounding_box",
+   "fieldtype": "JSON",
+   "label": "Bounding Box",
+   "read_only": 1
+  },
+  {
+   "fieldname": "is_tracked_asset",
+   "fieldtype": "Check",
+   "label": "Is Tracked Asset",
+   "description": "Element represents a real-world asset (pump, AHU, door) for the asset register"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "properties",
+   "fieldtype": "JSON",
+   "label": "Properties"
+  },
+  {
+   "fieldname": "quantities",
+   "fieldtype": "JSON",
+   "label": "Quantities"
+  },
+  {
+   "fieldname": "asset_info",
+   "fieldtype": "JSON",
+   "label": "Asset Info"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-02 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "BIM",
+ "name": "BIM Element",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

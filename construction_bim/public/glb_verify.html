@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>GLB Verifier — construction_bim</title>
+<style>
+  body { font-family: monospace; background: #0f1115; color: #dfe5ec; padding: 16px; }
+  pre { font-size: 11px; line-height: 1.05; }
+  h1 { font-size: 15px; border-bottom: 1px solid #333; padding-bottom: 6px; }
+</style>
+</head>
+<body>
+<h1>GLB real-geometry verifier (no login needed — public file)</h1>
+<div id="out">loading…</div>
+<script>
+(async () => {
+  const URL = 'http://localhost:8000/files/LIVE-GEOM-TEST_BIM-MODEL-2026-00012.glb';
+  const out = document.getElementById('out');
+  try {
+    const resp = await fetch(URL);
+    if (!resp.ok) { out.textContent = 'FETCH ' + resp.status + ' ' + resp.statusText; return; }
+    const buf = await resp.arrayBuffer();
+    const dv = new DataView(buf);
+    const magic = dv.getUint32(0, true), ver = dv.getUint32(4, true), total = dv.getUint32(8, true);
+    let jlen = dv.getUint32(12, true), jtype = dv.getUint32(16, true);
+    const json = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 20, jlen)).replace(/\s+$/,''));
+    const binStart = 20 + jlen + 8;
+    const gltf = json;
+
+    const acc = gltf.accessors, views = gltf.bufferViews, meshes = gltf.meshes, nodes = gltf.nodes;
+    let totalVerts = 0, nMeshes = 0, nNodes = 0;
+    const xs=[], ys=[], zs=[];
+    let eNodes = [];
+    for (const n of nodes) {
+      if (!n.name) continue;
+      if (n.name === 'model') continue;
+      nNodes++;
+      if (n.name.startsWith('e')) eNodes.push(n.name);
+      if (n.mesh === undefined) continue;
+      nMeshes++;
+      const mesh = meshes[n.mesh];
+      const prim = mesh.primitives[0];
+      const a = acc[prim.attributes.POSITION];
+      const bv = views[a.bufferView];
+      const off = binStart + (bv.byteOffset||0);
+      const count = a.count;
+      totalVerts += count;
+      const fa = new Float32Array(buf, off, count*3);
+      for (let i=0;i<count;i++){
+        xs.push(fa[i*3]); ys.push(fa[i*3+1]); zs.push(fa[i*3+2]);
+      }
+    }
+    const info = {
+      magic: magic.toString(16), ver, total_ok: total === buf.byteLength,
+      nodes: nNodes, meshes: nMeshes, elNodes: eNodes.length, verts: totalVerts,
+      bbox: [
+        [Math.min(...xs).toFixed(1), Math.max(...xs).toFixed(1)],
+        [Math.min(...ys).toFixed(1), Math.max(...ys).toFixed(1)],
+        [Math.min(...zs).toFixed(1), Math.max(...zs).toFixed(1)]
+      ]
+    };
+    let txt = JSON.stringify(info, null, 1) + '\n';
+
+    // ---- ASCII PLAN (top-down X-Y; GLB root rotates -90°X so world X->X, world Y->-Z? handle via our writer: box pos Z-up before rotation. We rasterize raw accessor coords (post-transform? accessors are pre-node-rotation). Root rotates X by -90: (x,y,z)->(x,z,-y). Apply that. ----
+    function project(p){ return [p[0], p[2]]; } // apply -90°X: y' = z, z' = -y
+    const W = 72, H = 34;
+    const minX = Math.min(...xs), maxX = Math.max(...xs);
+    const minY2 = Math.min(...ys), maxY2 = Math.max(...ys);
+    // world y after rotation = original z (extrusion axis) => plan shows footprint x vs extrusion z
+    const minZ = Math.min(...zs), maxZ = Math.max(...zs);
+    const spanX = (maxX-minX)||1, spanZ = (maxZ-minZ)||1;
+    let ascii = 'PLAN (x vs z): x=' + minX.toFixed(1)+'..'+maxX.toFixed(1) + ' z='+minZ.toFixed(1)+'..'+maxZ.toFixed(1) + '\n';
+    for (let r=0;r<H;r++){
+      let line='';
+      for (let c=0;c<W;c++){
+        line += '.';
+      }
+      ascii += line + '\n';
+    }
+    // rasterize sample: mark cells containing vertices
+    const grid = Array.from({length:H}, ()=>new Array(W).fill(' '));
+    for (let i=0;i<xs.length;i+=Math.max(1, Math.floor(xs.length/2400))){
+      const gx = Math.floor((xs[i]-minX)/spanX * (W-1));
+      const gz = Math.floor((zs[i]-minZ)/spanZ * (H-1));
+      if (gx>=0&&gx<W&&gz>=0&&gz<H) grid[H-1-gz][gx]='#';
+    }
+    ascii += grid.map(r=>r.join('')).join('\n');
+    txt += ascii;
+    out.textContent = txt;
+  } catch (e) {
+    out.textContent = 'ERROR: ' + (e && e.message || e);
+  }
+})();
+</script>
+</body>
+</html>

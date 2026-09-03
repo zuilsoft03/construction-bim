@@ -1,0 +1,246 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:BIM-BOM-GEN-{YYYY}-{#####}",
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "project",
+  "status",
+  "column_break_1",
+  "model",
+  "target_item",
+  "target_item_name",
+  "section_break_config",
+  "bom_type",
+  "company",
+  "currency",
+  "column_break_2",
+  "waste_factor_pct",
+  "with_operations",
+  "submit_bom_on_generate",
+  "section_break_results",
+  "generated_bom",
+  "item_count",
+  "raw_material_cost",
+  "total_cost",
+  "column_break_3",
+  "section_break_data",
+  "summary_json",
+  "mapping_rules_json",
+  "log"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Generator Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Project",
+   "options": "Project"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Draft\nGenerated\nSubmitted\nCancelled"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "model",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Source BIM Model",
+   "options": "BIM Model",
+   "reqd": 1
+  },
+  {
+   "fieldname": "target_item",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Target Finished Item",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "target_item.item_name",
+   "fieldname": "target_item_name",
+   "fieldtype": "Data",
+   "label": "Target Item Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_config",
+   "fieldtype": "Section Break",
+   "label": "BOM Generation Settings"
+  },
+  {
+   "default": "Manufacture",
+   "fieldname": "bom_type",
+   "fieldtype": "Select",
+   "label": "BOM Type",
+   "options": "Manufacture\nAssembly\nSub-Assembly"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "5.0",
+   "fieldname": "waste_factor_pct",
+   "fieldtype": "Percent",
+   "label": "Material Scrap / Waste Factor %"
+  },
+  {
+   "default": "0",
+   "fieldname": "with_operations",
+   "fieldtype": "Check",
+   "label": "Include Operations"
+  },
+  {
+   "default": "0",
+   "fieldname": "submit_bom_on_generate",
+   "fieldtype": "Check",
+   "label": "Auto-Submit BOM"
+  },
+  {
+   "fieldname": "section_break_results",
+   "fieldtype": "Section Break",
+   "label": "Generated Output"
+  },
+  {
+   "fieldname": "generated_bom",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Generated BOM",
+   "options": "BOM",
+   "read_only": 1
+  },
+  {
+   "fieldname": "item_count",
+   "fieldtype": "Int",
+   "label": "Total Line Items",
+   "read_only": 1
+  },
+  {
+   "fieldname": "raw_material_cost",
+   "fieldtype": "Currency",
+   "label": "Raw Material Cost",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_cost",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Cost",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_data",
+   "fieldtype": "Section Break",
+   "label": "Extracted Quantities & Mapping Rules"
+  },
+  {
+   "fieldname": "summary_json",
+   "fieldtype": "Code",
+   "label": "Quantity Summary JSON",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "mapping_rules_json",
+   "fieldtype": "Code",
+   "label": "Mapping Rules JSON",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "log",
+   "fieldtype": "Small Text",
+   "label": "Execution Log",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "BIM",
+ "name": "BIM BOM Generator",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

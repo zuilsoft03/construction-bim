@@ -1,0 +1,120 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:PDF-MEAS-{#####}",
+ "creation": "2026-09-02 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "pdf_file",
+  "page_no",
+  "measurement_type",
+  "points",
+  "scale",
+  "real_value",
+  "unit",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "pdf_file",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "PDF File",
+   "options": "File",
+   "reqd": 1
+  },
+  {
+   "fieldname": "page_no",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Page No",
+   "default": 1
+  },
+  {
+   "fieldname": "measurement_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Measurement Type",
+   "options": "Distance\nPolyline\nArea\nCount\nRectangle\nHighlight",
+   "reqd": 1
+  },
+  {
+   "fieldname": "points",
+   "fieldtype": "JSON",
+   "label": "Points",
+   "description": "Points in PDF user units (1pt = 1/72 inch): [{x, y}, ...]"
+  },
+  {
+   "fieldname": "scale",
+   "fieldtype": "JSON",
+   "label": "Scale",
+   "description": "{pixelsPerUnit, unitLabel} at PDF base resolution"
+  },
+  {
+   "fieldname": "real_value",
+   "fieldtype": "Float",
+   "label": "Real Value",
+   "description": "Computed real-world value (length / area / count)"
+  },
+  {
+   "fieldname": "unit",
+   "fieldtype": "Data",
+   "label": "Unit",
+   "description": "m, m2, m3, pcs, ..."
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-02 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "BIM",
+ "name": "PDF Measurement",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

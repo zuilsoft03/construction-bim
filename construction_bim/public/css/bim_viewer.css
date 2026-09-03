@@ -1,0 +1,710 @@
+﻿/* BIM Viewer Stylesheet — ERPNext construction_bim */
+#bim-app {
+  display: flex;
+  height: calc(100vh - 110px);
+  min-height: 600px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text-color, #1f272e);
+  background: var(--bg-color, #f8fafc);
+  position: relative;
+  overflow: hidden;
+}
+
+#bim-app * {
+  box-sizing: border-box;
+}
+
+/* Left Sidebar */
+#bim-left {
+  width: 320px;
+  min-width: 280px;
+  border-right: 1px solid var(--border-color, #e2e8f0);
+  background: var(--bg-color, #ffffff);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 2;
+}
+
+#bim-left .panel {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+#bim-left h4, #bim-right h4 {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--text-muted, #64748b);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Models List */
+#bim-models {
+  max-height: 180px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+}
+
+.bim-model-item {
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  width: 100%;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  text-align: left;
+  margin-bottom: 4px;
+  transition: all 0.15s ease;
+}
+
+.bim-model-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.bim-model-item.active {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+.bim-model-item .model-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bim-model-item .cnt {
+  color: #64748b;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.model-actions-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+/* Discipline Layers */
+#bim-disciplines-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.discipline-layer-row {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.discipline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.discipline-badge-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.disc-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.disc-dot.ark { background: #3b82f6; }
+.disc-dot.struc { background: #10b981; }
+.disc-dot.mep { background: #f97316; }
+.disc-dot.elec { background: #8b5cf6; }
+.disc-dot.plumb { background: #06b6d4; }
+
+.discipline-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.disc-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  cursor: pointer;
+  color: #475569;
+  transition: all 0.15s ease;
+}
+
+.disc-btn:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.disc-btn.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+.disc-btn.ghost-active {
+  background: #64748b;
+  color: #ffffff;
+  border-color: #64748b;
+}
+
+.opacity-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.opacity-slider-row input[type="range"] {
+  flex: 1;
+  height: 4px;
+  cursor: pointer;
+}
+
+/* Canvas Area */
+#bim-canvas-wrap {
+  flex: 1;
+  position: relative;
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  overflow: hidden;
+}
+
+#bim-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#bim-hud {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  gap: 6px;
+  z-index: 5;
+  background: rgba(15, 23, 42, 0.75);
+  padding: 4px;
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#bim-hud button {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #e2e8f0;
+  transition: all 0.15s ease;
+}
+
+#bim-hud button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+#bim-hud button.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
+}
+
+#bim-tools {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 5;
+  background: rgba(15, 23, 42, 0.75);
+  padding: 4px;
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#bim-tools button {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  color: #e2e8f0;
+  transition: all 0.15s ease;
+}
+
+#bim-tools button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+#bim-status {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  color: #94a3b8;
+  font-size: 12px;
+  z-index: 5;
+  background: rgba(15, 23, 42, 0.85);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#bim-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 500;
+  z-index: 20;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
+}
+
+/* Right Sidebar & Tabs */
+#bim-right {
+  width: 360px;
+  min-width: 320px;
+  border-left: 1px solid var(--border-color, #e2e8f0);
+  background: var(--bg-color, #ffffff);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.bim-tabs-header {
+  display: flex;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.bim-tab-btn {
+  flex: 1;
+  padding: 10px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.bim-tab-btn:hover {
+  color: #1e293b;
+  background: #f1f5f9;
+}
+
+.bim-tab-btn.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+  background: #ffffff;
+}
+
+.bim-tab-content {
+  flex: 1;
+  overflow-y: auto;
+  display: none;
+  padding: 14px;
+}
+
+.bim-tab-content.active {
+  display: block;
+}
+
+/* Property Inspector */
+#bim-element-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.bim-badge {
+  display: inline-block;
+  background: #e0f2fe;
+  color: #0369a1;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+.bim-badge.model-badge {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.bim-badge.severity-critical {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.bim-badge.severity-major {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.bim-badge.severity-minor {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.bim-badge.status-open {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.bim-badge.status-review {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.bim-badge.status-resolved {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+#bim-props table, .property-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+#bim-props td, .property-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: top;
+}
+
+#bim-props td:first-child, .property-table td:first-child {
+  color: #64748b;
+  width: 45%;
+  word-break: break-word;
+  font-weight: 500;
+}
+
+#bim-props td:last-child, .property-table td:last-child {
+  color: #1e293b;
+  word-break: break-word;
+}
+
+.empty-hint {
+  color: #94a3b8;
+  font-size: 12px;
+  font-style: italic;
+  padding: 12px 0;
+  text-align: center;
+}
+
+/* Clashes Panel */
+.clash-run-bar {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.clash-run-row {
+  display: flex;
+  gap: 6px;
+}
+
+.clash-run-row select, .clash-run-row input {
+  font-size: 12px;
+  padding: 4px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  flex: 1;
+}
+
+.clash-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.clash-card:hover {
+  border-color: #93c5fd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.clash-card.active {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.clash-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.clash-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.clash-card-coords {
+  font-size: 11px;
+  color: #64748b;
+  font-family: monospace;
+}
+
+.clash-card-actions {
+  margin-top: 6px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+/* Threaded Discussion View */
+.clash-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.clash-comments-stream {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0;
+  padding-right: 4px;
+}
+
+.clash-comment-bubble {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 12px;
+}
+
+.clash-comment-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.clash-comment-body {
+  color: #1e293b;
+}
+
+.clash-comment-snapshot {
+  margin-top: 6px;
+  border-radius: 4px;
+  max-width: 100%;
+  border: 1px solid #cbd5e1;
+}
+
+/* BOM Wizard Modal */
+#bim-bom-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+#bim-bom-modal.active {
+  display: flex;
+}
+
+.bom-modal-content {
+  background: #ffffff;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 960px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.bom-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+}
+
+.bom-modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.bom-modal-body {
+  padding: 16px 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.bom-modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bom-rollup-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.bom-rollup-table th {
+  background: #f1f5f9;
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+  border-bottom: 2px solid #cbd5e1;
+}
+
+.bom-rollup-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: middle;
+}
+
+.bom-rollup-table tr.bom-row {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.bom-rollup-table tr.bom-row:hover {
+  background: #eff6ff;
+}
+
+.bom-rollup-table tr.bom-row.selected {
+  background: #dbeafe;
+  font-weight: 500;
+}
+
+.bom-rollup-table input {
+  padding: 3px 6px;
+  font-size: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.btn-default {
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-default:hover {
+  background: #f1f5f9;
+}
+
+.btn-xs {
+  padding: 3px 8px;
+  font-size: 11px;
+}

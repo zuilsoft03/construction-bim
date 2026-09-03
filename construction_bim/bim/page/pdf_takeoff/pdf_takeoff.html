@@ -1,0 +1,92 @@
+<!-- PDF Takeoff — read PDFs, calibrate scale, take measurements -->
+<style>
+#pdf-app { display: flex; height: calc(100vh - 120px); font-family: var(--font-stack, sans-serif); }
+#pdf-app * { box-sizing: border-box; }
+#pdf-left { width: 320px; min-width: 280px; border-right: 1px solid var(--border-color, #d1d8dd); background: var(--bg-color, #fff); display: flex; flex-direction: column; overflow-y: auto; }
+#pdf-left .panel { padding: 10px 12px; border-bottom: 1px solid var(--border-color, #d1d8dd); }
+#pdf-left h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted, #8d99a6); }
+#pdf-canvas-wrap { flex: 1; position: relative; background: #3a3f45; overflow: auto; }
+#pdf-canvas { position: absolute; top: 0; left: 0; transform-origin: top left; box-shadow: 0 2px 12px rgba(0,0,0,.5); }
+#pdf-hud { position: sticky; top: 0; z-index: 20; background: rgba(30,34,40,.9); padding: 6px 10px; display: flex; gap: 6px; align-items: center; color: #ddd; }
+#pdf-hud button { background: rgba(255,255,255,.9); border: 1px solid #cfd6dd; border-radius: 5px; padding: 4px 9px; font-size: 12px; cursor: pointer; color: #333; }
+#pdf-hud button.active { background: #2490ef; color: #fff; border-color: #2490ef; }
+#pdf-hud select, #pdf-hud input { font-size: 12px; padding: 3px 5px; }
+#pdf-status { position: sticky; bottom: 0; z-index: 20; background: rgba(30,34,40,.9); color: #dde; padding: 5px 10px; font-size: 12px; }
+.meas-list { font-size: 12px; }
+.meas-item { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid #eef1f4; gap: 6px; }
+.meas-item .del { color: #d64545; cursor: pointer; border: none; background: none; }
+#pdf-upload-row { display: flex; gap: 4px; }
+#pdf-upload-row input { flex: 1; font-size: 12px; padding: 4px; }
+#pdf-doclist { max-height: 220px; overflow: auto; }
+.pdf-doc-item { padding: 5px 8px; cursor: pointer; border-radius: 4px; font-size: 13px; display: flex; justify-content: space-between; }
+.pdf-doc-item:hover { background: var(--control-bg, #f0f4f7); }
+.pdf-doc-item.active { background: #e8f2fb; color: #1c4c8e; }
+.scale-row { display: flex; gap: 4px; align-items: center; margin-bottom: 6px; }
+.scale-row input { flex: 1; font-size: 12px; padding: 4px; }
+#calib-hint { color: var(--text-muted, #8d99a6); font-size: 11px; font-style: italic; margin-top: 4px; }
+#measure-list { max-height: 300px; overflow-y: auto; }
+</style>
+
+<div id="pdf-app">
+  <div id="pdf-left">
+    <div class="panel">
+      <h4>PDF Documents</h4>
+      <div id="pdf-doclist"><div class="empty-hint" style="color:var(--text-muted,#8d99a6);font-size:12px">No documents loaded</div></div>
+      <div id="pdf-upload-row" style="margin-top:8px">
+        <input type="file" id="pdf-file-input" accept=".pdf" style="display:none" />
+        <button id="pdf-open" class="btn btn-default btn-xs" style="flex:1">Open PDF…</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h4>Scale</h4>
+      <div class="scale-row">
+        <select id="scale-preset">
+          <option value="">— preset —</option>
+          <option value="10">1:10</option>
+          <option value="20">1:20</option>
+          <option value="25">1:25</option>
+          <option value="50">1:50</option>
+          <option value="100">1:100</option>
+          <option value="200">1:200</option>
+          <option value="500">1:500</option>
+          <option value="1000">1:1000</option>
+        </select>
+        <button id="scale-calibrate" class="btn btn-default btn-xs">Calibrate</button>
+      </div>
+      <div class="scale-row" id="scale-known" style="display:none">
+        <input id="scale-known-mm" type="number" placeholder="known length (mm)" />
+        <button id="scale-known-ok" class="btn btn-default btn-xs">OK</button>
+      </div>
+      <div id="calib-hint">Pick a preset or click Calibrate and draw a line of known length.</div>
+      <div id="scale-display" style="font-size:12px;margin-top:6px;color:var(--text-muted,#6c7680)"></div>
+    </div>
+    <div class="panel">
+      <h4>Measurements <span id="meas-count" style="color:var(--text-muted,#8d99a6)"></span></h4>
+      <div id="measure-list"><div class="empty-hint" style="color:var(--text-muted,#8d99a6);font-size:12px">No measurements yet</div></div>
+    </div>
+  </div>
+
+  <div id="pdf-canvas-wrap">
+    <div id="pdf-hud">
+      <button id="pg-prev">◀</button>
+      <span id="pg-label">1 / 1</span>
+      <button id="pg-next">▶</button>
+      <span style="width:8px"></span>
+      <button id="z-out">−</button>
+      <span id="z-label">100%</span>
+      <button id="z-in">+</button>
+      <span style="width:8px"></span>
+      <button id="tool-dist" class="active">Distance</button>
+      <button id="tool-poly">Polyline</button>
+      <button id="tool-area">Area</button>
+      <button id="tool-count">Count</button>
+      <button id="tool-rect">Rect</button>
+      <button id="tool-highlight">Highlight</button>
+      <span style="flex:1"></span>
+      <button id="meas-undo">Undo</button>
+      <button id="meas-clear">Clear</button>
+    </div>
+    <canvas id="pdf-canvas"></canvas>
+    <div id="pdf-status">Open a PDF to begin</div>
+  </div>
+</div>

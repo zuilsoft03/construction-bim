@@ -1,0 +1,18 @@
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "construction_bim"
+authors = [{ name = "zuilsoft03", email = "zuilsoft03@gmail.com" }]
+description = "BIM module for ERPNext: IFC import, 3D model viewer, PDF takeoff."
+requires-python = ">=3.11"
+readme = "README.md"
+dynamic = ["version"]
+dependencies = []
+
+[project.optional-dependencies]
+dev = []
+
+[tool.bench]
+install_requires = []

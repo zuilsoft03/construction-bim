@@ -1,0 +1,435 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:BIM-CLASH-{YYYY}-{#####}",
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "project",
+  "status",
+  "severity",
+  "clash_type",
+  "priority",
+  "column_break_1",
+  "assigned_to",
+  "assigned_discipline",
+  "due_date",
+  "clash_id",
+  "bcf_guid",
+  "description",
+  "section_break_elements",
+  "model_a",
+  "element_a",
+  "element_a_id",
+  "element_a_guid",
+  "guid_a",
+  "element_a_name",
+  "element_a_type",
+  "element_type_a",
+  "discipline_a",
+  "element_a_discipline",
+  "column_break_2",
+  "model_b",
+  "element_b",
+  "element_b_id",
+  "element_b_guid",
+  "guid_b",
+  "element_b_name",
+  "element_b_type",
+  "element_type_b",
+  "discipline_b",
+  "element_b_discipline",
+  "section_break_geometry",
+  "collision_x",
+  "collision_y",
+  "collision_z",
+  "collision_point_x",
+  "collision_point_y",
+  "collision_point_z",
+  "collision_point",
+  "penetration_depth",
+  "intersection_volume",
+  "bounding_box",
+  "storey",
+  "grid_location",
+  "column_break_3",
+  "snapshot",
+  "viewpoint_json",
+  "viewpoint",
+  "section_break_resolution",
+  "resolution_type",
+  "resolved_by",
+  "resolution_date",
+  "resolution_notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Clash Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Project",
+   "options": "Project"
+  },
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Open\nIn Review\nResolved\nClosed\nIgnored"
+  },
+  {
+   "default": "Major",
+   "fieldname": "severity",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Severity",
+   "options": "Critical\nMajor\nMinor\nInfo"
+  },
+  {
+   "default": "Hard",
+   "fieldname": "clash_type",
+   "fieldtype": "Select",
+   "label": "Clash Type",
+   "options": "Hard\nSoft\nClearance\nHard Collision\nClearance Violation\nDuplicate Element\nWorkflow Conflict"
+  },
+  {
+   "default": "Medium",
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "label": "Priority",
+   "options": "High\nMedium\nLow"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "assigned_to",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Assigned To",
+   "options": "User"
+  },
+  {
+   "fieldname": "assigned_discipline",
+   "fieldtype": "Select",
+   "label": "Assigned Discipline",
+   "options": "Architecture\nStructural\nMEP\nCoordination\nGeneral Contractor"
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Due Date"
+  },
+  {
+   "fieldname": "clash_id",
+   "fieldtype": "Data",
+   "label": "Clash ID"
+  },
+  {
+   "fieldname": "bcf_guid",
+   "fieldtype": "Data",
+   "label": "BCF Topic GUID"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "section_break_elements",
+   "fieldtype": "Section Break",
+   "label": "Colliding Element Pair"
+  },
+  {
+   "fieldname": "model_a",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Model A",
+   "options": "BIM Model",
+   "reqd": 1
+  },
+  {
+   "fieldname": "element_a",
+   "fieldtype": "Link",
+   "label": "Element A",
+   "options": "BIM Element"
+  },
+  {
+   "fieldname": "element_a_id",
+   "fieldtype": "Int",
+   "label": "Element A Express ID"
+  },
+  {
+   "fieldname": "element_a_guid",
+   "fieldtype": "Data",
+   "label": "Element A GUID"
+  },
+  {
+   "fieldname": "guid_a",
+   "fieldtype": "Data",
+   "label": "GUID A"
+  },
+  {
+   "fieldname": "element_a_name",
+   "fieldtype": "Data",
+   "label": "Element A Name"
+  },
+  {
+   "fieldname": "element_a_type",
+   "fieldtype": "Data",
+   "label": "Element A Type"
+  },
+  {
+   "fieldname": "element_type_a",
+   "fieldtype": "Data",
+   "label": "Type A"
+  },
+  {
+   "fieldname": "discipline_a",
+   "fieldtype": "Data",
+   "label": "Discipline A"
+  },
+  {
+   "fieldname": "element_a_discipline",
+   "fieldtype": "Data",
+   "label": "Discipline A (Full)"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "model_b",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Model B",
+   "options": "BIM Model",
+   "reqd": 1
+  },
+  {
+   "fieldname": "element_b",
+   "fieldtype": "Link",
+   "label": "Element B",
+   "options": "BIM Element"
+  },
+  {
+   "fieldname": "element_b_id",
+   "fieldtype": "Int",
+   "label": "Element B Express ID"
+  },
+  {
+   "fieldname": "element_b_guid",
+   "fieldtype": "Data",
+   "label": "Element B GUID"
+  },
+  {
+   "fieldname": "guid_b",
+   "fieldtype": "Data",
+   "label": "GUID B"
+  },
+  {
+   "fieldname": "element_b_name",
+   "fieldtype": "Data",
+   "label": "Element B Name"
+  },
+  {
+   "fieldname": "element_b_type",
+   "fieldtype": "Data",
+   "label": "Element B Type"
+  },
+  {
+   "fieldname": "element_type_b",
+   "fieldtype": "Data",
+   "label": "Type B"
+  },
+  {
+   "fieldname": "discipline_b",
+   "fieldtype": "Data",
+   "label": "Discipline B"
+  },
+  {
+   "fieldname": "element_b_discipline",
+   "fieldtype": "Data",
+   "label": "Discipline B (Full)"
+  },
+  {
+   "fieldname": "section_break_geometry",
+   "fieldtype": "Section Break",
+   "label": "Spatial & BCF Viewpoint"
+  },
+  {
+   "fieldname": "collision_x",
+   "fieldtype": "Float",
+   "label": "Collision X"
+  },
+  {
+   "fieldname": "collision_y",
+   "fieldtype": "Float",
+   "label": "Collision Y"
+  },
+  {
+   "fieldname": "collision_z",
+   "fieldtype": "Float",
+   "label": "Collision Z"
+  },
+  {
+   "fieldname": "collision_point_x",
+   "fieldtype": "Float",
+   "label": "Collision Point X"
+  },
+  {
+   "fieldname": "collision_point_y",
+   "fieldtype": "Float",
+   "label": "Collision Point Y"
+  },
+  {
+   "fieldname": "collision_point_z",
+   "fieldtype": "Float",
+   "label": "Collision Point Z"
+  },
+  {
+   "fieldname": "collision_point",
+   "fieldtype": "JSON",
+   "label": "Collision Point (World Coordinates)"
+  },
+  {
+   "fieldname": "penetration_depth",
+   "fieldtype": "Float",
+   "label": "Penetration Depth (mm)"
+  },
+  {
+   "fieldname": "intersection_volume",
+   "fieldtype": "Float",
+   "label": "Intersection Volume (m3)"
+  },
+  {
+   "fieldname": "bounding_box",
+   "fieldtype": "JSON",
+   "label": "Intersection Bounding Box"
+  },
+  {
+   "fieldname": "storey",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Storey / Level"
+  },
+  {
+   "fieldname": "grid_location",
+   "fieldtype": "Data",
+   "label": "Grid Reference"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "snapshot",
+   "fieldtype": "Attach Image",
+   "label": "Clash Snapshot Image"
+  },
+  {
+   "fieldname": "viewpoint_json",
+   "fieldtype": "Code",
+   "label": "BCF Viewpoint JSON"
+  },
+  {
+   "fieldname": "viewpoint",
+   "fieldtype": "JSON",
+   "label": "Viewpoint Data"
+  },
+  {
+   "fieldname": "section_break_resolution",
+   "fieldtype": "Section Break",
+   "label": "Resolution & Closure"
+  },
+  {
+   "fieldname": "resolution_type",
+   "fieldtype": "Select",
+   "label": "Resolution Type",
+   "options": "\nRerouted MEP\nModified Structural Opening\nAdjusted Dimension\nFalse Positive\nApproved Exception"
+  },
+  {
+   "fieldname": "resolved_by",
+   "fieldtype": "Link",
+   "label": "Resolved By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "resolution_date",
+   "fieldtype": "Datetime",
+   "label": "Resolution Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "resolution_notes",
+   "fieldtype": "Small Text",
+   "label": "Resolution Notes"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "BIM",
+ "name": "BIM Clash",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

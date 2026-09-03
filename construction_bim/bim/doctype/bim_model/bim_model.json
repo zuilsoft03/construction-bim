@@ -1,0 +1,172 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:BIM-MODEL-{YYYY}-{#####}",
+ "creation": "2026-09-02 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "project",
+  "model_name",
+  "discipline",
+  "model_format",
+  "version",
+  "status",
+  "column_break_1",
+  "element_count",
+  "storey_count",
+  "bounding_box",
+  "parent_model",
+  "section_break_1",
+  "original_file",
+  "geometry_file",
+  "error_message",
+  "metadata"
+ ],
+ "fields": [
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project"
+  },
+  {
+   "fieldname": "model_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Model Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "discipline",
+   "fieldtype": "Select",
+   "label": "Discipline",
+   "options": "Architecture\nStructural\nMEP\nCivil\nInterior\nLandscape\nOther"
+  },
+  {
+   "fieldname": "model_format",
+   "fieldtype": "Data",
+   "label": "Model Format",
+   "description": "IFC, RVT, GLB, OBJ, ..."
+  },
+  {
+   "fieldname": "version",
+   "fieldtype": "Data",
+   "label": "Version",
+   "default": "1"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Processing\nReady\nFailed",
+   "default": "Processing"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "element_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Element Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "storey_count",
+   "fieldtype": "Int",
+   "label": "Storey Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "bounding_box",
+   "fieldtype": "JSON",
+   "label": "Bounding Box",
+   "read_only": 1
+  },
+  {
+   "fieldname": "parent_model",
+   "fieldtype": "Link",
+   "label": "Parent Model",
+   "options": "BIM Model"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break",
+   "label": "Files"
+  },
+  {
+   "fieldname": "original_file",
+   "fieldtype": "Attach",
+   "label": "Original File",
+   "description": "Uploaded IFC / RVT / mesh source file"
+  },
+  {
+   "fieldname": "geometry_file",
+   "fieldtype": "Attach",
+   "label": "Geometry File",
+   "description": "GLB geometry generated for the 3D viewer"
+  },
+  {
+   "fieldname": "error_message",
+   "fieldtype": "Small Text",
+   "label": "Error Message",
+   "read_only": 1
+  },
+  {
+   "fieldname": "metadata",
+   "fieldtype": "JSON",
+   "label": "Metadata",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-02 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "BIM",
+ "name": "BIM Model",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
