@@ -206,14 +206,43 @@ def setup_quality_inspection_presets():
 		doc = frappe.new_doc("Quality Inspection Template")
 		doc.name = tmpl["template_name"]
 		doc.quality_inspection_template_name = tmpl["template_name"]
+
+		# Determine correct child table fieldname across Frappe versions
+		field_name = "parameters"
+		if hasattr(doc, "item_quality_inspection_parameter") or hasattr(doc, "_init_child"):
+			try:
+				doc._init_child({}, "item_quality_inspection_parameter")
+				field_name = "item_quality_inspection_parameter"
+			except Exception:
+				field_name = "parameters"
+
 		for p in tmpl["parameters"]:
-			doc.append("parameters", {
+			# Ensure Quality Inspection Parameter exists if DocType is present
+			if frappe.db.exists("DocType", "Quality Inspection Parameter") and not frappe.db.exists("Quality Inspection Parameter", p["specification"]):
+				try:
+					qip = frappe.new_doc("Quality Inspection Parameter")
+					qip.parameter = p["specification"]
+					qip.insert(ignore_permissions=True)
+				except Exception:
+					pass
+
+			row = {
 				"specification": p["specification"],
 				"min_value": p.get("min_value"),
 				"max_value": p.get("max_value"),
+				"numeric": p.get("numeric", 1),
+				"value": p.get("acceptance_criteria"),
 				"acceptance_criteria_value": p.get("acceptance_criteria"),
-				"inspection_type": "Numeric" if p.get("numeric") else "Non-Numeric"
-			})
+				"inspection_type": "Numeric" if p.get("numeric") else "Non-Numeric",
+			}
+			try:
+				doc.append(field_name, row)
+			except Exception:
+				try:
+					doc.append("parameters", row)
+				except Exception:
+					pass
+
 		try:
 			doc.insert(ignore_permissions=True)
 		except Exception:
