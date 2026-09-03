@@ -10,6 +10,7 @@ export class BCFViewpointManager {
   private controls: any;
   private THREE: any;
   private currentAnimationId: number | null = null;
+  private currentResolver: (() => void) | null = null;
 
   constructor(camera: any, controls: any, threeInstance?: any) {
     this.camera = camera;
@@ -49,7 +50,12 @@ export class BCFViewpointManager {
       if (this.currentAnimationId !== null) {
         cancelAnimationFrame(this.currentAnimationId);
         this.currentAnimationId = null;
+        if (this.currentResolver) {
+          this.currentResolver();
+          this.currentResolver = null;
+        }
       }
+      this.currentResolver = resolve;
 
       const THREE = this.THREE;
       let targetPos: any;
@@ -89,6 +95,7 @@ export class BCFViewpointManager {
           this.currentAnimationId = requestAnimationFrame(animateStep);
         } else {
           this.currentAnimationId = null;
+          this.currentResolver = null;
           if (onComplete) onComplete();
           resolve();
         }

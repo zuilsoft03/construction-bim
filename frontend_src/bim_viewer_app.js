@@ -227,77 +227,94 @@ async function toggleModel(modelDocName) {
   fitView();
 }
 
+const inFlightLoads = new Map();
+
 async function loadModelGeometry(modelDocName) {
-  showLoading(`Loading model ${modelDocName}…`, true);
-  try {
-    const res = await frappe.call({ method: API.get_model, args: { model: modelDocName } });
-    const modelData = res.message;
-    const ifcUrl = modelData.original_file;
-    if (!ifcUrl) {
-      setStatus(`Model ${modelData.model_name} has no attached IFC file`);
-      return;
-    }
-
-    const absUrl = ifcUrl.startsWith('/') ? ifcUrl : '/' + ifcUrl;
-    showLoading(`Downloading IFC (${modelData.model_name})…`, true);
-    const resp = await fetch(absUrl);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status} fetching IFC`);
-
-    const buf = new Uint8Array(await resp.arrayBuffer());
-    showLoading(`Parsing IFC (${(buf.length / 1e6).toFixed(1)} MB)…`, true);
-
-    const api = await getIfcApi();
-    // COORDINATE_TO_ORIGIN: false ensures all disciplines share world coordinates with 0 drift!
-    const ifcModelID = api.OpenModel(buf, { COORDINATE_TO_ORIGIN: false, USE_FAST_BVH: true });
-
-    let disc = modelData.discipline || 'Architecture';
-    const nameLower = (modelData.model_name || modelDocName).toLowerCase();
-    if (nameLower.includes('struc') || nameLower.includes('str')) disc = 'Structural';
-    else if (nameLower.includes('hvac') || nameLower.includes('mep') || nameLower.includes('vvs')) disc = 'MEP';
-
-    showLoading(`Building 3D scene (${disc})…`, true);
-    const sceneResult = buildIfcScene(api, ifcModelID, {
-      modelName: modelData.model_name || modelDocName,
-      discipline: disc,
-    });
-
-    federatedGroup.add(sceneResult.group);
-
-    // Load server elements for property linking
-    try {
-      const elemRes = await frappe.call({
-        method: API.list_elements,
-        args: { model: modelDocName, filters: '{}', limit: 25000 },
-      });
-      const elements = (elemRes.message && elemRes.message.elements) || [];
-      elements.forEach(el => {
-        const cleanRef = (el.mesh_ref || '').replace('e', '');
-        if (cleanRef) elementIndex.set(`${modelDocName}:${cleanRef}`, el);
-        if (el.stable_id) elementIndex.set(el.stable_id, el);
-      });
-    } catch (e) {}
-
-    loadedModels.set(modelDocName, {
-      modelDocName,
-      modelName: modelData.model_name || modelDocName,
-      discipline: disc,
-      ifcModelID,
-      group: sceneResult.group,
-      expressMap: sceneResult.expressMap,
-      meshCount: sceneResult.meshCount,
-      elements: [],
-      isGhosted: false,
-      opacity: 1.0,
-      visible: true,
-    });
-
-    setStatus(`Loaded ${modelData.model_name} [${disc}]: ${sceneResult.meshCount.total} meshes, ${sceneResult.meshCount.tris} tris`);
-  } catch (e) {
-    console.error('Failed to load model geometry', e);
-    setStatus(`Error loading ${modelDocName}: ${e.message || e}`);
-  } finally {
-    showLoading('', false);
+  if (loadedModels.has(modelDocName)) {
+    return loadedModels.get(modelDocName);
   }
+  if (inFlightLoads.has(modelDocName)) {
+    return inFlightLoads.get(modelDocName);
+  }
+
+  const promise = (async () => {
+    showLoading(`Loading model ${modelDocName}…`, true);
+    try {
+      const res = await frappe.call({ method: API.get_model, args: { model: modelDocName } });
+      const modelData = res.message;
+      const ifcUrl = modelData.original_file;
+      if (!ifcUrl) {
+        setStatus(`Model ${modelData.model_name} has no attached IFC file`);
+        return;
+      }
+
+      const absUrl = ifcUrl.startsWith('/') ? ifcUrl : '/' + ifcUrl;
+      showLoading(`Downloading IFC (${modelData.model_name})…`, true);
+      const resp = await fetch(absUrl);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status} fetching IFC`);
+
+      const buf = new Uint8Array(await resp.arrayBuffer());
+      showLoading(`Parsing IFC (${(buf.length / 1e6).toFixed(1)} MB)…`, true);
+
+      const api = await getIfcApi();
+      // COORDINATE_TO_ORIGIN: false ensures all disciplines share world coordinates with 0 drift!
+      const ifcModelID = api.OpenModel(buf, { COORDINATE_TO_ORIGIN: false, USE_FAST_BVH: true });
+
+      let disc = modelData.discipline || 'Architecture';
+      const nameLower = (modelData.model_name || modelDocName).toLowerCase();
+      if (nameLower.includes('struc') || nameLower.includes('str')) disc = 'Structural';
+      else if (nameLower.includes('hvac') || nameLower.includes('mep') || nameLower.includes('vvs')) disc = 'MEP';
+
+      showLoading(`Building 3D scene (${disc})…`, true);
+      const sceneResult = buildIfcScene(api, ifcModelID, {
+        modelName: modelData.model_name || modelDocName,
+        discipline: disc,
+      });
+
+      federatedGroup.add(sceneResult.group);
+
+      // Load server elements for property linking
+      try {
+        const elemRes = await frappe.call({
+          method: API.list_elements,
+          args: { model: modelDocName, filters: '{}', limit: 25000 },
+        });
+        const elements = (elemRes.message && elemRes.message.elements) || [];
+        elements.forEach(el => {
+          const cleanRef = (el.mesh_ref || '').replace('e', '');
+          if (cleanRef) elementIndex.set(`${modelDocName}:${cleanRef}`, el);
+          if (el.stable_id) elementIndex.set(el.stable_id, el);
+        });
+      } catch (e) {}
+
+      const entry = {
+        modelDocName,
+        modelName: modelData.model_name || modelDocName,
+        discipline: disc,
+        ifcModelID,
+        group: sceneResult.group,
+        expressMap: sceneResult.expressMap,
+        meshCount: sceneResult.meshCount,
+        elements: [],
+        isGhosted: false,
+        opacity: 1.0,
+        visible: true,
+      };
+      loadedModels.set(modelDocName, entry);
+
+      setStatus(`Loaded ${modelData.model_name} [${disc}]: ${sceneResult.meshCount.total} meshes, ${sceneResult.meshCount.tris} tris`);
+      return entry;
+    } catch (e) {
+      console.error('Failed to load model geometry', e);
+      setStatus(`Error loading ${modelDocName}: ${e.message || e}`);
+    } finally {
+      showLoading('', false);
+      inFlightLoads.delete(modelDocName);
+    }
+  })();
+
+  inFlightLoads.set(modelDocName, promise);
+  return promise;
 }
 
 function unloadModel(modelDocName) {
@@ -1665,7 +1682,11 @@ async function handleRouteParams() {
       flyToClash(found);
     }
   } else if (elemA || elemB) {
-    const match = elementMeshes.find(m => m.element && (m.element.stable_id === elemA || m.element.stable_id === elemB));
+    const match = elementMeshes.find(item => {
+      const el = elementIndex.get(`${item.modelDocName}:${item.expressID}`) || elementIndex.get(String(item.expressID));
+      const sid = (el && el.stable_id) || (item.mesh && item.mesh.userData && (item.mesh.userData.guid || item.mesh.userData.stable_id));
+      return sid && (sid === elemA || sid === elemB);
+    });
     if (match) {
       selectElement(match.mesh, match.expressID, match.modelDocName);
     }

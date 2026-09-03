@@ -399,8 +399,15 @@ def generate_or_update_bom(
     Creates BOM lines, sets item pricing and waste factors, records traceability
     in BIM BOQ Link, and returns full calculation details.
     """
-    if hasattr(frappe, "has_permission") and not frappe.has_permission("BOM", "create"):
-        frappe.throw(_("Not permitted to create or modify BOM records"), frappe.PermissionError)
+    # Check permissions for BOM creation or modification
+    if existing_bom and frappe.db.exists("BOM", existing_bom):
+        if hasattr(frappe, "has_permission") and not frappe.has_permission("BOM", "write"):
+            frappe.throw(_("Not permitted to modify existing BOM {0}").format(existing_bom), frappe.PermissionError)
+    elif hasattr(frappe, "has_permission") and not frappe.has_permission("BOM", "create"):
+        frappe.throw(_("Not permitted to create BOM records"), frappe.PermissionError)
+
+    if hasattr(frappe, "has_permission") and not (frappe.has_permission("Item", "write") or frappe.has_permission("Item", "create")):
+        frappe.throw(_("Not permitted to manage Item master data for BOM generation"), frappe.PermissionError)
 
     # 1. Validate inputs and calculate preview lines
     preview = preview_bom_generation(

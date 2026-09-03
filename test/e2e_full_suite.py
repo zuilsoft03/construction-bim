@@ -140,18 +140,29 @@ def run_full_suite() -> int:
     print("=" * 80)
     print(f" Execution Date:    {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}")
     print(f" Test Suites:        5 Modules ({', '.join(tc.__name__ for tc in test_classes)})")
+    skipped_count = len(getattr(result, "skipped", []))
+    has_errors = len(result.failures) > 0 or len(result.errors) > 0
+
     print(f" Total Tests Run:    {result.testsRun}")
-    print(f" Total Passed:       {result.testsRun - len(result.failures) - len(result.errors)}")
+    print(f" Total Passed:       {result.testsRun - len(result.failures) - len(result.errors) - skipped_count}")
+    print(f" Total Skipped:      {skipped_count}")
     print(f" Total Failures:     {len(result.failures)}")
     print(f" Total Errors:       {len(result.errors)}")
     print(f" Execution Time:     {elapsed:.3f} seconds")
     print("-" * 80)
     print(" TIER BREAKDOWN & TARGET THRESHOLDS")
     print("-" * 80)
-    t1_status = "[ PASS ]" if (tier_counts["Tier 1"] >= 65 and len(result.failures) == 0 and len(result.errors) == 0) else "[ FAIL ]"
-    t2_status = "[ PASS ]" if (tier_counts["Tier 2"] >= 65 and len(result.failures) == 0 and len(result.errors) == 0) else "[ FAIL ]"
-    t3_status = "[ PASS ]" if (tier_counts["Tier 3"] >= 13 and len(result.failures) == 0 and len(result.errors) == 0) else "[ FAIL ]"
-    t4_status = "[ PASS ]" if (tier_counts["Tier 4"] >= 5 and len(result.failures) == 0 and len(result.errors) == 0) else "[ FAIL ]"
+    t1_status = "[ PASS ]" if (tier_counts["Tier 1"] >= 65 and not has_errors) else "[ FAIL ]"
+    t2_status = "[ PASS ]" if (tier_counts["Tier 2"] >= 65 and not has_errors) else "[ FAIL ]"
+    t3_status = "[ PASS ]" if (tier_counts["Tier 3"] >= 13 and not has_errors) else "[ FAIL ]"
+    if has_errors:
+        t4_status = "[ FAIL ]"
+    elif skipped_count > 0:
+        t4_status = f"[ SKIP ({skipped_count}) ]"
+    elif tier_counts["Tier 4"] >= 5:
+        t4_status = "[ PASS ]"
+    else:
+        t4_status = "[ FAIL ]"
 
     print(f"  Tier 1: Feature Coverage (Happy Path)    : {tier_counts['Tier 1']:3d} / 65 Target  {t1_status}")
     print(f"  Tier 2: Boundary & Corner Cases          : {tier_counts['Tier 2']:3d} / 65 Target  {t2_status}")
@@ -168,22 +179,32 @@ def run_full_suite() -> int:
         name = FEATURE_DESCRIPTIONS.get(fkey, "Feature")
         c = feature_counts[fkey]
         t1, t2, t3, t4 = c["Tier 1"], c["Tier 2"], c["Tier 3"], c["Tier 4"]
-        status = "PASS" if (t1 >= 5 and t2 >= 5 and len(result.failures) == 0 and len(result.errors) == 0) else "FAIL"
+        status = "PASS" if (t1 >= 5 and t2 >= 5 and not has_errors) else "FAIL"
         print(f" {fkey:<4} | {name:<46} | {t1:4d} | {t2:4d} | {t3:4d} | {t4:4d} | [ {status} ]")
 
     print("-" * 80)
     print(" TIER 4 REAL-WORLD APPLICATION SCENARIOS (Nordic LCA Datasets)")
     print("-" * 80)
+    skipped_tests = [getattr(tc, "id", lambda: str(tc))() for tc, _ in getattr(result, "skipped", [])]
     for sid in range(1, 6):
         skey = f"S{sid}"
         name = FEATURE_DESCRIPTIONS.get(skey, "Scenario")
-        s_status = "[ PASS ]" if (result.wasSuccessful() and tier_counts["Tier 4"] >= 5) else "[ FAIL ]"
+        if any(skey.lower() in st.lower() for st in skipped_tests):
+            s_status = "[ SKIP ]"
+        elif result.wasSuccessful() and tier_counts["Tier 4"] >= 5:
+            s_status = "[ PASS ]"
+        else:
+            s_status = "[ FAIL ]"
         print(f" {skey:<4} | {name:<60} | {s_status}")
 
     print("=" * 80)
 
-    if result.wasSuccessful():
+    if result.wasSuccessful() and skipped_count == 0:
         print(" OVERALL RESULT: [ 100% PASS ] - ALL 4 TIERS FULLY VERIFIED")
+        print("=" * 80)
+        return 0
+    elif result.wasSuccessful() and skipped_count > 0:
+        print(f" OVERALL RESULT: [ PARTIAL PASS ] - {skipped_count} Tests Skipped, 0 Failures")
         print("=" * 80)
         return 0
     else:
