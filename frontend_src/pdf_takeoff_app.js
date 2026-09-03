@@ -305,7 +305,7 @@ function finalizeMeasurement(m) {
       const j = (i + 1) % pts.length;
       area += pts[i].x * pts[j].y - pts[j].x * pts[i].y;
     }
-    m.real_value = pxToM(Math.abs(area) / 2);
+    m.real_value = (Math.abs(area) / 2) / (ppm * ppm);
     m.unit = 'm²';
   }
   m.real_value = Math.round(m.real_value * 1000) / 1000;

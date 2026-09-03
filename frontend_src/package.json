@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "dwg2dxf-converter": "^1.0.4",
+    "dxf-parser": "^1.1.2",
     "pdfjs-dist": "^4.10.38"
   }
 }

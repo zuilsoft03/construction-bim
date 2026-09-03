@@ -1,0 +1,210 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:INC-{YYYY}-{#####}",
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "incident_title",
+  "project",
+  "incident_datetime",
+  "exact_location",
+  "column_break_1",
+  "incident_classification",
+  "severity",
+  "status",
+  "dole_reportable",
+  "dole_reference_no",
+  "section_break_injured",
+  "injured_person_name",
+  "injured_person_company",
+  "days_lost",
+  "column_break_investigation",
+  "reported_by",
+  "investigated_by",
+  "section_break_description",
+  "description_of_incident",
+  "immediate_actions_taken",
+  "section_break_root_cause",
+  "root_cause_analysis",
+  "corrective_and_preventive_actions"
+ ],
+ "fields": [
+  {
+   "fieldname": "incident_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Incident Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Project",
+   "options": "Project",
+   "reqd": 1
+  },
+  {
+   "fieldname": "incident_datetime",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Date & Time of Incident",
+   "reqd": 1
+  },
+  {
+   "fieldname": "exact_location",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Exact Location / Grid Reference",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "incident_classification",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Incident Classification",
+   "options": "Near Miss\nFirst Aid Case (FAC)\nMedical Treatment Case (MTC)\nRestricted Work Day Case (RWDC)\nLost Time Injury (LTI)\nFatality\nProperty / Equipment Damage",
+   "reqd": 1
+  },
+  {
+   "default": "Medium",
+   "fieldname": "severity",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Severity",
+   "options": "Low\nMedium\nHigh\nCritical"
+  },
+  {
+   "default": "Reported",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Reported\nUnder Investigation\nCorrective Action In Progress\nClosed"
+  },
+  {
+   "default": "0",
+   "fieldname": "dole_reportable",
+   "fieldtype": "Check",
+   "label": "DOLE Statutory Report Required"
+  },
+  {
+   "fieldname": "dole_reference_no",
+   "fieldtype": "Data",
+   "label": "DOLE / BWC Report No."
+  },
+  {
+   "fieldname": "section_break_injured",
+   "fieldtype": "Section Break",
+   "label": "Personnel Involved & Lost Workdays"
+  },
+  {
+   "fieldname": "injured_person_name",
+   "fieldtype": "Data",
+   "label": "Injured Person Name"
+  },
+  {
+   "fieldname": "injured_person_company",
+   "fieldtype": "Data",
+   "label": "Employer / Subcontractor"
+  },
+  {
+   "default": "0",
+   "fieldname": "days_lost",
+   "fieldtype": "Int",
+   "label": "Days Lost / Man-Hours Lost"
+  },
+  {
+   "fieldname": "column_break_investigation",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reported_by",
+   "fieldtype": "Link",
+   "label": "Reported By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "investigated_by",
+   "fieldtype": "Link",
+   "label": "Investigated By",
+   "options": "User"
+  },
+  {
+   "fieldname": "section_break_description",
+   "fieldtype": "Section Break",
+   "label": "Incident Narrative"
+  },
+  {
+   "fieldname": "description_of_incident",
+   "fieldtype": "Text Editor",
+   "label": "Description of Incident (Who, What, Where, When, How)"
+  },
+  {
+   "fieldname": "immediate_actions_taken",
+   "fieldtype": "Small Text",
+   "label": "Immediate Containment / First Aid Taken"
+  },
+  {
+   "fieldname": "section_break_root_cause",
+   "fieldtype": "Section Break",
+   "label": "Root Cause Analysis (RCA) & CAPA"
+  },
+  {
+   "fieldname": "root_cause_analysis",
+   "fieldtype": "Text Editor",
+   "label": "Root Cause Analysis"
+  },
+  {
+   "fieldname": "corrective_and_preventive_actions",
+   "fieldtype": "Text Editor",
+   "label": "Corrective and Preventive Actions (CAPA)"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Construction",
+ "name": "OSH Incident Report",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "incident_datetime",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

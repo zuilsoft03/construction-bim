@@ -24,6 +24,7 @@ import re
 import sys
 import time
 import types
+import unittest
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
@@ -450,15 +451,31 @@ class MockDoc:
             super().__setattr__(key, value)
 
     def __getattr__(self, key: str) -> Any:
-        if key in self._data:
+        if key == "_data" or (key.startswith("__") and key.endswith("__")):
+            raise AttributeError(key)
+        if "_data" in self.__dict__ and key in self._data:
             return self._data[key]
         return None
 
     def get(self, key: str, default: Any = None) -> Any:
-        return getattr(self, key, default)
+        if hasattr(self, "_data") and key in self._data:
+            val = self._data[key]
+            return default if val is None else val
+        if hasattr(self, key):
+            val = getattr(self, key, None)
+            return default if val is None else val
+        return default
 
     def set(self, key: str, value: Any) -> None:
         setattr(self, key, value)
+
+    def db_set(self, fieldname_or_dict: Union[str, Dict[str, Any]], value: Any = None, update_modified: bool = True):
+        mock_frappe_db.set_value(self.doctype, self.name, fieldname_or_dict, value, update_modified)
+        if isinstance(fieldname_or_dict, dict):
+            for k, v in fieldname_or_dict.items():
+                setattr(self, k, v)
+        elif isinstance(fieldname_or_dict, str):
+            setattr(self, fieldname_or_dict, value)
 
     def as_dict(self) -> FrappeDict:
         d = FrappeDict({
@@ -473,9 +490,40 @@ class MockDoc:
         return copy.deepcopy(d)
 
     def insert(self, ignore_permissions: bool = False) -> MockDoc:
-        return mock_frappe_db.insert(self)
+        if callable(getattr(self, "before_insert", None)):
+            self.before_insert()
+        if callable(getattr(self, "validate", None)):
+            self.validate()
+        if callable(getattr(self, "before_save", None)):
+            self.before_save()
+        res = mock_frappe_db.insert(self)
+        if callable(getattr(self, "after_insert", None)):
+            self.after_insert()
+        return res
 
     def save(self, ignore_permissions: bool = False) -> MockDoc:
+        if callable(getattr(self, "validate", None)):
+            self.validate()
+        if callable(getattr(self, "before_save", None)):
+            self.before_save()
+        return mock_frappe_db.save(self)
+
+    def submit(self) -> MockDoc:
+        if callable(getattr(self, "before_submit", None)):
+            self.before_submit()
+        self.docstatus = 1
+        if callable(getattr(self, "validate", None)):
+            self.validate()
+        if callable(getattr(self, "on_submit", None)):
+            self.on_submit()
+        return mock_frappe_db.save(self)
+
+    def cancel(self) -> MockDoc:
+        if callable(getattr(self, "before_cancel", None)):
+            self.before_cancel()
+        self.docstatus = 2
+        if callable(getattr(self, "on_cancel", None)):
+            self.on_cancel()
         return mock_frappe_db.save(self)
 
     def delete(self, ignore_permissions: bool = False) -> None:
@@ -570,14 +618,12 @@ class MockDB:
             return False
         return False
 
-    def get_value(self, doctype: str, name_or_filters: Union[str, Dict[str, Any]], fieldname: str) -> Any:
+    def get_value(self, doctype: str, name_or_filters: Union[str, Dict[str, Any]], fieldname: Union[str, List[str]], as_dict: bool = False) -> Any:
         table = self._tables.get(doctype, {})
+        target_doc = None
         if isinstance(name_or_filters, str):
-            doc = table.get(name_or_filters)
-            if doc:
-                return getattr(doc, fieldname, None)
-            return None
-        if isinstance(name_or_filters, dict):
+            target_doc = table.get(name_or_filters)
+        elif isinstance(name_or_filters, dict):
             for doc in table.values():
                 match = True
                 for k, v in name_or_filters.items():
@@ -585,8 +631,15 @@ class MockDB:
                         match = False
                         break
                 if match:
-                    return getattr(doc, fieldname, None)
-        return None
+                    target_doc = doc
+                    break
+        if not target_doc:
+            return None
+
+        if isinstance(fieldname, (list, tuple)):
+            res = {f: getattr(target_doc, f, None) for f in fieldname}
+            return FrappeDict(res) if as_dict else [getattr(target_doc, f, None) for f in fieldname]
+        return getattr(target_doc, fieldname, None)
 
     def set_value(self, doctype: str, name: str, fieldname_or_dict: Union[str, Dict[str, Any]], value: Any = None, update_modified: bool = True) -> None:
         table = self._tables.get(doctype, {})
@@ -621,6 +674,12 @@ class MockDB:
         if "DELETE FROM `TABBIM ELEMENT`" in q_upper:
             self._tables.pop("BIM Element", None)
             return []
+
+        if "MAX(PIN_NUMBER)" in q_upper:
+            table = self._tables.get("BIM Issue", {})
+            pins = [getattr(doc, "pin_number", 0) or 0 for doc in table.values()]
+            max_pin = max(pins) if pins else 0
+            return [[max_pin]]
 
         if q_upper.startswith("SELECT COUNT(*)") and "FROM `TABBIM CLASH`" not in q_upper:
             if "FROM `TABBIM ELEMENT`" in q_upper:
@@ -664,6 +723,12 @@ class MockDB:
 mock_frappe_db = MockDB()
 
 
+_DOCTYPE_CLASSES: Dict[str, Any] = {}
+
+def register_doctype_class(doctype: str, cls: Any):
+    _DOCTYPE_CLASSES[doctype] = cls
+
+
 class MockFrappeModule:
     ValidationError = ValidationError
     DoesNotExistError = DoesNotExistError
@@ -702,38 +767,90 @@ class MockFrappeModule:
 
     @staticmethod
     def new_doc(doctype: str, **kwargs) -> MockDoc:
-        return MockDoc(doctype, **kwargs)
+        cls = _DOCTYPE_CLASSES.get(doctype, MockDoc)
+        return cls(doctype, **kwargs)
 
     @staticmethod
-    def get_doc(doctype: str, name: Optional[str] = None, **kwargs) -> MockDoc:
+    def get_doc(doctype: Union[str, Dict[str, Any]], name: Optional[str] = None, **kwargs) -> MockDoc:
+        if isinstance(doctype, dict):
+            dt = doctype.get("doctype", "MockDoc")
+            fields = {k: v for k, v in doctype.items() if k != "doctype"}
+            return MockFrappeModule.new_doc(dt, **fields)
         if isinstance(name, dict):
             kwargs.update(name)
             name = None
+        doc = None
         if name:
             table = mock_frappe_db._tables.get(doctype, {})
             if name in table:
-                return table[name]
-            raise DoesNotExistError(f"{doctype} {name} does not exist")
-        table = mock_frappe_db._tables.get(doctype, {})
-        for doc in table.values():
-            match = True
-            for k, v in kwargs.items():
-                if getattr(doc, k, None) != v:
-                    match = False
+                doc = table[name]
+            else:
+                raise DoesNotExistError(f"{doctype} {name} does not exist")
+        else:
+            table = mock_frappe_db._tables.get(doctype, {})
+            for d in table.values():
+                match = True
+                for k, v in kwargs.items():
+                    if getattr(d, k, None) != v:
+                        match = False
+                        break
+                if match:
+                    doc = d
                     break
-            if match:
-                return doc
-        raise DoesNotExistError(f"{doctype} with {kwargs} does not exist")
+            if not doc:
+                raise DoesNotExistError(f"{doctype} with {kwargs} does not exist")
+
+        target_cls = _DOCTYPE_CLASSES.get(doctype)
+        if target_cls and not isinstance(doc, target_cls):
+            promoted = target_cls(doctype)
+            promoted.__dict__.update(doc.__dict__)
+            promoted._data = doc._data
+            mock_frappe_db._tables[doctype][doc.name] = promoted
+            return promoted
+        return doc
 
     @staticmethod
-    def get_all(doctype: str, filters: Optional[Dict[str, Any]] = None, fields: Optional[List[str]] = None, order_by: Optional[str] = None, limit_page_length: int = 500) -> List[FrappeDict]:
+    def has_permission(doctype: str, ptype: str = "read", doc: Any = None, user: Optional[str] = None) -> bool:
+        return True
+
+    @staticmethod
+    def get_all(doctype: str, filters: Optional[Dict[str, Any]] = None, fields: Optional[List[str]] = None, order_by: Optional[str] = None, limit_page_length: int = 500, pluck: Optional[str] = None) -> List[Any]:
         table = mock_frappe_db._tables.get(doctype, {})
         results = []
         for doc in table.values():
             if filters:
                 match = True
                 for k, v in filters.items():
-                    if isinstance(v, (list, tuple)):
+                    if isinstance(v, (list, tuple)) and len(v) == 2 and isinstance(v[0], str) and v[0].lower() in ["not in", "in", "!=", ">", "<", ">=", "<=", "like"]:
+                        op, target = v[0].lower(), v[1]
+                        val = getattr(doc, k, None)
+                        if op == "not in" and val in target:
+                            match = False
+                            break
+                        elif op == "in" and val not in target:
+                            match = False
+                            break
+                        elif op == "!=" and val == target:
+                            match = False
+                            break
+                        elif op == ">" and not (val > target):
+                            match = False
+                            break
+                        elif op == "<" and not (val < target):
+                            match = False
+                            break
+                        elif op == ">=" and not (val >= target):
+                            match = False
+                            break
+                        elif op == "<=" and not (val <= target):
+                            match = False
+                            break
+                        elif op == "like":
+                            pattern = str(target).replace("%", "").lower()
+                            if pattern not in str(val).lower():
+                                match = False
+                                break
+                    elif isinstance(v, (list, tuple)):
                         if getattr(doc, k, None) not in v:
                             match = False
                             break
@@ -743,7 +860,9 @@ class MockFrappeModule:
                 if not match:
                     continue
             d = doc.as_dict()
-            if fields and fields != ["*"]:
+            if pluck:
+                results.append(d.get(pluck))
+            elif fields and fields != ["*"]:
                 filtered = FrappeDict({f: d.get(f) for f in fields})
                 results.append(filtered)
             else:
@@ -765,6 +884,7 @@ def setup_frappe_test_environment():
             if not k.startswith("__"):
                 setattr(mod, k, getattr(MockFrappeModule, k))
         mod.session = types.SimpleNamespace(user="Administrator")
+        mod.flags = types.SimpleNamespace()
         mod.defaults = types.SimpleNamespace(
             get_user_default=lambda k: "_Test Company",
             get_global_default=lambda k: "_Test Company",
@@ -772,10 +892,28 @@ def setup_frappe_test_environment():
         sys.modules["frappe"] = mod
         sys.modules["frappe.utils"] = types.ModuleType("frappe.utils")
         setattr(sys.modules["frappe.utils"], "now", lambda: time.strftime("%Y-%m-%d %H:%M:%S"))
+        setattr(sys.modules["frappe.utils"], "nowdate", lambda: time.strftime("%Y-%m-%d"))
         setattr(sys.modules["frappe.utils"], "now_datetime", lambda: time.strftime("%Y-%m-%d %H:%M:%S"))
+        setattr(sys.modules["frappe.utils"], "flt", lambda v, precision=None: float(v or 0.0))
+        setattr(sys.modules["frappe.utils"], "cint", lambda v: int(v or 0))
+        setattr(sys.modules["frappe.utils"], "getdate", lambda d=None: time.strftime("%Y-%m-%d"))
+        setattr(sys.modules["frappe.utils"], "get_datetime", lambda v=None: time.strftime("%Y-%m-%d %H:%M:%S") if not v else str(v))
+        setattr(sys.modules["frappe.utils"], "add_days", lambda d, days: time.strftime("%Y-%m-%d"))
         sys.modules["frappe.utils.file_manager"] = types.ModuleType("frappe.utils.file_manager")
         setattr(sys.modules["frappe.utils.file_manager"], "save_file", lambda **kw: types.SimpleNamespace(file_url=f"/files/{kw.get('fname', 'file.glb')}", name="file-1"))
         setattr(sys.modules["frappe.utils.file_manager"], "get_content", lambda name: b"")
+        sys.modules["frappe.model"] = types.ModuleType("frappe.model")
+        sys.modules["frappe.model.document"] = types.ModuleType("frappe.model.document")
+        setattr(sys.modules["frappe.model.document"], "Document", MockDoc)
+
+        # Mock frappe.tests.utils
+        tests_mod = types.ModuleType("frappe.tests")
+        tests_utils_mod = types.ModuleType("frappe.tests.utils")
+        tests_utils_mod.FrappeTestCase = unittest.TestCase
+        tests_mod.utils = tests_utils_mod
+        sys.modules["frappe.tests"] = tests_mod
+        sys.modules["frappe.tests.utils"] = tests_utils_mod
+        setattr(mod, "set_user", lambda u: setattr(mod.session, "user", u))
 
 
 # Auto-setup upon import

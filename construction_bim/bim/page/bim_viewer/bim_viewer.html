@@ -1,217 +1,619 @@
-<!-- BIM Viewer — 3D model viewer for construction_bim -->
+<!-- BIM Viewer — Multi-Discipline Federated 3D Viewer & Project Initiation Workspace -->
 <link rel="stylesheet" href="/assets/construction_bim/css/bim_viewer.css">
 
 <div id="bim-app">
-  <!-- Left Sidebar -->
-  <div id="bim-left">
-    <!-- Models Panel -->
-    <div class="panel">
-      <h4>Models <span style="font-size:10px;font-weight:normal;text-transform:none">(Federated)</span></h4>
-      <div id="bim-models"><div class="empty-hint">No models yet</div></div>
-      <div class="model-actions-row">
-        <button id="btn-load-selected" class="btn btn-default btn-xs" style="flex:1" title="Load selected models together">Load Federated</button>
-        <button id="btn-clear-models" class="btn btn-default btn-xs" title="Clear all loaded models">Clear</button>
-      </div>
-      <input id="bim-file-input" type="file" accept=".ifc,.IFC" style="display:none" />
-      <button id="bim-upload" class="btn btn-default btn-xs" style="width:100%;margin-top:6px">⬆ Upload IFC Model</button>
-    </div>
-
-    <!-- Discipline Layers Panel -->
-    <div class="panel" id="bim-disciplines-panel">
-      <h4>Discipline Layers</h4>
-      <div id="bim-disciplines-list">
-        <!-- Architecture Layer -->
-        <div class="discipline-layer-row" data-discipline="Architecture">
-          <div class="discipline-header">
-            <span class="discipline-badge-label"><span class="disc-dot ark"></span> Architecture</span>
-            <div class="discipline-controls-group">
-              <button class="disc-btn btn-vis active" title="Toggle visibility">👁</button>
-              <button class="disc-btn btn-ghost" title="Ghost (20% opacity)">👻 Ghost</button>
-              <button class="disc-btn btn-solo" title="Solo discipline">Solo</button>
-            </div>
-          </div>
-          <div class="opacity-slider-row">
-            <span>Opacity:</span>
-            <input type="range" class="disc-opacity-slider" min="0" max="100" value="100" />
-            <span class="disc-opacity-val">100%</span>
-          </div>
-        </div>
-
-        <!-- Structural Layer -->
-        <div class="discipline-layer-row" data-discipline="Structural">
-          <div class="discipline-header">
-            <span class="discipline-badge-label"><span class="disc-dot struc"></span> Structural</span>
-            <div class="discipline-controls-group">
-              <button class="disc-btn btn-vis active" title="Toggle visibility">👁</button>
-              <button class="disc-btn btn-ghost" title="Ghost (20% opacity)">👻 Ghost</button>
-              <button class="disc-btn btn-solo" title="Solo discipline">Solo</button>
-            </div>
-          </div>
-          <div class="opacity-slider-row">
-            <span>Opacity:</span>
-            <input type="range" class="disc-opacity-slider" min="0" max="100" value="100" />
-            <span class="disc-opacity-val">100%</span>
-          </div>
-        </div>
-
-        <!-- MEP / HVAC Layer -->
-        <div class="discipline-layer-row" data-discipline="MEP">
-          <div class="discipline-header">
-            <span class="discipline-badge-label"><span class="disc-dot mep"></span> MEP / HVAC</span>
-            <div class="discipline-controls-group">
-              <button class="disc-btn btn-vis active" title="Toggle visibility">👁</button>
-              <button class="disc-btn btn-ghost" title="Ghost (20% opacity)">👻 Ghost</button>
-              <button class="disc-btn btn-solo" title="Solo discipline">Solo</button>
-            </div>
-          </div>
-          <div class="opacity-slider-row">
-            <span>Opacity:</span>
-            <input type="range" class="disc-opacity-slider" min="0" max="100" value="100" />
-            <span class="disc-opacity-val">100%</span>
-          </div>
-        </div>
+  <!-- Top Command & Mode Switcher Bar -->
+  <div id="bim-topbar">
+    <div class="topbar-left">
+      <div class="project-pill">
+        <span class="project-icon">🏗️</span>
+        <span id="bim-project-title" class="project-title">Project Workspace</span>
+        <span id="bim-project-status-badge" class="bim-badge status-draft">Initiating</span>
       </div>
     </div>
 
-    <!-- Filters Panel -->
-    <div class="panel" id="bim-filters">
-      <h4>Filters & View</h4>
-      <select id="f-discipline"><option value="">Discipline: all</option></select>
-      <select id="f-storey"><option value="">Storey: all</option></select>
-      <select id="f-type"><option value="">Type: all</option></select>
-      <div class="filter-row" style="display:flex;gap:4px;margin-bottom:6px">
-        <input id="f-search" placeholder="Search name / type / id" style="flex:1;font-size:12px;padding:4px" />
-        <button id="f-clear" class="btn btn-default btn-xs">Clear</button>
-      </div>
-      <div class="row-actions" style="margin-bottom:6px">
-        <button id="btn-fit" class="btn btn-default btn-xs" style="width:100%">Fit view</button>
-      </div>
-      <div style="margin-top:8px">
-        <button id="btn-open-bom-wizard" class="btn btn-primary btn-xs" style="width:100%">📦 BIM to BOM Wizard</button>
-      </div>
+    <!-- Mode Switcher: OpenProject Initiation vs Live Coordination -->
+    <div class="bim-mode-switcher">
+      <button id="btn-mode-initiation" class="bim-mode-btn active" title="Project Onboarding, Document Intake & Baseline Sign-Off">
+        🚀 Initiation Pipeline
+      </button>
+      <button id="btn-mode-coordination" class="bim-mode-btn" title="Multi-Discipline BCF Clashes, Work Packages & Takeoffs">
+        🎯 Coordination Mode
+      </button>
     </div>
 
-    <!-- Viewpoints Panel -->
-    <div class="panel">
-      <h4>Viewpoints</h4>
-      <div id="bim-viewpoints"><div class="empty-hint">Save the camera to bookmark a view</div></div>
-      <div style="display:flex;gap:4px;margin-top:6px">
-        <input id="vp-name" placeholder="Viewpoint name" style="flex:1;font-size:12px;padding:4px" />
-        <button id="vp-save" class="btn btn-default btn-xs">Save</button>
-      </div>
+    <div class="topbar-right">
+      <button id="btn-download-boq-template" class="btn btn-default btn-xs" title="Download standard BOQ spreadsheet template">
+        ⬇ BOQ Template
+      </button>
+      <button id="btn-open-drive" class="btn btn-default btn-xs" title="Open Project Drive Folder">
+        📁 Frappe Drive
+      </button>
+      <button id="btn-toggle-fullscreen" class="btn btn-default btn-xs" title="Toggle Fullscreen Viewport">
+        ⛶
+      </button>
     </div>
   </div>
 
-  <!-- Center Canvas Area -->
-  <div id="bim-canvas-wrap">
-    <div id="bim-hud">
-      <button id="tool-orbit" class="active">Orbit</button>
-      <button id="tool-select">Select</button>
-      <button id="tool-measure">Measure</button>
-      <button id="tool-clashes">Clashes</button>
+  <div id="bim-main-body">
+    <!-- Left Sidebar: Dual Mode (Initiation Intake vs Coordination Models) -->
+    <div id="bim-left">
+      
+      <!-- ================= INITIATION MODE LEFT PANEL ================= -->
+      <div id="bim-left-initiation">
+        <!-- Document Intake Tree Panel -->
+        <div class="panel">
+          <h4>Project Document Intake <span class="intake-counter" id="intake-progress-label">0/4 Complete</span></h4>
+          <div class="intake-tree">
+            
+            <!-- 01 Contracts -->
+            <div class="intake-node" data-category="contract">
+              <div class="intake-node-header">
+                <div class="intake-title">
+                  <span class="intake-icon">📑</span>
+                  <span>01 Contracts & NTP</span>
+                </div>
+                <span id="badge-contract" class="bim-badge badge-pending">Pending</span>
+              </div>
+              <div class="intake-dropzone" id="dropzone-contract">
+                <span class="dropzone-hint">Drop Agreement (.pdf/.docx)</span>
+                <button class="btn btn-default btn-xs btn-browse" onclick="document.getElementById('file-input-contract').click()">Browse</button>
+                <input id="file-input-contract" type="file" accept=".pdf,.docx,.doc" style="display:none" />
+              </div>
+            </div>
+
+            <!-- 02 Drawings (CAD / PDF) -->
+            <div class="intake-node" data-category="cad">
+              <div class="intake-node-header">
+                <div class="intake-title">
+                  <span class="intake-icon">📐</span>
+                  <span>02 Drawings (DWG/PDF)</span>
+                </div>
+                <span id="badge-cad" class="bim-badge badge-pending">0 Sheets</span>
+              </div>
+              <div class="intake-dropzone" id="dropzone-cad">
+                <span class="dropzone-hint">Drop CAD (.dwg/.dxf) or PDF Plans</span>
+                <button class="btn btn-default btn-xs btn-browse" onclick="document.getElementById('file-input-cad').click()">Browse</button>
+                <input id="file-input-cad" type="file" accept=".dwg,.dxf,.pdf" style="display:none" />
+              </div>
+            </div>
+
+            <!-- 03 BIM Models (IFC) -->
+            <div class="intake-node" data-category="ifc">
+              <div class="intake-node-header">
+                <div class="intake-title">
+                  <span class="intake-icon">🏢</span>
+                  <span>03 BIM Models (IFC)</span>
+                </div>
+                <span id="badge-models" class="bim-badge badge-pending">0 Models</span>
+              </div>
+              <div class="intake-dropzone" id="dropzone-ifc">
+                <span class="dropzone-hint">Drop IFC (Arch / Struc / MEP)</span>
+                <div style="display:flex;gap:4px;width:100%;align-items:center;margin-top:4px">
+                  <select id="select-intake-disc" style="font-size:11px;flex:1;padding:2px">
+                    <option value="Auto">Auto-Detect Discipline</option>
+                    <option value="Architecture">Architecture</option>
+                    <option value="Structural">Structural</option>
+                    <option value="MEP">MEP / HVAC</option>
+                  </select>
+                  <button class="btn btn-default btn-xs btn-browse" onclick="document.getElementById('file-input-ifc').click()">Browse</button>
+                </div>
+                <input id="file-input-ifc" type="file" accept=".ifc,.IFC" style="display:none" />
+              </div>
+            </div>
+
+            <!-- 04 Takeoffs / BOQ -->
+            <div class="intake-node" data-category="boq">
+              <div class="intake-node-header">
+                <div class="intake-title">
+                  <span class="intake-icon">📊</span>
+                  <span>04 BOQ & Estimates</span>
+                </div>
+                <span id="badge-boq" class="bim-badge badge-pending">Pending</span>
+              </div>
+              <div class="intake-dropzone" id="dropzone-boq">
+                <span class="dropzone-hint">Drop BOQ (.xlsx/.csv)</span>
+                <button class="btn btn-default btn-xs btn-browse" onclick="document.getElementById('file-input-boq').click()">Browse</button>
+                <input id="file-input-boq" type="file" accept=".xlsx,.xls,.csv" style="display:none" />
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Federated Models Checkbox Panel in Initiation -->
+        <div class="panel">
+          <h4>Loaded 3D Models <span style="font-size:10px;font-weight:normal;text-transform:none">(Federated)</span></h4>
+          <div id="bim-init-models"><div class="empty-hint">Drop IFC models above to load</div></div>
+          <div class="model-actions-row">
+            <button id="btn-init-load-all" class="btn btn-default btn-xs" style="flex:1">Load Federated</button>
+            <button id="btn-init-clear" class="btn btn-default btn-xs">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= COORDINATION MODE LEFT PANEL ================= -->
+      <div id="bim-left-coordination" style="display:none">
+        <!-- Models Panel -->
+        <div class="panel">
+          <h4>Models <span style="font-size:10px;font-weight:normal;text-transform:none">(Federated)</span></h4>
+          <div id="bim-models"><div class="empty-hint">No models yet</div></div>
+          <div class="model-actions-row">
+            <button id="btn-load-selected" class="btn btn-default btn-xs" style="flex:1" title="Load selected models together">Load Federated</button>
+            <button id="btn-clear-models" class="btn btn-default btn-xs" title="Clear all loaded models">Clear</button>
+          </div>
+          <input id="bim-file-input" type="file" accept=".ifc,.IFC" style="display:none" />
+          <button id="bim-upload" class="btn btn-default btn-xs" style="width:100%;margin-top:6px">⬆ Upload IFC Model</button>
+        </div>
+
+        <!-- Discipline Layers Panel -->
+        <div class="panel" id="bim-disciplines-panel">
+          <h4>Discipline Layers</h4>
+          <div id="bim-disciplines-list">
+            <!-- Architecture Layer -->
+            <div class="discipline-layer-row" data-discipline="Architecture">
+              <div class="discipline-header">
+                <span class="discipline-badge-label"><span class="disc-dot ark"></span> Architecture</span>
+                <div class="discipline-controls-group">
+                  <button class="disc-btn btn-vis active" title="Toggle visibility">👁</button>
+                  <button class="disc-btn btn-ghost" title="Ghost (20% opacity)">👻 Ghost</button>
+                  <button class="disc-btn btn-solo" title="Solo discipline">Solo</button>
+                </div>
+              </div>
+              <div class="opacity-slider-row">
+                <span>Opacity:</span>
+                <input type="range" class="disc-opacity-slider" min="0" max="100" value="100" />
+                <span class="disc-opacity-val">100%</span>
+              </div>
+            </div>
+
+            <!-- Structural Layer -->
+            <div class="discipline-layer-row" data-discipline="Structural">
+              <div class="discipline-header">
+                <span class="discipline-badge-label"><span class="disc-dot struc"></span> Structural</span>
+                <div class="discipline-controls-group">
+                  <button class="disc-btn btn-vis active" title="Toggle visibility">👁</button>
+                  <button class="disc-btn btn-ghost" title="Ghost (20% opacity)">👻 Ghost</button>
+                  <button class="disc-btn btn-solo" title="Solo discipline">Solo</button>
+                </div>
+              </div>
+              <div class="opacity-slider-row">
+                <span>Opacity:</span>
+                <input type="range" class="disc-opacity-slider" min="0" max="100" value="100" />
+                <span class="disc-opacity-val">100%</span>
+              </div>
+            </div>
+
+            <!-- MEP / HVAC Layer -->
+            <div class="discipline-layer-row" data-discipline="MEP">
+              <div class="discipline-header">
+                <span class="discipline-badge-label"><span class="disc-dot mep"></span> MEP / HVAC</span>
+                <div class="discipline-controls-group">
+                  <button class="disc-btn btn-vis active" title="Toggle visibility">👁</button>
+                  <button class="disc-btn btn-ghost" title="Ghost (20% opacity)">👻 Ghost</button>
+                  <button class="disc-btn btn-solo" title="Solo discipline">Solo</button>
+                </div>
+              </div>
+              <div class="opacity-slider-row">
+                <span>Opacity:</span>
+                <input type="range" class="disc-opacity-slider" min="0" max="100" value="100" />
+                <span class="disc-opacity-val">100%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Model Spatial Hierarchy Tree Panel (OpenProject Parity) -->
+        <div class="panel" id="bim-tree-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <h4 style="margin:0">Model Tree</h4>
+            <button id="btn-tree-toggle-all" class="btn btn-default btn-xs" style="font-size:10px;padding:1px 6px">Show All</button>
+          </div>
+          <div id="bim-spatial-tree" style="max-height:180px;overflow-y:auto;font-size:11px;border:1px solid #334155;border-radius:4px;padding:4px;background:#0f172a">
+            <div class="empty-hint">Load models to view spatial hierarchy</div>
+          </div>
+        </div>
+
+        <!-- Filters Panel -->
+        <div class="panel" id="bim-filters">
+          <h4>Filters & View</h4>
+          <select id="f-discipline"><option value="">Discipline: all</option></select>
+          <select id="f-storey"><option value="">Storey: all</option></select>
+          <select id="f-type"><option value="">Type: all</option></select>
+          <div class="filter-row" style="display:flex;gap:4px;margin-bottom:6px">
+            <input id="f-search" placeholder="Search name / type / id" style="flex:1;font-size:12px;padding:4px" />
+            <button id="f-clear" class="btn btn-default btn-xs">Clear</button>
+          </div>
+          <div class="row-actions" style="margin-bottom:6px">
+            <button id="btn-fit" class="btn btn-default btn-xs" style="width:100%">Fit view</button>
+          </div>
+          <div style="margin-top:8px">
+            <button id="btn-open-bom-wizard" class="btn btn-primary btn-xs" style="width:100%">📦 BIM to BOM Wizard</button>
+          </div>
+        </div>
+
+        <!-- Viewpoints Panel -->
+        <div class="panel">
+          <h4>Viewpoints</h4>
+          <div id="bim-viewpoints"><div class="empty-hint">Save the camera to bookmark a view</div></div>
+          <div style="display:flex;gap:4px;margin-top:6px">
+            <input id="vp-name" placeholder="Viewpoint name" style="flex:1;font-size:12px;padding:4px" />
+            <button id="vp-save" class="btn btn-default btn-xs">Save</button>
+          </div>
+        </div>
+      </div>
+
     </div>
-    <div id="bim-tools">
-      <button id="t-wireframe" title="Toggle wireframe">▦</button>
-      <button id="t-iso" title="Isometric view">◧</button>
-      <button id="t-top" title="Top view">⊞</button>
-      <button id="t-front" title="Front view">▭</button>
+
+    <!-- Center Canvas Area: Multi-Format Viewport -->
+    <div id="bim-canvas-wrap">
+      <!-- Format Viewport Tabs (OpenProject Unified Viewer) -->
+      <div class="bim-viewport-tabs">
+        <button id="tab-vp-3d" class="bim-vp-tab active" data-vp="3d">
+          🏢 3D Federated BIM
+        </button>
+        <button id="tab-vp-cad" class="bim-vp-tab" data-vp="cad">
+          📐 2D CAD (DWG)
+        </button>
+        <button id="tab-vp-pdf" class="bim-vp-tab" data-vp="pdf">
+          📄 PDF Plan Sheets
+        </button>
+      </div>
+
+      <!-- 3D Viewport Controls & Canvas -->
+      <div id="viewport-container-3d" class="viewport-view active">
+        <div id="bim-hud">
+          <button id="tool-orbit" class="active">Orbit</button>
+          <button id="tool-select">Select</button>
+          <button id="tool-measure">Measure</button>
+          <button id="tool-clashes">Clashes</button>
+          <button id="tool-section" title="Toggle Section Cut Planes">✂ Section</button>
+          <button id="tool-create-issue" style="background:#ef4444;color:#fff;font-weight:600" title="Create BCF Topic / Issue from Current View">➕ Issue</button>
+        </div>
+        <div id="bim-tools">
+          <button id="t-wireframe" title="Toggle wireframe">▦</button>
+          <button id="t-iso" title="Isometric view">◧</button>
+          <button id="t-top" title="Top view">⊞</button>
+          <button id="t-front" title="Front view">▭</button>
+        </div>
+        <!-- Interactive Section Clipping Controls (OpenProject Parity) -->
+        <div id="bim-clipping-controls" style="display:none;position:absolute;top:54px;left:16px;z-index:20;background:rgba(15,23,42,0.9);backdrop-filter:blur(8px);border:1px solid #334155;border-radius:6px;padding:8px 12px;color:#f8fafc;font-size:11px;gap:12px;align-items:center">
+          <span style="font-weight:600;color:#94a3b8">✂ Section:</span>
+          <label style="display:flex;gap:4px;align-items:center;margin:0"><input id="clip-x-active" type="checkbox"> X: <input id="clip-x-val" type="range" min="-100" max="100" value="0" style="width:65px"></label>
+          <label style="display:flex;gap:4px;align-items:center;margin:0"><input id="clip-y-active" type="checkbox"> Y: <input id="clip-y-val" type="range" min="-100" max="100" value="0" style="width:65px"></label>
+          <label style="display:flex;gap:4px;align-items:center;margin:0"><input id="clip-z-active" type="checkbox"> Z: <input id="clip-z-val" type="range" min="-100" max="100" value="0" style="width:65px"></label>
+          <button id="btn-clip-reset" class="btn btn-default btn-xs" style="color:#000;padding:1px 6px">Reset</button>
+        </div>
+        <canvas id="bim-canvas"></canvas>
+      </div>
+
+      <!-- 2D CAD Viewport -->
+      <div id="viewport-container-cad" class="viewport-view" style="display:none">
+        <div class="cad-placeholder-container">
+          <div class="cad-viewport-header">
+            <span style="font-weight:600;font-size:12px">2D DWG / DXF Drawing Viewer</span>
+            <button id="btn-open-full-dwg" class="btn btn-default btn-xs">Open Dedicated DWG Studio</button>
+          </div>
+          <iframe id="iframe-dwg-viewer" src="/app/dwg_viewer" style="width:100%;height:100%;border:none"></iframe>
+        </div>
+      </div>
+
+      <!-- PDF Plan Sheets Viewport -->
+      <div id="viewport-container-pdf" class="viewport-view" style="display:none">
+        <div class="pdf-placeholder-container">
+          <div class="pdf-viewport-header">
+            <span style="font-weight:600;font-size:12px">2D PDF Sheet Takeoff & Calibration</span>
+            <button id="btn-open-full-pdf" class="btn btn-default btn-xs">Open Dedicated PDF Takeoff</button>
+          </div>
+          <iframe id="iframe-pdf-takeoff" src="/app/pdf-takeoff" style="width:100%;height:100%;border:none"></iframe>
+        </div>
+      </div>
+
+      <div id="bim-status">Load a model to begin</div>
+      <div id="bim-loading" style="display:none">Loading…</div>
     </div>
-    <canvas id="bim-canvas"></canvas>
-    <div id="bim-status">Load a model to begin</div>
-    <div id="bim-loading" style="display:none">Loading…</div>
+
+    <!-- Right Sidebar: Verification Cards (Initiation) vs BCF Issues (Coordination) -->
+    <div id="bim-right">
+
+      <!-- ================= INITIATION MODE RIGHT PANEL ================= -->
+      <div id="bim-right-initiation">
+        <div class="panel-header-custom">
+          <h4>Initiation Verification Cards <span class="viewer-cards-badge">Viewer & Cards</span></h4>
+        </div>
+        
+        <div id="initiation-cards-feed" class="cards-scroll-container">
+          
+          <!-- Card 1: Commercial Baseline Card -->
+          <div class="verification-card" id="card-commercial">
+            <div class="card-top-row">
+              <span class="card-id">#01 Commercial</span>
+              <span id="card-badge-commercial" class="bim-badge badge-pending">Pending</span>
+            </div>
+            <div class="card-title">Commercial Contract Baseline</div>
+            <div class="card-metrics-grid">
+              <div class="metric-box">
+                <span class="metric-label">Contract Amount</span>
+                <span id="metric-contract-amount" class="metric-val">PHP 0.00</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-label">Contracts</span>
+                <span id="metric-contract-count" class="metric-val">0 Files</span>
+              </div>
+            </div>
+            <div class="card-footer-action">
+              <span id="card-contract-note" class="card-note">Upload contract agreement to baseline scope</span>
+            </div>
+          </div>
+
+          <!-- Card 2: Quantity Baseline Card -->
+          <div class="verification-card" id="card-quantity">
+            <div class="card-top-row">
+              <span class="card-id">#02 Costing</span>
+              <span id="card-badge-quantity" class="bim-badge badge-pending">Pending</span>
+            </div>
+            <div class="card-title">BOQ & Direct Cost Estimate</div>
+            <div class="card-metrics-grid">
+              <div class="metric-box">
+                <span class="metric-label">Direct Cost</span>
+                <span id="metric-boq-cost" class="metric-val">PHP 0.00</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-label">Line Items</span>
+                <span id="metric-boq-lines" class="metric-val">0 Items</span>
+              </div>
+            </div>
+            <div class="card-footer-action">
+              <button id="btn-highlight-mapped" class="btn btn-default btn-xs" style="width:100%" title="Highlight costed elements in 3D scene">
+                🎯 Cross-Highlight 3D Quantities
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 3: Spatial Federation Card -->
+          <div class="verification-card" id="card-spatial">
+            <div class="card-top-row">
+              <span class="card-id">#03 BIM Models</span>
+              <span id="card-badge-spatial" class="bim-badge badge-pending">0 Loaded</span>
+            </div>
+            <div class="card-title">Multi-Discipline Federation</div>
+            <div class="card-metrics-grid">
+              <div class="metric-box">
+                <span class="metric-label">IFC Elements</span>
+                <span id="metric-elements-count" class="metric-val">0</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-label">Coordinate Alignment</span>
+                <span id="metric-align-status" class="metric-val">Checking...</span>
+              </div>
+            </div>
+            <div id="card-drift-alert" class="drift-alert-box" style="display:none">
+              ⚠️ Coordinate drift detected! Models do not share base point.
+              <button id="btn-fix-alignment" class="btn btn-primary btn-xs" style="margin-top:4px;width:100%">
+                ⚡ 1-Click Auto-Align Models
+              </button>
+            </div>
+            <div class="card-footer-action">
+              <button id="btn-fit-federation" class="btn btn-default btn-xs" style="width:100%">
+                🔍 Fit Federated Bounding Box
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 4: 2D Plan Coverage Card -->
+          <div class="verification-card" id="card-drawings">
+            <div class="card-top-row">
+              <span class="card-id">#04 2D Coverage</span>
+              <span id="card-badge-drawings" class="bim-badge badge-pending">0 Sheets</span>
+            </div>
+            <div class="card-title">CAD Plans & Permit Sets</div>
+            <div class="card-metrics-grid">
+              <div class="metric-box">
+                <span class="metric-label">DWG/DXF Files</span>
+                <span id="metric-cad-count" class="metric-val">0</span>
+              </div>
+              <div class="metric-box">
+                <span class="metric-label">Plan Status</span>
+                <span id="metric-cad-status" class="metric-val">Pending</span>
+              </div>
+            </div>
+            <div class="card-footer-action">
+              <button id="btn-view-cad-tab" class="btn btn-default btn-xs" style="width:100%">
+                📐 Switch to 2D CAD Viewport
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 5: Stage-Gate Sign-Off Card -->
+          <div class="verification-card gate-card" id="card-stagegate">
+            <div class="card-top-row">
+              <span class="card-id">#05 Kickoff Gate</span>
+              <span id="card-badge-gate" class="bim-badge badge-pending">4 Pending</span>
+            </div>
+            <div class="card-title" style="font-weight:700">Project Initiation Sign-Off</div>
+            
+            <div class="stage-gate-checklist">
+              <div class="gate-item" id="gate-item-contract">
+                <span class="gate-icon">○</span>
+                <span class="gate-text">Commercial Contract Baselined</span>
+              </div>
+              <div class="gate-item" id="gate-item-model">
+                <span class="gate-icon">○</span>
+                <span class="gate-text">BIM Model(s) Federated & Aligned</span>
+              </div>
+              <div class="gate-item" id="gate-item-boq">
+                <span class="gate-icon">○</span>
+                <span class="gate-text">BOQ Quantity Estimate Approved</span>
+              </div>
+              <div class="gate-item" id="gate-item-signoff">
+                <span class="gate-icon">○</span>
+                <span class="gate-text">Project Manager Gate Authorization</span>
+              </div>
+            </div>
+
+            <div class="card-footer-action" style="margin-top:10px">
+              <button id="btn-approve-initiation" class="btn btn-primary btn-xs" style="width:100%;padding:6px" disabled>
+                🏁 Approve & Kick Off Project
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ================= COORDINATION MODE RIGHT PANEL ================= -->
+      <div id="bim-right-coordination" style="display:none">
+        <div class="bim-tabs-header">
+          <button class="bim-tab-btn active" data-tab="tab-props">Selection</button>
+          <button class="bim-tab-btn" data-tab="tab-clashes" id="tab-btn-clashes">Clashes <span id="clash-badge-count" class="bim-badge" style="display:none;margin-left:2px">0</span></button>
+          <button class="bim-tab-btn" data-tab="tab-links">BOQ Links</button>
+        </div>
+
+        <!-- Tab 1: Selection & Properties -->
+        <div class="bim-tab-content active" id="tab-props">
+          <div id="bim-element-title" class="empty-hint">Click an element in the viewer</div>
+          <div id="bim-props"><div class="empty-hint">No selection</div></div>
+        </div>
+
+        <!-- Tab 2: In-Viewer Clash Detection & Issues -->
+        <div class="bim-tab-content" id="tab-clashes">
+          <!-- Clash List Main View -->
+          <div id="clash-list-container">
+            <div class="clash-run-bar">
+              <div style="font-weight:600;font-size:12px;color:#1e293b">BVH Clash Detection</div>
+              <div class="clash-run-row">
+                <select id="clash-disc-a" title="Discipline A">
+                  <option value="Structural">Discipline A: Structural</option>
+                  <option value="Architecture">Discipline A: Architecture</option>
+                  <option value="MEP">Discipline A: MEP</option>
+                </select>
+                <select id="clash-disc-b" title="Discipline B">
+                  <option value="MEP">Discipline B: MEP</option>
+                  <option value="Structural">Discipline B: Structural</option>
+                  <option value="Architecture">Discipline B: Architecture</option>
+                </select>
+              </div>
+              <div class="clash-run-row">
+                <input id="clash-tolerance" type="number" step="0.005" value="0.00" placeholder="Tolerance (m)" style="max-width:120px" />
+                <button id="btn-run-clashes" class="btn btn-primary btn-xs" style="flex:1">⚡ Run Clash Check</button>
+              </div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <h4 style="margin:0">Detected Clashes</h4>
+              <select id="clash-filter-severity" style="font-size:11px;padding:2px 4px">
+                <option value="">All Severities</option>
+                <option value="Critical">Critical</option>
+                <option value="Major">Major</option>
+                <option value="Minor">Minor</option>
+              </select>
+            </div>
+
+            <div id="clash-cards-list">
+              <div class="empty-hint">Run clash check to find intersections</div>
+            </div>
+          </div>
+
+          <!-- Clash Detail Sub-View -->
+          <div id="clash-detail-container" style="display:none">
+            <div class="clash-detail-header">
+              <button id="btn-clash-back" class="btn btn-default btn-xs">← Back to Clashes</button>
+              <span id="clash-detail-severity" class="bim-badge severity-major">Major</span>
+            </div>
+
+            <div id="clash-detail-title" style="font-weight:600;font-size:13px;margin-bottom:6px">Clash Details</div>
+            <div id="clash-detail-meta" style="font-size:11px;color:#64748b;margin-bottom:10px"></div>
+
+            <div style="display:flex;gap:4px;margin-bottom:12px">
+              <button id="btn-clash-fly" class="btn btn-primary btn-xs" style="flex:1">🎯 Fly to Clash</button>
+              <button id="btn-clash-snapshot" class="btn btn-default btn-xs" title="Capture canvas snapshot">📷 Snapshot</button>
+              <button id="btn-save-clash-erp" class="btn btn-default btn-xs" title="Save to ERPNext DocType">💾 Save in ERPNext</button>
+            </div>
+
+            <h4>Threaded Discussion</h4>
+            <div id="clash-comments-stream" class="clash-comments-stream">
+              <div class="empty-hint">No comments yet. Start the discussion below.</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+              <textarea id="clash-comment-input" placeholder="Add a comment or resolution note..." rows="2" style="width:100%;font-size:12px;padding:6px;border:1px solid #cbd5e1;border-radius:4px"></textarea>
+              <button id="btn-post-clash-comment" class="btn btn-primary btn-xs" style="align-self:flex-end">Post Comment</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: BOQ Links -->
+        <div class="bim-tab-content" id="tab-links">
+          <h4>ERPNext Item & BOQ Links</h4>
+          <div id="bim-links"><div class="empty-hint">No links for current element</div></div>
+          <div id="bim-newlink" style="margin-top:12px">
+            <select id="nl-type" style="width:100%;margin-bottom:4px"><option>Item</option><option>Construction Contract BOQ Item</option></select>
+            <div style="display:flex;gap:4px">
+              <input id="nl-name" placeholder="Item code / BOQ item name" style="flex:1;font-size:12px;padding:4px" />
+              <button id="nl-add" class="btn btn-default btn-xs">Link</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
+</div>
 
-  <!-- Right Sidebar: Tabs & Panels -->
-  <div id="bim-right">
-    <div class="bim-tabs-header">
-      <button class="bim-tab-btn active" data-tab="tab-props">Selection</button>
-      <button class="bim-tab-btn" data-tab="tab-clashes" id="tab-btn-clashes">Clashes <span id="clash-badge-count" class="bim-badge" style="display:none;margin-left:2px">0</span></button>
-      <button class="bim-tab-btn" data-tab="tab-links">BOQ Links</button>
+<!-- Smart BOQ Column Mapping Modal -->
+<div id="modal-boq-mapping" class="bim-custom-modal" style="display:none">
+  <div class="bim-modal-dialog" style="max-width:850px">
+    <div class="bim-modal-header">
+      <h3>📊 Smart BOQ Spreadsheet Column Mapping</h3>
+      <button id="btn-close-boq-modal" class="btn btn-default btn-xs">✕</button>
     </div>
-
-    <!-- Tab 1: Selection & Properties -->
-    <div class="bim-tab-content active" id="tab-props">
-      <div id="bim-element-title" class="empty-hint">Click an element in the viewer</div>
-      <div id="bim-props"><div class="empty-hint">No selection</div></div>
-    </div>
-
-    <!-- Tab 2: In-Viewer Clash Detection & Issues -->
-    <div class="bim-tab-content" id="tab-clashes">
-      <!-- Clash List Main View -->
-      <div id="clash-list-container">
-        <div class="clash-run-bar">
-          <div style="font-weight:600;font-size:12px;color:#1e293b">BVH Clash Detection</div>
-          <div class="clash-run-row">
-            <select id="clash-disc-a" title="Discipline A">
-              <option value="Structural">Discipline A: Structural</option>
-              <option value="Architecture">Discipline A: Architecture</option>
-              <option value="MEP">Discipline A: MEP</option>
-            </select>
-            <select id="clash-disc-b" title="Discipline B">
-              <option value="MEP">Discipline B: MEP</option>
-              <option value="Structural">Discipline B: Structural</option>
-              <option value="Architecture">Discipline B: Architecture</option>
-            </select>
-          </div>
-          <div class="clash-run-row">
-            <input id="clash-tolerance" type="number" step="0.005" value="0.00" placeholder="Tolerance (m)" style="max-width:120px" />
-            <button id="btn-run-clashes" class="btn btn-primary btn-xs" style="flex:1">⚡ Run Clash Check</button>
-          </div>
+    <div class="bim-modal-body">
+      <div style="font-size:12px;color:#64748b;margin-bottom:12px">
+        Verify the column assignments detected from your spreadsheet before generating the <strong>Construction Estimate</strong> and <strong>BIM BOQ Links</strong>.
+      </div>
+      
+      <div class="mapping-selectors-grid">
+        <div class="mapping-field-box">
+          <label>Item Code / Pay Item #</label>
+          <select id="map-col-item-code" class="form-control input-xs"></select>
         </div>
-
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <h4 style="margin:0">Detected Clashes</h4>
-          <select id="clash-filter-severity" style="font-size:11px;padding:2px 4px">
-            <option value="">All Severities</option>
-            <option value="Critical">Critical</option>
-            <option value="Major">Major</option>
-            <option value="Minor">Minor</option>
-          </select>
+        <div class="mapping-field-box">
+          <label>Description / Work Scope</label>
+          <select id="map-col-desc" class="form-control input-xs"></select>
         </div>
-
-        <div id="clash-cards-list">
-          <div class="empty-hint">Run clash check to find intersections</div>
+        <div class="mapping-field-box">
+          <label>Unit of Measure (UOM)</label>
+          <select id="map-col-unit" class="form-control input-xs"></select>
+        </div>
+        <div class="mapping-field-box">
+          <label>Takeoff Quantity</label>
+          <select id="map-col-qty" class="form-control input-xs"></select>
+        </div>
+        <div class="mapping-field-box">
+          <label>Unit Rate (PHP)</label>
+          <select id="map-col-rate" class="form-control input-xs"></select>
+        </div>
+        <div class="mapping-field-box">
+          <label>Total Amount (PHP)</label>
+          <select id="map-col-total" class="form-control input-xs"></select>
         </div>
       </div>
 
-      <!-- Clash Detail & Threaded Discussion Sub-View (Hidden by default) -->
-      <div id="clash-detail-container" style="display:none">
-        <div class="clash-detail-header">
-          <button id="btn-clash-back" class="btn btn-default btn-xs">← Back to Clashes</button>
-          <span id="clash-detail-severity" class="bim-badge severity-major">Major</span>
-        </div>
-
-        <div id="clash-detail-title" style="font-weight:600;font-size:13px;margin-bottom:6px">Clash Details</div>
-        <div id="clash-detail-meta" style="font-size:11px;color:#64748b;margin-bottom:10px"></div>
-
-        <div style="display:flex;gap:4px;margin-bottom:12px">
-          <button id="btn-clash-fly" class="btn btn-primary btn-xs" style="flex:1">🎯 Fly to Clash</button>
-          <button id="btn-clash-snapshot" class="btn btn-default btn-xs" title="Capture canvas snapshot">📷 Snapshot</button>
-          <button id="btn-save-clash-erp" class="btn btn-default btn-xs" title="Save to ERPNext DocType">💾 Save in ERPNext</button>
-        </div>
-
-        <h4>Threaded Discussion</h4>
-        <div id="clash-comments-stream" class="clash-comments-stream">
-          <div class="empty-hint">No comments yet. Start the discussion below.</div>
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
-          <textarea id="clash-comment-input" placeholder="Add a comment or resolution note..." rows="2" style="width:100%;font-size:12px;padding:6px;border:1px solid #cbd5e1;border-radius:4px"></textarea>
-          <button id="btn-post-clash-comment" class="btn btn-primary btn-xs" style="align-self:flex-end">Post Comment</button>
+      <div style="margin-top:14px">
+        <h4 style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:6px">Spreadsheet Preview (First 5 Rows)</h4>
+        <div style="max-height:180px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:4px">
+          <table class="table table-bordered table-condensed table-striped" id="table-boq-preview" style="font-size:11px;margin:0">
+            <thead id="thead-boq-preview"></thead>
+            <tbody id="tbody-boq-preview"></tbody>
+          </table>
         </div>
       </div>
     </div>
-
-    <!-- Tab 3: BOQ Links -->
-    <div class="bim-tab-content" id="tab-links">
-      <h4>ERPNext Item & BOQ Links</h4>
-      <div id="bim-links"><div class="empty-hint">No links for current element</div></div>
-      <div id="bim-newlink" style="margin-top:12px">
-        <select id="nl-type" style="width:100%;margin-bottom:4px"><option>Item</option><option>Construction Contract BOQ Item</option></select>
-        <div style="display:flex;gap:4px">
-          <input id="nl-name" placeholder="Item code / BOQ item name" style="flex:1;font-size:12px;padding:4px" />
-          <button id="nl-add" class="btn btn-default btn-xs">Link</button>
-        </div>
+    <div class="bim-modal-footer" style="display:flex;justify-content:space-between;align-items:center">
+      <div id="boq-preview-summary" style="font-size:12px;font-weight:600;color:#1e293b">Total Items: 0 | Total Sum: PHP 0.00</div>
+      <div style="display:flex;gap:6px">
+        <button id="btn-cancel-boq-mapping" class="btn btn-default btn-sm">Cancel</button>
+        <button id="btn-commit-boq-mapping" class="btn btn-primary btn-sm">Commit to Construction Estimate</button>
       </div>
     </div>
   </div>
@@ -270,6 +672,56 @@
         <button id="btn-cancel-bom-modal" class="btn btn-default">Cancel</button>
         <button id="btn-generate-erp-bom" class="btn btn-primary">🚀 Generate ERPNext BOM</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- In-Viewer Issue / BCF Creation Modal (OpenProject Parity) -->
+<div id="modal-create-issue" class="bim-custom-modal" style="display:none">
+  <div class="bim-modal-dialog" style="max-width:550px">
+    <div class="bim-modal-header">
+      <h3 style="margin:0;font-size:15px;color:#1e293b">➕ Create BCF Issue from 3D View</h3>
+      <button id="btn-close-issue-modal" class="btn btn-default btn-xs" style="border:none">✕</button>
+    </div>
+    <div class="bim-modal-body" style="padding:16px">
+      <div style="margin-bottom:10px">
+        <label style="font-size:11px;font-weight:600;display:block;margin-bottom:3px;color:#475569">Issue Title *</label>
+        <input id="issue-modal-title" placeholder="e.g., Pipe clashes with Concrete Girder G-14" style="width:100%;font-size:12px;padding:6px;border:1px solid #cbd5e1;border-radius:4px" />
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:10px">
+        <div style="flex:1">
+          <label style="font-size:11px;font-weight:600;display:block;margin-bottom:3px;color:#475569">Issue Type</label>
+          <select id="issue-modal-type" style="width:100%;font-size:12px;padding:5px;border:1px solid #cbd5e1;border-radius:4px">
+            <option value="Clash">Clash Collision</option>
+            <option value="Issue">Defect / Punchlist</option>
+            <option value="Request">Change Request / RFI</option>
+            <option value="Remark">Remark</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label style="font-size:11px;font-weight:600;display:block;margin-bottom:3px;color:#475569">Priority</label>
+          <select id="issue-modal-priority" style="width:100%;font-size:12px;padding:5px;border:1px solid #cbd5e1;border-radius:4px">
+            <option value="Critical">Critical</option>
+            <option value="High">High</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:10px">
+        <label style="font-size:11px;font-weight:600;display:block;margin-bottom:3px;color:#475569">Description / Rectification Notes</label>
+        <textarea id="issue-modal-desc" rows="3" placeholder="Describe the conflict, required trade remedy, or defect location..." style="width:100%;font-size:12px;padding:6px;border:1px solid #cbd5e1;border-radius:4px"></textarea>
+      </div>
+      <div style="margin-bottom:6px">
+        <label style="font-size:11px;font-weight:600;display:block;margin-bottom:3px;color:#475569">Captured 3D Viewpoint Snapshot</label>
+        <div style="border:1px solid #cbd5e1;border-radius:4px;padding:4px;text-align:center;background:#0f172a">
+          <img id="issue-snapshot-preview" style="max-height:140px;max-width:100%;border-radius:2px" alt="3D View Snapshot" />
+        </div>
+      </div>
+    </div>
+    <div class="bim-modal-footer" style="padding:10px 16px;background:#f8fafc;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:8px">
+      <button id="btn-cancel-create-issue" class="btn btn-default btn-xs">Cancel</button>
+      <button id="btn-confirm-create-issue" class="btn btn-primary btn-xs">Create BCF Issue</button>
     </div>
   </div>
 </div>

@@ -1,6 +1,7 @@
-﻿/* BIM Viewer Stylesheet — ERPNext construction_bim */
+/* BIM Viewer Stylesheet — ERPNext construction_bim */
 #bim-app {
   display: flex;
+  flex-direction: column;
   height: calc(100vh - 110px);
   min-height: 600px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -8,6 +9,14 @@
   background: var(--bg-color, #f8fafc);
   position: relative;
   overflow: hidden;
+}
+
+#bim-main-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
 }
 
 #bim-app * {
@@ -707,4 +716,885 @@
 .btn-xs {
   padding: 3px 8px;
   font-size: 11px;
+}
+
+/* ==========================================================================
+   DWG / CAD Viewer & BIMcollab Collaboration Styles
+   ========================================================================== */
+
+.cad-viewer-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px);
+  background: #212830;
+  color: #f1f5f9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+  position: relative;
+}
+
+.cad-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: #1a1d21;
+  border-bottom: 1px solid #2e343b;
+  flex-wrap: wrap;
+  gap: 12px;
+  z-index: 10;
+}
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  color: #38bdf8;
+}
+
+.brand-icon {
+  font-size: 18px;
+}
+
+.tool-selector .btn.active {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+.theme-selector-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.cad-main-workspace {
+  display: flex;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.cad-canvas-viewport {
+  flex: 1;
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+#cad-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: crosshair;
+}
+
+.cad-sidebar {
+  width: 320px;
+  background: #1a1d21;
+  border-left: 1px solid #2e343b;
+  display: flex;
+  flex-direction: column;
+  z-index: 5;
+}
+
+.sidebar-tabs {
+  display: flex;
+  border-bottom: 1px solid #2e343b;
+}
+
+.sidebar-tabs .tab-btn {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  color: #94a3b8;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar-tabs .tab-btn.active {
+  color: #38bdf8;
+  border-bottom-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.05);
+}
+
+.drawer-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.drawer-panel.hidden {
+  display: none;
+}
+
+.layer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: #212830;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.layer-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.color-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.layer-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #e2e8f0;
+}
+
+.btn-layer-vis {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.btn-layer-vis:hover {
+  opacity: 1;
+}
+
+.bcf-issue-card {
+  background: #212830;
+  border: 1px solid #2e343b;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bcf-issue-card:hover, .bcf-issue-card.selected {
+  border-color: #38bdf8;
+  background: #252e38;
+}
+
+.issue-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.pin-badge {
+  background: #0284c7;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 12px;
+}
+
+.pin-badge.large {
+  font-size: 14px;
+  padding: 4px 10px;
+  border-radius: 16px;
+}
+
+.issue-title {
+  flex: 1;
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #f8fafc;
+}
+
+.status-pill {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.status-pill.open {
+  background: rgba(2, 132, 199, 0.2);
+  color: #38bdf8;
+}
+
+.status-pill.critical {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.status-pill.resolved {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.issue-card-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.issue-detail-drawer {
+  position: absolute;
+  top: 0;
+  right: 320px;
+  width: 360px;
+  height: 100%;
+  background: #1e242c;
+  border-left: 1px solid #2e343b;
+  border-right: 1px solid #2e343b;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  z-index: 8;
+  overflow-y: auto;
+}
+
+.issue-detail-drawer.hidden {
+  display: none;
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #181d24;
+  border-bottom: 1px solid #2e343b;
+}
+
+.drawer-header .header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.drawer-body {
+  padding: 16px;
+}
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+
+.meta-grid label {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.issue-desc {
+  font-size: 13px;
+  color: #cbd5e1;
+  margin-bottom: 12px;
+}
+
+.issue-snapshot {
+  width: 100%;
+  border-radius: 4px;
+  margin-bottom: 14px;
+  border: 1px solid #334155;
+}
+
+.comments-list {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.comment-bubble {
+  background: #262e38;
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.comment-author {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.comment-input-box textarea {
+  width: 100%;
+  height: 60px;
+  background: #262e38;
+  color: #f8fafc;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 12px;
+  resize: vertical;
+}
+
+.reply-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.cad-statusbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 16px;
+  background: #181d24;
+  border-top: 1px solid #2e343b;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.cad-spaces-bar {
+  display: flex;
+  gap: 4px;
+}
+
+.cad-space-tab {
+  background: #262e38;
+  color: #94a3b8;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cad-space-tab.active {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.cad-measure-result {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.9);
+  color: #fbbf24;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid #fbbf24;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.cad-measure-result.hidden {
+  display: none;
+}
+
+.cad-toast {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  background: #1e293b;
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-size: 13px;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.cad-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cad-toast.success {
+  border-left: 4px solid #22c55e;
+}
+
+.cad-toast.error {
+  border-left: 4px solid #ef4444;
+}
+
+.cad-toast.info {
+  border-left: 4px solid #38bdf8;
+}
+
+/* ==========================================================================
+   Project Initiation Pipeline & OpenProject BIM Workspace Styles
+   ========================================================================== */
+
+/* Top Command & Mode Switcher Bar */
+#bim-topbar {
+  height: 48px;
+  background: #0f172a;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  color: #f8fafc;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.topbar-left, .topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.project-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.project-title {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Mode Switcher Pill */
+.bim-mode-switcher {
+  display: flex;
+  background: #1e293b;
+  padding: 3px;
+  border-radius: 20px;
+  border: 1px solid #334155;
+  gap: 2px;
+}
+
+.bim-mode-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.bim-mode-btn:hover {
+  color: #f8fafc;
+}
+
+.bim-mode-btn.active {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+}
+
+/* Left Sidebar: Intake Tree */
+#bim-left-initiation {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.intake-counter {
+  font-size: 11px;
+  font-weight: normal;
+  color: #64748b;
+  text-transform: none;
+}
+
+.intake-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.intake-node {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px;
+  transition: all 0.2s ease;
+}
+
+.intake-node:hover {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+}
+
+.intake-node.complete {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.intake-node-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.intake-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.intake-dropzone {
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+  padding: 10px;
+  text-align: center;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.intake-dropzone.dragover {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.dropzone-hint {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Viewport Format Tabs */
+.bim-viewport-tabs {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 10;
+}
+
+.bim-vp-tab {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.bim-vp-tab:hover {
+  color: #ffffff;
+}
+
+.bim-vp-tab.active {
+  background: #1e293b;
+  color: #38bdf8;
+  border: 1px solid #38bdf8;
+}
+
+.viewport-view {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.cad-placeholder-container, .pdf-placeholder-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #1e293b;
+}
+
+.cad-viewport-header, .pdf-viewport-header {
+  height: 36px;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  color: #cbd5e1;
+  border-bottom: 1px solid #334155;
+}
+
+/* Right Panel: Verification Cards (Viewer & Cards Mode) */
+#bim-right-initiation {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.viewer-cards-badge {
+  font-size: 10px;
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-transform: none;
+}
+
+.cards-scroll-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.verification-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.verification-card:hover {
+  border-color: #93c5fd;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.card-id {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.card-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: #f8fafc;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.metric-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.metric-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.drift-alert-box {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+
+.card-note {
+  font-size: 11px;
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Stage Gate Checklist */
+.gate-card {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.stage-gate-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.gate-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #475569;
+}
+
+.gate-item.passed {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.gate-item.passed .gate-icon {
+  color: #16a34a;
+}
+
+.gate-icon {
+  font-weight: bold;
+  font-size: 12px;
+}
+
+/* Status Badges */
+.badge-pending {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.badge-validated, .badge-complete {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badge-warning {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+/* Custom Modals (BOQ Mapping) */
+.bim-custom-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bim-modal-dialog {
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  width: 90%;
+  overflow: hidden;
+  animation: modalScaleIn 0.2s ease-out;
+}
+
+@keyframes modalScaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.bim-modal-header {
+  padding: 12px 18px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bim-modal-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.bim-modal-body {
+  padding: 18px;
+}
+
+.bim-modal-footer {
+  padding: 12px 18px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.mapping-selectors-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.mapping-field-box label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  display: block;
+  margin-bottom: 4px;
 }

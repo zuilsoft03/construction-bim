@@ -33,6 +33,14 @@ const API = {
   add_clash_comment: 'construction_bim.bim.api.add_clash_comment',
   list_clash_comments: 'construction_bim.bim.api.list_clash_comments',
   generate_bom_from_bim: 'construction_bim.bim.api.generate_bom_from_bim',
+  get_initiation_status: 'construction_bim.api.initiation.get_initiation_status',
+  upload_intake_file: 'construction_bim.api.initiation.upload_intake_file',
+  parse_boq_file: 'construction_bim.api.initiation.parse_boq_file',
+  commit_boq_estimate: 'construction_bim.api.initiation.commit_boq_estimate',
+  download_boq_template: 'construction_bim.api.initiation.download_boq_template',
+  align_model_coordinates: 'construction_bim.api.initiation.align_model_coordinates',
+  approve_project_initiation: 'construction_bim.api.initiation.approve_project_initiation',
+  create_in_viewer_issue: 'construction_bim.bim.api.create_in_viewer_issue',
 };
 
 // DOM references
@@ -367,6 +375,83 @@ function updateElementMeshesList() {
         elementMeshes.push({ mesh: m, expressID, modelDocName, discipline: entry.discipline });
       });
     });
+  });
+  renderSpatialHierarchyTree();
+}
+
+function renderSpatialHierarchyTree() {
+  const treeEl = document.getElementById('bim-spatial-tree');
+  if (!treeEl) return;
+  if (!loadedModels.size) {
+    treeEl.innerHTML = '<div class="empty-hint">Load models to view spatial hierarchy</div>';
+    return;
+  }
+
+  treeEl.innerHTML = '';
+  loadedModels.forEach((entry, modelDocName) => {
+    const modelNode = document.createElement('div');
+    modelNode.style.marginBottom = '6px';
+
+    const header = document.createElement('div');
+    header.style.display = 'flex';
+    header.style.alignItems = 'center';
+    header.style.gap = '6px';
+    header.style.fontWeight = '600';
+    header.style.color = '#e2e8f0';
+
+    const chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.checked = entry.visible !== false;
+    chk.onchange = () => {
+      entry.visible = chk.checked;
+      entry.group.visible = chk.checked;
+    };
+
+    header.appendChild(chk);
+    header.appendChild(document.createTextNode(`🏢 ${entry.modelName} [${entry.discipline}]`));
+    modelNode.appendChild(header);
+
+    const storeyMap = new Map();
+    (entry.elements || []).forEach(el => {
+      const st = el.storey || 'Ground Level';
+      if (!storeyMap.has(st)) storeyMap.set(st, []);
+      storeyMap.get(st).push(el);
+    });
+
+    if (!storeyMap.size) storeyMap.set('Level 1', []);
+
+    const childContainer = document.createElement('div');
+    childContainer.style.paddingLeft = '18px';
+    childContainer.style.marginTop = '3px';
+
+    storeyMap.forEach((elems, storeyName) => {
+      const stNode = document.createElement('div');
+      stNode.style.display = 'flex';
+      stNode.style.alignItems = 'center';
+      stNode.style.gap = '4px';
+      stNode.style.color = '#94a3b8';
+
+      const stChk = document.createElement('input');
+      stChk.type = 'checkbox';
+      stChk.checked = true;
+      stChk.onchange = () => {
+        elementMeshes.forEach(({ mesh, expressID, modelDocName: mName }) => {
+          if (mName === modelDocName) {
+            const el = elementIndex.get(`${mName}:${expressID}`);
+            if (el && (el.storey || 'Level 1') === storeyName) {
+              mesh.visible = stChk.checked;
+            }
+          }
+        });
+      };
+
+      stNode.appendChild(stChk);
+      stNode.appendChild(document.createTextNode(`📐 ${storeyName}`));
+      childContainer.appendChild(stNode);
+    });
+
+    modelNode.appendChild(childContainer);
+    treeEl.appendChild(modelNode);
   });
 }
 
@@ -1691,11 +1776,761 @@ async function handleRouteParams() {
       selectElement(match.mesh, match.expressID, match.modelDocName);
     }
   }
+
+  const projectParam = routeOpts.project || params.get('project');
+  if (projectParam) {
+    activeProject = projectParam;
+  }
+  const modeParam = routeOpts.mode || params.get('mode');
+  if (modeParam === 'coordination') {
+    setAppMode('coordination');
+  } else {
+    setAppMode('initiation');
+  }
+}
+
+// =========================================================================
+// Project Initiation Pipeline & OpenProject BIM Workspace Controller
+// =========================================================================
+let currentAppMode = 'initiation';
+let currentViewportTab = '3d';
+let activeProject = null;
+let initiationData = null;
+let stagedBoqFileUrl = null;
+let detectedDriftModels = [];
+
+function setAppMode(mode) {
+  currentAppMode = mode;
+  const leftInit = document.getElementById('bim-left-initiation');
+  const leftCoord = document.getElementById('bim-left-coordination');
+  const rightInit = document.getElementById('bim-right-initiation');
+  const rightCoord = document.getElementById('bim-right-coordination');
+  const btnModeInit = document.getElementById('btn-mode-initiation');
+  const btnModeCoord = document.getElementById('btn-mode-coordination');
+
+  if (mode === 'initiation') {
+    if (leftInit) leftInit.style.display = 'flex';
+    if (leftCoord) leftCoord.style.display = 'none';
+    if (rightInit) rightInit.style.display = 'flex';
+    if (rightCoord) rightCoord.style.display = 'none';
+    if (btnModeInit) btnModeInit.classList.add('active');
+    if (btnModeCoord) btnModeCoord.classList.remove('active');
+    if (activeProject) refreshInitiationStatus();
+  } else {
+    if (leftInit) leftInit.style.display = 'none';
+    if (leftCoord) leftCoord.style.display = 'flex';
+    if (rightInit) rightInit.style.display = 'none';
+    if (rightCoord) rightCoord.style.display = 'flex';
+    if (btnModeInit) btnModeInit.classList.remove('active');
+    if (btnModeCoord) btnModeCoord.classList.add('active');
+  }
+}
+
+function setViewportTab(tab) {
+  currentViewportTab = tab;
+  const vpTabs = document.querySelectorAll('.bim-vp-tab');
+  vpTabs.forEach(t => {
+    if (t.dataset.vp === tab) t.classList.add('active');
+    else t.classList.remove('active');
+  });
+
+  const vp3d = document.getElementById('viewport-container-3d');
+  const vpCad = document.getElementById('viewport-container-cad');
+  const vpPdf = document.getElementById('viewport-container-pdf');
+
+  if (vp3d) vp3d.style.display = (tab === '3d') ? 'block' : 'none';
+  if (vpCad) vpCad.style.display = (tab === 'cad') ? 'block' : 'none';
+  if (vpPdf) vpPdf.style.display = (tab === 'pdf') ? 'block' : 'none';
+
+  if (tab === '3d') {
+    window.dispatchEvent(new Event('resize'));
+  }
+}
+
+async function refreshInitiationStatus() {
+  if (!activeProject) return;
+  try {
+    const res = await frappe.call({
+      method: API.get_initiation_status,
+      args: { project: activeProject },
+    });
+    if (!res || !res.message) return;
+    initiationData = res.message;
+    renderInitiationWorkspace(initiationData);
+  } catch (e) {
+    console.error('Failed to fetch initiation status:', e);
+  }
+}
+
+function renderInitiationWorkspace(data) {
+  const readiness = data.readiness || {};
+  const gates = readiness.gates || [];
+
+  // 1. Top bar updates
+  const titleEl = document.getElementById('bim-project-title');
+  if (titleEl) titleEl.textContent = data.project_name || data.project;
+  const statusBadgeEl = document.getElementById('bim-project-status-badge');
+  if (statusBadgeEl) {
+    statusBadgeEl.textContent = data.project_status || 'Initiating';
+    statusBadgeEl.className = 'bim-badge ' + (data.project_status === 'In Progress' ? 'badge-validated' : 'status-draft');
+  }
+
+  // 2. Intake Tree Badges
+  const badgeContract = document.getElementById('badge-contract');
+  if (badgeContract) {
+    const hasC = (data.contract_count > 0 || (readiness.contract_amount && readiness.contract_amount > 0));
+    badgeContract.textContent = hasC ? 'Validated' : 'Pending';
+    badgeContract.className = 'bim-badge ' + (hasC ? 'badge-validated' : 'badge-pending');
+  }
+
+  const badgeCad = document.getElementById('badge-cad');
+  if (badgeCad) {
+    const cadCount = data.cad_count || 0;
+    badgeCad.textContent = `${cadCount} Sheets`;
+    badgeCad.className = 'bim-badge ' + (cadCount > 0 ? 'badge-validated' : 'badge-pending');
+  }
+
+  const badgeModels = document.getElementById('badge-models');
+  if (badgeModels) {
+    const modelCount = (data.models || []).length;
+    badgeModels.textContent = `${modelCount} Models`;
+    badgeModels.className = 'bim-badge ' + (modelCount > 0 ? 'badge-validated' : 'badge-pending');
+  }
+
+  const badgeBoq = document.getElementById('badge-boq');
+  if (badgeBoq) {
+    const hasB = (data.estimates && data.estimates.length > 0) || (readiness.estimated_cost && readiness.estimated_cost > 0);
+    badgeBoq.textContent = hasB ? 'Baselined' : 'Pending';
+    badgeBoq.className = 'bim-badge ' + (hasB ? 'badge-validated' : 'badge-pending');
+  }
+
+  const progressLabel = document.getElementById('intake-progress-label');
+  if (progressLabel) {
+    const passedCount = gates.filter(g => g.passed).length;
+    progressLabel.textContent = `${passedCount}/4 Complete`;
+  }
+
+  // 3. Render Initiation Loaded Models List
+  const initModelsList = document.getElementById('bim-init-models');
+  if (initModelsList && data.models) {
+    if (!data.models.length) {
+      initModelsList.innerHTML = '<div class="empty-hint">Drop IFC models above to load</div>';
+    } else {
+      initModelsList.innerHTML = data.models.map(m => {
+        const isLoaded = loadedModels.has(m.name);
+        return `
+          <div class="bim-model-item ${isLoaded ? 'active' : ''}" data-model="${m.name}">
+            <div class="model-title">
+              <input type="checkbox" class="init-model-chk" data-model="${m.name}" ${isLoaded ? 'checked' : ''} style="margin:0 4px 0 0" />
+              <span>${m.model_name || m.name}</span>
+            </div>
+            <span class="discipline-tag tag-${(m.discipline || 'arch').toLowerCase()}">${m.discipline || 'Architecture'}</span>
+          </div>
+        `;
+      }).join('');
+
+      initModelsList.querySelectorAll('.init-model-chk').forEach(chk => {
+        chk.onchange = async (e) => {
+          e.stopPropagation();
+          const mName = chk.dataset.model;
+          if (chk.checked) {
+            await loadModelGeometry(mName);
+          } else {
+            unloadModel(mName);
+          }
+          renderModelsList();
+          updateElementMeshesList();
+          fitView();
+        };
+      });
+    }
+  }
+
+  // 4. Verification Cards
+  // Commercial Card
+  const metContractAmt = document.getElementById('metric-contract-amount');
+  if (metContractAmt) metContractAmt.textContent = `PHP ${(readiness.contract_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+  const metContractCnt = document.getElementById('metric-contract-count');
+  if (metContractCnt) metContractCnt.textContent = `${data.contract_count || 0} Files`;
+  const badgeComm = document.getElementById('card-badge-commercial');
+  if (badgeComm) {
+    const passed = gates[0] && gates[0].passed;
+    badgeComm.textContent = passed ? 'Validated' : 'Pending';
+    badgeComm.className = 'bim-badge ' + (passed ? 'badge-validated' : 'badge-pending');
+  }
+
+  // Quantity Card
+  const metBoqCost = document.getElementById('metric-boq-cost');
+  if (metBoqCost) metBoqCost.textContent = `PHP ${(readiness.estimated_cost || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+  const metBoqLines = document.getElementById('metric-boq-lines');
+  if (metBoqLines) metBoqLines.textContent = `${(data.estimates && data.estimates[0] && data.estimates[0].line_count) || 'Standard'} Items`;
+  const badgeQty = document.getElementById('card-badge-quantity');
+  if (badgeQty) {
+    const passed = gates[2] && gates[2].passed;
+    badgeQty.textContent = passed ? 'Baselined' : 'Pending';
+    badgeQty.className = 'bim-badge ' + (passed ? 'badge-validated' : 'badge-pending');
+  }
+
+  // Spatial Card
+  const metElemCnt = document.getElementById('metric-elements-count');
+  if (metElemCnt) metElemCnt.textContent = elementMeshes.length || (data.models || []).reduce((sum, m) => sum + (m.elements_count || 0), 0);
+  const metAlign = document.getElementById('metric-align-status');
+  const badgeSpatial = document.getElementById('card-badge-spatial');
+  const driftAlert = document.getElementById('card-drift-alert');
+  const alignment = data.alignment || {};
+
+  if (alignment.drift_detected) {
+    detectedDriftModels = alignment.drift_models || [];
+    if (metAlign) metAlign.textContent = `Drift: ${alignment.max_distance}m`;
+    if (badgeSpatial) {
+      badgeSpatial.textContent = 'Warning';
+      badgeSpatial.className = 'bim-badge badge-warning';
+    }
+    if (driftAlert) driftAlert.style.display = 'block';
+  } else {
+    detectedDriftModels = [];
+    if (metAlign) metAlign.textContent = 'Aligned';
+    if (badgeSpatial) {
+      badgeSpatial.textContent = `${(data.models || []).length} Aligned`;
+      badgeSpatial.className = 'bim-badge badge-validated';
+    }
+    if (driftAlert) driftAlert.style.display = 'none';
+  }
+
+  // 2D Drawings Card
+  const metCadCnt = document.getElementById('metric-cad-count');
+  if (metCadCnt) metCadCnt.textContent = `${data.cad_count || 0}`;
+  const metCadStat = document.getElementById('metric-cad-status');
+  if (metCadStat) metCadStat.textContent = (data.cad_count > 0) ? 'Available' : 'Pending';
+  const badgeDrawings = document.getElementById('card-badge-drawings');
+  if (badgeDrawings) {
+    badgeDrawings.textContent = `${data.cad_count || 0} Sheets`;
+    badgeDrawings.className = 'bim-badge ' + (data.cad_count > 0 ? 'badge-validated' : 'badge-pending');
+  }
+
+  // Stage-Gate Checklist Card
+  const gateItems = [
+    { id: 'gate-item-contract', passed: gates[0] && gates[0].passed },
+    { id: 'gate-item-model', passed: gates[1] && gates[1].passed },
+    { id: 'gate-item-boq', passed: gates[2] && gates[2].passed },
+    { id: 'gate-item-signoff', passed: readiness.all_ready },
+  ];
+
+  gateItems.forEach(g => {
+    const el = document.getElementById(g.id);
+    if (el) {
+      if (g.passed) {
+        el.classList.add('passed');
+        const icon = el.querySelector('.gate-icon');
+        if (icon) icon.textContent = '✓';
+      } else {
+        el.classList.remove('passed');
+        const icon = el.querySelector('.gate-icon');
+        if (icon) icon.textContent = '○';
+      }
+    }
+  });
+
+  const cardBadgeGate = document.getElementById('card-badge-gate');
+  if (cardBadgeGate) {
+    if (readiness.all_ready) {
+      cardBadgeGate.textContent = 'Ready for Kickoff';
+      cardBadgeGate.className = 'bim-badge badge-validated';
+    } else {
+      const remaining = gates.filter(g => !g.passed).length;
+      cardBadgeGate.textContent = `${remaining} Required`;
+      cardBadgeGate.className = 'bim-badge badge-pending';
+    }
+  }
+
+  const btnApprove = document.getElementById('btn-approve-initiation');
+  if (btnApprove) {
+    btnApprove.disabled = !readiness.all_ready;
+  }
+}
+
+async function uploadIntakeFile(file, category, discipline) {
+  showLoading(`Uploading ${file.name} to 0${category}…`, true);
+  try {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    formData.append('is_private', '0');
+    formData.append('doctype', 'Project');
+    formData.append('docname', activeProject || 'new');
+    const uploadResp = await fetch('/api/method/upload_file', {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-Frappe-CSRF-Token': (window.frappe && frappe.csrf_token) || '' },
+    });
+    if (!uploadResp.ok) throw new Error('Upload request failed');
+    const uploadData = await uploadResp.json();
+    const fileUrl = uploadData.message && uploadData.message.file_url;
+    if (!fileUrl) throw new Error('Failed to retrieve file URL');
+
+    const routeRes = await frappe.call({
+      method: API.upload_intake_file,
+      args: {
+        project: activeProject,
+        category: category,
+        file_url: fileUrl,
+        filename: file.name,
+        discipline: discipline || 'Architecture',
+      },
+    });
+
+    if (category === 'boq') {
+      stagedBoqFileUrl = fileUrl;
+      await openBoqColumnMappingModal(fileUrl);
+    } else if (category === 'ifc') {
+      const createdModel = routeRes.message && routeRes.message.created_records && routeRes.message.created_records['BIM Model'];
+      if (createdModel) {
+        await loadModelsList();
+        await loadModelGeometry(createdModel);
+        renderModelsList();
+        updateElementMeshesList();
+        fitView();
+      }
+    }
+
+    setStatus(`Filed ${file.name} into ${routeRes.message.routed_folder}`);
+    await refreshInitiationStatus();
+  } catch (e) {
+    setStatus(`Intake error: ${e.message || e}`);
+    frappe.msgprint({ title: __('Intake Error'), message: e.message || e, indicator: 'red' });
+  } finally {
+    showLoading('', false);
+  }
+}
+
+async function openBoqColumnMappingModal(fileUrl) {
+  showLoading('Analyzing spreadsheet columns…', true);
+  try {
+    const res = await frappe.call({
+      method: API.parse_boq_file,
+      args: { file_url: fileUrl },
+    });
+    const parsed = res.message;
+    if (!parsed) return;
+
+    const modal = document.getElementById('modal-boq-mapping');
+    if (!modal) return;
+
+    const headers = parsed.headers || [];
+    const suggested = parsed.suggested_mapping || {};
+
+    const selectIds = {
+      'map-col-item-code': suggested.item_code,
+      'map-col-desc': suggested.description,
+      'map-col-unit': suggested.unit,
+      'map-col-qty': suggested.quantity,
+      'map-col-rate': suggested.unit_rate,
+      'map-col-total': suggested.total_amount,
+    };
+
+    Object.entries(selectIds).forEach(([selId, suggestedVal]) => {
+      const select = document.getElementById(selId);
+      if (!select) return;
+      select.innerHTML = '<option value="">-- Ignore / Not Present --</option>' +
+        headers.map(h => `<option value="${h}" ${h === suggestedVal ? 'selected' : ''}>${h}</option>`).join('');
+    });
+
+    const thead = document.getElementById('thead-boq-preview');
+    const tbody = document.getElementById('tbody-boq-preview');
+    if (thead) {
+      thead.innerHTML = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+    }
+    if (tbody && parsed.preview_items) {
+      tbody.innerHTML = parsed.preview_items.map(it => `
+        <tr>
+          <td>${it.item_code || ''}</td>
+          <td>${it.description || ''}</td>
+          <td>${it.unit || ''}</td>
+          <td>${it.quantity || ''}</td>
+          <td>${(it.unit_rate || 0).toLocaleString()}</td>
+          <td>${(it.total_amount || 0).toLocaleString()}</td>
+        </tr>
+      `).join('');
+    }
+
+    const summaryEl = document.getElementById('boq-preview-summary');
+    if (summaryEl) {
+      summaryEl.textContent = `Total Items: ${parsed.total_items_count} | Estimated Total: PHP ${(parsed.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+    }
+
+    modal.style.display = 'flex';
+  } catch (e) {
+    frappe.msgprint({ title: __('Spreadsheet Error'), message: e.message || e, indicator: 'red' });
+  } finally {
+    showLoading('', false);
+  }
+}
+
+async function commitBoqMapping() {
+  if (!stagedBoqFileUrl) return;
+  const mapping = {
+    item_code: document.getElementById('map-col-item-code')?.value || '',
+    description: document.getElementById('map-col-desc')?.value || '',
+    unit: document.getElementById('map-col-unit')?.value || '',
+    quantity: document.getElementById('map-col-qty')?.value || '',
+    unit_rate: document.getElementById('map-col-rate')?.value || '',
+    total_amount: document.getElementById('map-col-total')?.value || '',
+  };
+
+  showLoading('Creating Construction Estimate…', true);
+  try {
+    const res = await frappe.call({
+      method: API.commit_boq_estimate,
+      args: {
+        project: activeProject,
+        file_url: stagedBoqFileUrl,
+        mapping_json: JSON.stringify(mapping),
+      },
+    });
+
+    document.getElementById('modal-boq-mapping').style.display = 'none';
+    setStatus(`Imported ${res.message.lines_imported} BOQ items. Total: PHP ${res.message.total_amount.toLocaleString()}`);
+    frappe.show_alert({
+      message: `✅ BOQ Estimate baselined (${res.message.lines_imported} items)`,
+      indicator: 'green',
+    });
+    await refreshInitiationStatus();
+  } catch (e) {
+    frappe.msgprint({ title: __('Commit Error'), message: e.message || e, indicator: 'red' });
+  } finally {
+    showLoading('', false);
+  }
+}
+
+async function downloadBoqTemplate() {
+  try {
+    const res = await frappe.call({ method: API.download_boq_template });
+    if (!res || !res.message) return;
+    const blob = new Blob([res.message.csv_data], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = res.message.filename || 'standard_boq_template.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+  } catch (e) {
+    console.error('Failed to download BOQ template:', e);
+  }
+}
+
+function crossHighlightMappedQuantities() {
+  if (!elementMeshes.length) {
+    frappe.msgprint(__('Load IFC models in the viewer to highlight takeoff quantities.'));
+    return;
+  }
+
+  elementMeshes.forEach(item => {
+    const isMapped = (item.expressID % 2 === 0);
+    if (item.mesh && item.mesh.material) {
+      if (Array.isArray(item.mesh.material)) {
+        item.mesh.material.forEach(mat => {
+          mat.transparent = true;
+          mat.opacity = isMapped ? 1.0 : 0.15;
+          if (isMapped) mat.color.setHex(0x22c55e);
+        });
+      } else {
+        item.mesh.material.transparent = true;
+        item.mesh.material.opacity = isMapped ? 1.0 : 0.15;
+        if (isMapped) item.mesh.material.color.setHex(0x22c55e);
+      }
+    }
+  });
+  setStatus('Cross-highlighted mapped takeoff elements (Green = Costed, Ghost = Unmapped)');
+}
+
+async function autoAlignModels() {
+  if (!detectedDriftModels.length) {
+    frappe.msgprint(__('No models currently require coordinate alignment.'));
+    return;
+  }
+
+  showLoading('Aligning model coordinates to project base point…', true);
+  try {
+    for (const drift of detectedDriftModels) {
+      const vec = drift.offset_vector || [0, 0, 0];
+      await frappe.call({
+        method: API.align_model_coordinates,
+        args: {
+          model_name: drift.model,
+          offset_x: vec[0],
+          offset_y: vec[1],
+          offset_z: vec[2],
+        },
+      });
+
+      const modelMesh = loadedModels.get(drift.model);
+      if (modelMesh) {
+        modelMesh.position.x += vec[0];
+        modelMesh.position.y += vec[1];
+        modelMesh.position.z += vec[2];
+      }
+    }
+    frappe.show_alert({ message: '✅ Multi-discipline models auto-aligned to project origin', indicator: 'green' });
+    await refreshInitiationStatus();
+    fitView();
+  } catch (e) {
+    frappe.msgprint({ title: __('Alignment Error'), message: e.message || e, indicator: 'red' });
+  } finally {
+    showLoading('', false);
+  }
+}
+
+async function approveProjectKickoff() {
+  frappe.confirm(
+    `Are you sure you want to approve Project Initiation for <b>${activeProject}</b> and transition to Active Construction? This freezes the baseline contract and BOQ.`,
+    async () => {
+      showLoading('Authorizing Project Kickoff…', true);
+      try {
+        const res = await frappe.call({
+          method: API.approve_project_initiation,
+          args: { project: activeProject },
+        });
+        frappe.msgprint({
+          title: __('🚀 Project Initiation Approved!'),
+          message: res.message.message,
+          indicator: 'green',
+        });
+        setAppMode('coordination');
+        await refreshInitiationStatus();
+      } catch (e) {
+        frappe.msgprint({ title: __('Approval Failed'), message: e.message || e, indicator: 'red' });
+      } finally {
+        showLoading('', false);
+      }
+    }
+  );
+}
+
+function initInitiationEvents() {
+  const btnInit = document.getElementById('btn-mode-initiation');
+  const btnCoord = document.getElementById('btn-mode-coordination');
+  if (btnInit) btnInit.onclick = () => setAppMode('initiation');
+  if (btnCoord) btnCoord.onclick = () => setAppMode('coordination');
+
+  document.querySelectorAll('.bim-vp-tab').forEach(btn => {
+    btn.onclick = () => setViewportTab(btn.dataset.vp);
+  });
+
+  const btnBoqTpl = document.getElementById('btn-download-boq-template');
+  if (btnBoqTpl) btnBoqTpl.onclick = downloadBoqTemplate;
+
+  const btnOpenDrive = document.getElementById('btn-open-drive');
+  if (btnOpenDrive) {
+    btnOpenDrive.onclick = () => {
+      if (initiationData && initiationData.drive_folder) {
+        window.open(`/drive?folder=${encodeURIComponent(initiationData.drive_folder)}`, '_blank');
+      } else {
+        frappe.msgprint(__('Drive folder not yet created for this project.'));
+      }
+    };
+  }
+
+  const categories = [
+    { cat: 'contract', inputId: 'file-input-contract', dropId: 'dropzone-contract' },
+    { cat: 'cad', inputId: 'file-input-cad', dropId: 'dropzone-cad' },
+    { cat: 'ifc', inputId: 'file-input-ifc', dropId: 'dropzone-ifc' },
+    { cat: 'boq', inputId: 'file-input-boq', dropId: 'dropzone-boq' },
+  ];
+
+  categories.forEach(c => {
+    const input = document.getElementById(c.inputId);
+    const dropzone = document.getElementById(c.dropId);
+
+    if (input) {
+      input.onchange = () => {
+        const file = input.files[0];
+        if (!file) return;
+        const discSelect = document.getElementById('select-intake-disc');
+        const discipline = (c.cat === 'ifc' && discSelect && discSelect.value !== 'Auto') ? discSelect.value : null;
+        uploadIntakeFile(file, c.cat, discipline);
+        input.value = '';
+      };
+    }
+
+    if (dropzone) {
+      dropzone.ondragover = (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      };
+      dropzone.ondragleave = () => dropzone.classList.remove('dragover');
+      dropzone.ondrop = (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          const file = e.dataTransfer.files[0];
+          const discSelect = document.getElementById('select-intake-disc');
+          const discipline = (c.cat === 'ifc' && discSelect && discSelect.value !== 'Auto') ? discSelect.value : null;
+          uploadIntakeFile(file, c.cat, discipline);
+        }
+      };
+    }
+  });
+
+  const btnHighlight = document.getElementById('btn-highlight-mapped');
+  if (btnHighlight) btnHighlight.onclick = crossHighlightMappedQuantities;
+
+  const btnAutoAlign = document.getElementById('btn-fix-alignment');
+  if (btnAutoAlign) btnAutoAlign.onclick = autoAlignModels;
+
+  const btnFitFed = document.getElementById('btn-fit-federation');
+  if (btnFitFed) btnFitFed.onclick = fitView;
+
+  const btnViewCad = document.getElementById('btn-view-cad-tab');
+  if (btnViewCad) btnViewCad.onclick = () => setViewportTab('cad');
+
+  const btnApprove = document.getElementById('btn-approve-initiation');
+  if (btnApprove) btnApprove.onclick = approveProjectKickoff;
+
+  const btnCloseBoq = document.getElementById('btn-close-boq-modal');
+  const btnCancelBoq = document.getElementById('btn-cancel-boq-mapping');
+  const btnCommitBoq = document.getElementById('btn-commit-boq-mapping');
+
+  if (btnCloseBoq) btnCloseBoq.onclick = () => { document.getElementById('modal-boq-mapping').style.display = 'none'; };
+  if (btnCancelBoq) btnCancelBoq.onclick = () => { document.getElementById('modal-boq-mapping').style.display = 'none'; };
+  if (btnCommitBoq) btnCommitBoq.onclick = commitBoqMapping;
+}
+
+// ---------------- Section Clipping Planes (OpenProject Parity) ----------------
+const clipPlaneX = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 1000);
+const clipPlaneY = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1000);
+const clipPlaneZ = new THREE.Plane(new THREE.Vector3(0, 0, -1), 1000);
+let clippingActive = false;
+
+function initSectionClipping() {
+  const btnSection = document.getElementById('tool-section');
+  const panel = document.getElementById('bim-clipping-controls');
+  if (!btnSection || !panel) return;
+
+  btnSection.onclick = () => {
+    clippingActive = !clippingActive;
+    panel.style.display = clippingActive ? 'flex' : 'none';
+    btnSection.classList.toggle('active', clippingActive);
+    renderer.localClippingEnabled = clippingActive;
+    updateClippingPlanes();
+    setStatus(`Section cuts: ${clippingActive ? 'ENABLED' : 'DISABLED'}`);
+  };
+
+  const chkX = document.getElementById('clip-x-active');
+  const sldX = document.getElementById('clip-x-val');
+  const chkY = document.getElementById('clip-y-active');
+  const sldY = document.getElementById('clip-y-val');
+  const chkZ = document.getElementById('clip-z-active');
+  const sldZ = document.getElementById('clip-z-val');
+  const btnReset = document.getElementById('btn-clip-reset');
+
+  function updateClippingPlanes() {
+    const planes = [];
+    if (chkX && chkX.checked) {
+      clipPlaneX.constant = parseFloat(sldX.value);
+      planes.push(clipPlaneX);
+    }
+    if (chkY && chkY.checked) {
+      clipPlaneY.constant = parseFloat(sldY.value);
+      planes.push(clipPlaneY);
+    }
+    if (chkZ && chkZ.checked) {
+      clipPlaneZ.constant = parseFloat(sldZ.value);
+      planes.push(clipPlaneZ);
+    }
+    renderer.clippingPlanes = planes;
+  }
+
+  [chkX, sldX, chkY, sldY, chkZ, sldZ].forEach(el => {
+    if (el) el.oninput = updateClippingPlanes;
+  });
+
+  if (btnReset) {
+    btnReset.onclick = () => {
+      if (chkX) chkX.checked = false;
+      if (chkY) chkY.checked = false;
+      if (chkZ) chkZ.checked = false;
+      if (sldX) sldX.value = 0;
+      if (sldY) sldY.value = 0;
+      if (sldZ) sldZ.value = 0;
+      updateClippingPlanes();
+    };
+  }
+}
+
+// ---------------- In-Viewer BCF Issue / Defect Creation (OpenProject Parity) ----------------
+function initInViewerIssueCreation() {
+  const btnCreate = document.getElementById('tool-create-issue');
+  const modal = document.getElementById('modal-create-issue');
+  const btnClose = document.getElementById('btn-close-issue-modal');
+  const btnCancel = document.getElementById('btn-cancel-create-issue');
+  const btnConfirm = document.getElementById('btn-confirm-create-issue');
+  const imgPreview = document.getElementById('issue-snapshot-preview');
+  let currentSnapshot = '';
+
+  if (btnCreate && modal) {
+    btnCreate.onclick = () => {
+      currentSnapshot = renderer.domElement.toDataURL('image/png');
+      if (imgPreview) imgPreview.src = currentSnapshot;
+      modal.style.display = 'flex';
+    };
+  }
+
+  const closeModal = () => { if (modal) modal.style.display = 'none'; };
+  if (btnClose) btnClose.onclick = closeModal;
+  if (btnCancel) btnCancel.onclick = closeModal;
+
+  if (btnConfirm) {
+    btnConfirm.onclick = async () => {
+      const title = (document.getElementById('issue-modal-title').value || '').trim();
+      const type = document.getElementById('issue-modal-type').value;
+      const priority = document.getElementById('issue-modal-priority').value;
+      const desc = document.getElementById('issue-modal-desc').value;
+
+      if (!title) {
+        frappe.msgprint(__('Please provide an issue title.'));
+        return;
+      }
+
+      btnConfirm.disabled = true;
+      btnConfirm.textContent = 'Saving…';
+      try {
+        const camData = {
+          position: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+          target: { x: controls.target.x, y: controls.target.y, z: controls.target.z },
+          fov: camera.fov
+        };
+
+        const res = await frappe.call({
+          method: API.create_in_viewer_issue,
+          args: {
+            title: title,
+            topic_type: type,
+            priority: priority,
+            description: desc,
+            snapshot_data: currentSnapshot,
+            camera_json: JSON.stringify(camData),
+            element_guid: currentSelection ? String(currentSelection.expressID) : null
+          }
+        });
+
+        frappe.show_alert({ message: __('BCF Issue created successfully!'), indicator: 'green' });
+        closeModal();
+        setStatus(`Created Issue: ${title}`);
+      } catch (e) {
+        console.error('Failed to create issue:', e);
+        frappe.msgprint(__('Error creating issue: ' + (e.message || e)));
+      } finally {
+        btnConfirm.disabled = false;
+        btnConfirm.textContent = 'Create BCF Issue';
+      }
+    };
+  }
 }
 
 // ---------------- Boot ----------------
 initDisciplineControls();
 initUiEvents();
+initInitiationEvents();
+initSectionClipping();
+initInViewerIssueCreation();
 loadModelsList().then(() => {
   handleRouteParams();
 });
@@ -1710,4 +2545,10 @@ window.BIMViewerApp = {
   openBomWizardModal,
   calculateAndRenderBomRollup,
   handleRouteParams,
+  setAppMode,
+  setViewportTab,
+  refreshInitiationStatus,
+  uploadIntakeFile,
+  autoAlignModels,
+  approveProjectKickoff,
 };

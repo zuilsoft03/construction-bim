@@ -1,0 +1,231 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:BCF-VP-{YYYY}-{#####}",
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "guid",
+  "topic",
+  "viewpoint_type",
+  "snapshot",
+  "column_break_1",
+  "field_of_view",
+  "view_to_world_scale",
+  "aspect_ratio",
+  "index",
+  "section_break_camera",
+  "camera_position",
+  "camera_direction",
+  "camera_up_vector",
+  "target_distance",
+  "section_break_clipping",
+  "clipping_planes",
+  "section_break_components",
+  "selection",
+  "visibility",
+  "coloring",
+  "components_table",
+  "section_break_raw",
+  "raw_visualization_info"
+ ],
+ "fields": [
+  {
+   "description": "RFC 4122 UUID v4 (36 chars)",
+   "fieldname": "guid",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Viewpoint GUID",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "topic",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Parent BCF Topic",
+   "options": "BCF Topic",
+   "reqd": 1
+  },
+  {
+   "default": "Perspective",
+   "fieldname": "viewpoint_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Camera Projection",
+   "options": "Perspective\nOrthogonal",
+   "reqd": 1
+  },
+  {
+   "fieldname": "snapshot",
+   "fieldtype": "Attach Image",
+   "in_list_view": 1,
+   "label": "Snapshot Preview Image"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "60.0",
+   "description": "Horizontal/Vertical FOV depending on camera mapping.",
+   "fieldname": "field_of_view",
+   "fieldtype": "Float",
+   "label": "Field of View (Degrees)"
+  },
+  {
+   "description": "Frustum height in metres for Orthogonal cameras.",
+   "fieldname": "view_to_world_scale",
+   "fieldtype": "Float",
+   "label": "View to World Scale (m)"
+  },
+  {
+   "default": "1.777778",
+   "description": "Viewport Width / Height ratio (e.g. 16:9 = 1.777778).",
+   "fieldname": "aspect_ratio",
+   "fieldtype": "Float",
+   "label": "Aspect Ratio"
+  },
+  {
+   "default": "0",
+   "fieldname": "index",
+   "fieldtype": "Int",
+   "label": "Viewpoint Index"
+  },
+  {
+   "fieldname": "section_break_camera",
+   "fieldtype": "Section Break",
+   "label": "Camera Coordinate Vectors (IFC World Z-Up, Metres)"
+  },
+  {
+   "default": "{\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}",
+   "description": "{\"x\": 14.2530, \"y\": 52.8900, \"z\": 8.4500}",
+   "fieldname": "camera_position",
+   "fieldtype": "Code",
+   "label": "Camera Position (X, Y, Z)",
+   "options": "JSON",
+   "reqd": 1
+  },
+  {
+   "default": "{\"x\": 0.0, \"y\": 0.0, \"z\": -1.0}",
+   "description": "{\"x\": -0.7071, \"y\": -0.5000, \"z\": -0.5000}",
+   "fieldname": "camera_direction",
+   "fieldtype": "Code",
+   "label": "Camera Direction Unit Vector (X, Y, Z)",
+   "options": "JSON",
+   "reqd": 1
+  },
+  {
+   "default": "{\"x\": 0.0, \"y\": 1.0, \"z\": 0.0}",
+   "description": "{\"x\": -0.4082, \"y\": -0.2887, \"z\": 0.8660}",
+   "fieldname": "camera_up_vector",
+   "fieldtype": "Code",
+   "label": "Camera Up Unit Vector (X, Y, Z)",
+   "options": "JSON",
+   "reqd": 1
+  },
+  {
+   "default": "10.0",
+   "description": "Computed distance from camera eye to OrbitControls focus point.",
+   "fieldname": "target_distance",
+   "fieldtype": "Float",
+   "label": "Look-At Target Distance (m)"
+  },
+  {
+   "fieldname": "section_break_clipping",
+   "fieldtype": "Section Break",
+   "label": "Section Planes / Clipping Planes"
+  },
+  {
+   "description": "Array of [{location: {x,y,z}, direction: {x,y,z}}]",
+   "fieldname": "clipping_planes",
+   "fieldtype": "Code",
+   "label": "Clipping Planes JSON",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "section_break_components",
+   "fieldtype": "Section Break",
+   "label": "Component Visibility, Selection & Color Overrides"
+  },
+  {
+   "description": "Array of [{ifc_guid: \"...\", originating_system: \"...\", authoring_tool_id: \"...\"}]",
+   "fieldname": "selection",
+   "fieldtype": "Code",
+   "label": "Selected Components JSON",
+   "options": "JSON"
+  },
+  {
+   "description": "Object with {default_visibility: bool, exceptions: [...], view_setup_hints: {...}}",
+   "fieldname": "visibility",
+   "fieldtype": "Code",
+   "label": "Visibility Rules JSON",
+   "options": "JSON"
+  },
+  {
+   "description": "Array of [{color: \"FFFF0000\", components: [{ifc_guid: \"...\"}]}]",
+   "fieldname": "coloring",
+   "fieldtype": "Code",
+   "label": "Color Overrides JSON",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "components_table",
+   "fieldtype": "Table",
+   "label": "Components Overrides Table",
+   "options": "BCF Component"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_raw",
+   "fieldtype": "Section Break",
+   "label": "Raw Visualization XML Backup"
+  },
+  {
+   "fieldname": "raw_visualization_info",
+   "fieldtype": "Long Text",
+   "label": "Raw viewpoint.bcfv XML",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "BIM",
+ "name": "BCF Viewpoint",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "guid,topic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "guid"
+}
