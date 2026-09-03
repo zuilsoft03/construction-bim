@@ -7,3 +7,9 @@ frontend_src/webifc_build/node_modules/
 test/real/
 AGENTS.md
 agent.md
+.agents/
+HVAC/
+STRUCTURAL/
+test/_updater.py
+test/_writer.py
+

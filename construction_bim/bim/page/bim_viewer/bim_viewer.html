@@ -1,64 +1,98 @@
-<!-- BIM Viewer — 3D model viewer for construction_bim -->
-<style>
-#bim-app { display: flex; height: calc(100vh - 120px); font-family: var(--font-stack, sans-serif); }
-#bim-app * { box-sizing: border-box; }
-#bim-left { width: 300px; min-width: 260px; border-right: 1px solid var(--border-color, #d1d8dd); background: var(--bg-color, #fff); display: flex; flex-direction: column; overflow: hidden; }
-#bim-left .panel { padding: 10px 12px; border-bottom: 1px solid var(--border-color, #d1d8dd); }
-#bim-left h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted, #8d99a6); }
-#bim-models { max-height: 180px; overflow: auto; }
-.bim-model-item { padding: 6px 8px; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; gap: 6px; align-items: center; font-size: 13px; width: 100%; background: transparent; border: 1px solid transparent; text-align: left; margin-bottom: 2px; }
-.bim-model-item:hover { background: var(--control-bg, #f0f4f7); }
-.bim-model-item.active { background: var(--blue-50, #e8f2fb); color: var(--blue-600, #1c4c8e); }
-.bim-model-item .cnt { color: var(--text-muted, #8d99a6); font-size: 11px; }
-#bim-upload { width: 100%; margin-top: 8px; }
-#bim-canvas-wrap { flex: 1; position: relative; background: linear-gradient(180deg, #101418, #1b2128); overflow: hidden; }
-#bim-canvas { width: 100%; height: 100%; display: block; }
-#bim-hud { position: absolute; top: 10px; left: 10px; display: flex; gap: 6px; z-index: 5; }
-#bim-hud button, #bim-tools button { background: rgba(255,255,255,.92); border: 1px solid #cfd6dd; border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer; color: #333; }
-#bim-hud button.active, #bim-tools button.active { background: #2490ef; color: #fff; border-color: #2490ef; }
-#bim-tools { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 4px; z-index: 5; }
-#bim-right { width: 340px; min-width: 300px; border-left: 1px solid var(--border-color, #d1d8dd); background: var(--bg-color, #fff); overflow-y: auto; }
-#bim-right .section { padding: 10px 12px; border-bottom: 1px solid var(--border-color, #e4e7eb); }
-#bim-right h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted, #8d99a6); }
-#bim-props table { width: 100%; border-collapse: collapse; font-size: 12px; }
-#bim-props td { padding: 3px 6px; border-bottom: 1px solid #eef1f4; vertical-align: top; }
-#bim-props td:first-child { color: var(--text-muted, #6c7680); width: 45%; word-break: break-word; }
-#bim-props td:last-child { word-break: break-word; }
-#bim-status { position: absolute; bottom: 10px; left: 10px; color: rgba(255,255,255,.7); font-size: 12px; z-index: 5; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
-#bim-filters select { width: 100%; margin-bottom: 6px; font-size: 12px; padding: 4px; }
-#bim-filters .filter-row { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; }
-#bim-filters input { flex: 1; font-size: 12px; padding: 4px; }
-#bim-filters .row-actions { display: flex; gap: 4px; }
-#bim-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.85); font-size: 14px; z-index: 10; background: rgba(16,20,24,.6); }
-#bim-element-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
-.bim-badge { display: inline-block; background: #e8f2fb; color: #1c4c8e; border-radius: 10px; padding: 1px 8px; font-size: 11px; margin-right: 4px; }
-.link-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; border-bottom: 1px solid #eef1f4; font-size: 12px; }
-.link-row .del { color: #d64545; cursor: pointer; border: none; background: none; font-size: 12px; }
-.empty-hint { color: var(--text-muted, #8d99a6); font-size: 12px; font-style: italic; }
-#bim-newlink { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
-#bim-newlink select, #bim-newlink input { font-size: 12px; padding: 4px; }
-#bim-viewpoints { max-height: 160px; overflow: auto; }
-</style>
+﻿<!-- BIM Viewer — 3D model viewer for construction_bim -->
+<link rel="stylesheet" href="/assets/construction_bim/css/bim_viewer.css">
 
 <div id="bim-app">
+  <!-- Left Sidebar -->
   <div id="bim-left">
+    <!-- Models Panel -->
     <div class="panel">
-      <h4>Models</h4>
+      <h4>Models <span style="font-size:10px;font-weight:normal;text-transform:none">(Federated)</span></h4>
       <div id="bim-models"><div class="empty-hint">No models yet</div></div>
+      <div class="model-actions-row">
+        <button id="btn-load-selected" class="btn btn-default btn-xs" style="flex:1" title="Load selected models together">Load Federated</button>
+        <button id="btn-clear-models" class="btn btn-default btn-xs" title="Clear all loaded models">Clear</button>
+      </div>
       <input id="bim-file-input" type="file" accept=".ifc,.IFC" style="display:none" />
-      <button id="bim-upload" class="btn btn-default btn-xs">⬆ Upload IFC</button>
+      <button id="bim-upload" class="btn btn-default btn-xs" style="width:100%;margin-top:6px">⬆ Upload IFC Model</button>
     </div>
+
+    <!-- Discipline Layers Panel -->
+    <div class="panel" id="bim-disciplines-panel">
+      <h4>Discipline Layers</h4>
+      <div id="bim-disciplines-list">
+        <!-- Architecture Layer -->
+        <div class="discipline-layer-row" data-discipline="Architecture">
+          <div class="discipline-header">
+            <span class="discipline-badge-label"><span class="disc-dot ark"></span> Architecture</span>
+            <div class="discipline-controls-group">
+              <button class="disc-btn btn-vis active" title="Toggle visibility">👁</button>
+              <button class="disc-btn btn-ghost" title="Ghost (20% opacity)">👻 Ghost</button>
+              <button class="disc-btn btn-solo" title="Solo discipline">Solo</button>
+            </div>
+          </div>
+          <div class="opacity-slider-row">
+            <span>Opacity:</span>
+            <input type="range" class="disc-opacity-slider" min="0" max="100" value="100" />
+            <span class="disc-opacity-val">100%</span>
+          </div>
+        </div>
+
+        <!-- Structural Layer -->
+        <div class="discipline-layer-row" data-discipline="Structural">
+          <div class="discipline-header">
+            <span class="discipline-badge-label"><span class="disc-dot struc"></span> Structural</span>
+            <div class="discipline-controls-group">
+              <button class="disc-btn btn-vis active" title="Toggle visibility">👁</button>
+              <button class="disc-btn btn-ghost" title="Ghost (20% opacity)">👻 Ghost</button>
+              <button class="disc-btn btn-solo" title="Solo discipline">Solo</button>
+            </div>
+          </div>
+          <div class="opacity-slider-row">
+            <span>Opacity:</span>
+            <input type="range" class="disc-opacity-slider" min="0" max="100" value="100" />
+            <span class="disc-opacity-val">100%</span>
+          </div>
+        </div>
+
+        <!-- MEP / HVAC Layer -->
+        <div class="discipline-layer-row" data-discipline="MEP">
+          <div class="discipline-header">
+            <span class="discipline-badge-label"><span class="disc-dot mep"></span> MEP / HVAC</span>
+            <div class="discipline-controls-group">
+              <button class="disc-btn btn-vis active" title="Toggle visibility">👁</button>
+              <button class="disc-btn btn-ghost" title="Ghost (20% opacity)">👻 Ghost</button>
+              <button class="disc-btn btn-solo" title="Solo discipline">Solo</button>
+            </div>
+          </div>
+          <div class="opacity-slider-row">
+            <span>Opacity:</span>
+            <input type="range" class="disc-opacity-slider" min="0" max="100" value="100" />
+            <span class="disc-opacity-val">100%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters Panel -->
     <div class="panel" id="bim-filters">
-      <h4>Filters</h4>
+      <h4>Filters & View</h4>
       <select id="f-discipline"><option value="">Discipline: all</option></select>
       <select id="f-storey"><option value="">Storey: all</option></select>
       <select id="f-type"><option value="">Type: all</option></select>
-      <div class="filter-row"><input id="f-search" placeholder="Search name / type / id" /><button id="f-clear" class="btn btn-default btn-xs">Clear</button></div>
-      <div class="row-actions" style="margin-top:6px">
-        <button id="btn-fit" class="btn btn-default btn-xs">Fit view</button>
-        <button id="btn-color-prop" class="btn btn-default btn-xs" title="Color by quantity/property (cycles)">Color by prop</button>
+      <div class="filter-row" style="display:flex;gap:4px;margin-bottom:6px">
+        <input id="f-search" placeholder="Search name / type / id" style="flex:1;font-size:12px;padding:4px" />
+        <button id="f-clear" class="btn btn-default btn-xs">Clear</button>
+      </div>
+      <div class="row-actions" style="display:flex;gap:4px">
+        <button id="btn-fit" class="btn btn-default btn-xs" style="flex:1">Fit view</button>
+        <button id="btn-color-prop" class="btn btn-default btn-xs" style="flex:1" title="Color by property">Color by prop</button>
+      </div>
+      <div style="margin-top:8px">
+        <button id="btn-open-bom-wizard" class="btn btn-primary btn-xs" style="width:100%">📦 BIM to BOM Wizard</button>
       </div>
     </div>
+
+    <!-- Viewpoints Panel -->
     <div class="panel">
       <h4>Viewpoints</h4>
       <div id="bim-viewpoints"><div class="empty-hint">Save the camera to bookmark a view</div></div>
@@ -69,12 +103,14 @@
     </div>
   </div>
 
+  <!-- Center Canvas Area -->
   <div id="bim-canvas-wrap">
     <div id="bim-hud">
       <button id="tool-orbit" class="active">Orbit</button>
       <button id="tool-select">Select</button>
       <button id="tool-measure">Measure</button>
       <button id="tool-clip">Clip</button>
+      <button id="tool-clashes">Clashes</button>
     </div>
     <div id="bim-tools">
       <button id="t-wireframe" title="Toggle wireframe">▦</button>
@@ -85,22 +121,157 @@
     </div>
     <canvas id="bim-canvas"></canvas>
     <div id="bim-status">Load a model to begin</div>
-    <div id="bim-loading" style="display:none"></div>
+    <div id="bim-loading" style="display:none">Loading…</div>
   </div>
 
+  <!-- Right Sidebar: Tabs & Panels -->
   <div id="bim-right">
-    <div class="section" id="bim-props-section">
-      <h4>Selection</h4>
+    <div class="bim-tabs-header">
+      <button class="bim-tab-btn active" data-tab="tab-props">Selection</button>
+      <button class="bim-tab-btn" data-tab="tab-clashes" id="tab-btn-clashes">Clashes <span id="clash-badge-count" class="bim-badge" style="display:none;margin-left:2px">0</span></button>
+      <button class="bim-tab-btn" data-tab="tab-links">BOQ Links</button>
+    </div>
+
+    <!-- Tab 1: Selection & Properties -->
+    <div class="bim-tab-content active" id="tab-props">
       <div id="bim-element-title" class="empty-hint">Click an element in the viewer</div>
       <div id="bim-props"><div class="empty-hint">No selection</div></div>
     </div>
-    <div class="section" id="bim-links-section">
-      <h4>BOQ Links</h4>
-      <div id="bim-links"><div class="empty-hint">No links</div></div>
-      <div id="bim-newlink">
-        <select id="nl-type"><option>Item</option><option>Construction Contract BOQ Item</option></select>
-        <input id="nl-name" placeholder="Item code / BOQ item name" style="flex:1" />
-        <button id="nl-add" class="btn btn-default btn-xs">Link</button>
+
+    <!-- Tab 2: In-Viewer Clash Detection & Issues -->
+    <div class="bim-tab-content" id="tab-clashes">
+      <!-- Clash List Main View -->
+      <div id="clash-list-container">
+        <div class="clash-run-bar">
+          <div style="font-weight:600;font-size:12px;color:#1e293b">BVH Clash Detection</div>
+          <div class="clash-run-row">
+            <select id="clash-disc-a" title="Discipline A">
+              <option value="Structural">Discipline A: Structural</option>
+              <option value="Architecture">Discipline A: Architecture</option>
+              <option value="MEP">Discipline A: MEP</option>
+            </select>
+            <select id="clash-disc-b" title="Discipline B">
+              <option value="MEP">Discipline B: MEP</option>
+              <option value="Structural">Discipline B: Structural</option>
+              <option value="Architecture">Discipline B: Architecture</option>
+            </select>
+          </div>
+          <div class="clash-run-row">
+            <input id="clash-tolerance" type="number" step="0.005" value="0.00" placeholder="Tolerance (m)" style="max-width:120px" />
+            <button id="btn-run-clashes" class="btn btn-primary btn-xs" style="flex:1">⚡ Run Clash Check</button>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <h4 style="margin:0">Detected Clashes</h4>
+          <select id="clash-filter-severity" style="font-size:11px;padding:2px 4px">
+            <option value="">All Severities</option>
+            <option value="Critical">Critical</option>
+            <option value="Major">Major</option>
+            <option value="Minor">Minor</option>
+          </select>
+        </div>
+
+        <div id="clash-cards-list">
+          <div class="empty-hint">Run clash check to find intersections</div>
+        </div>
+      </div>
+
+      <!-- Clash Detail & Threaded Discussion Sub-View (Hidden by default) -->
+      <div id="clash-detail-container" style="display:none">
+        <div class="clash-detail-header">
+          <button id="btn-clash-back" class="btn btn-default btn-xs">← Back to Clashes</button>
+          <span id="clash-detail-severity" class="bim-badge severity-major">Major</span>
+        </div>
+
+        <div id="clash-detail-title" style="font-weight:600;font-size:13px;margin-bottom:6px">Clash Details</div>
+        <div id="clash-detail-meta" style="font-size:11px;color:#64748b;margin-bottom:10px"></div>
+
+        <div style="display:flex;gap:4px;margin-bottom:12px">
+          <button id="btn-clash-fly" class="btn btn-primary btn-xs" style="flex:1">🎯 Fly to Clash</button>
+          <button id="btn-clash-snapshot" class="btn btn-default btn-xs" title="Capture canvas snapshot">📷 Snapshot</button>
+          <button id="btn-save-clash-erp" class="btn btn-default btn-xs" title="Save to ERPNext DocType">💾 Save in ERPNext</button>
+        </div>
+
+        <h4>Threaded Discussion</h4>
+        <div id="clash-comments-stream" class="clash-comments-stream">
+          <div class="empty-hint">No comments yet. Start the discussion below.</div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+          <textarea id="clash-comment-input" placeholder="Add a comment or resolution note..." rows="2" style="width:100%;font-size:12px;padding:6px;border:1px solid #cbd5e1;border-radius:4px"></textarea>
+          <button id="btn-post-clash-comment" class="btn btn-primary btn-xs" style="align-self:flex-end">Post Comment</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: BOQ Links -->
+    <div class="bim-tab-content" id="tab-links">
+      <h4>ERPNext Item & BOQ Links</h4>
+      <div id="bim-links"><div class="empty-hint">No links for current element</div></div>
+      <div id="bim-newlink" style="margin-top:12px">
+        <select id="nl-type" style="width:100%;margin-bottom:4px"><option>Item</option><option>Construction Contract BOQ Item</option></select>
+        <div style="display:flex;gap:4px">
+          <input id="nl-name" placeholder="Item code / BOQ item name" style="flex:1;font-size:12px;padding:4px" />
+          <button id="nl-add" class="btn btn-default btn-xs">Link</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BIM to BOM Wizard Modal -->
+<div id="bim-bom-modal">
+  <div class="bom-modal-content">
+    <div class="bom-modal-header">
+      <h3>BIM Quantity Takeoff & ERPNext BOM Wizard</h3>
+      <button id="btn-close-bom-modal" class="btn btn-default btn-xs">✕</button>
+    </div>
+    <div class="bom-modal-body">
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px;margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:4px">Target ERPNext Parent Item</label>
+          <input id="bom-parent-item" value="BLD-NORDIC-CONC-01" placeholder="e.g. BLD-CONC-01" style="width:100%;font-size:12px;padding:4px 8px;border:1px solid #cbd5e1;border-radius:4px" />
+        </div>
+        <div style="flex:1;min-width:200px">
+          <label style="font-size:11px;font-weight:600;color:#64748b;display:block;margin-bottom:4px">BOM Name / Description</label>
+          <input id="bom-title" value="BOM - Multi-Discipline Structural & HVAC Takeoff" placeholder="BOM Title" style="width:100%;font-size:12px;padding:4px 8px;border:1px solid #cbd5e1;border-radius:4px" />
+        </div>
+      </div>
+
+      <div style="margin-bottom:8px;font-size:12px;color:#64748b">
+        💡 <em>Click any line item below to cross-highlight and isolate its matching 3D elements in the viewer.</em>
+      </div>
+
+      <div style="overflow-x:auto">
+        <table class="bom-rollup-table" id="bom-rollup-grid">
+          <thead>
+            <tr>
+              <th>IFC Entity Category</th>
+              <th>Discipline</th>
+              <th>Count</th>
+              <th>Rollup Metric</th>
+              <th style="width:90px">Waste %</th>
+              <th>Effective Qty</th>
+              <th>Target ERPNext Item</th>
+              <th style="width:60px">UOM</th>
+              <th style="width:90px">Unit Rate ($)</th>
+              <th style="width:90px">Estimated ($)</th>
+            </tr>
+          </thead>
+          <tbody id="bom-rollup-tbody">
+            <tr><td colspan="10" class="empty-hint">Open or load models to calculate quantities</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="bom-modal-footer">
+      <div id="bom-summary-text" style="font-size:13px;font-weight:600;color:#1e293b">
+        Total Line Items: 0 | Estimated Total: $0.00
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="btn-cancel-bom-modal" class="btn btn-default">Cancel</button>
+        <button id="btn-generate-erp-bom" class="btn btn-primary">🚀 Generate ERPNext BOM</button>
       </div>
     </div>
   </div>

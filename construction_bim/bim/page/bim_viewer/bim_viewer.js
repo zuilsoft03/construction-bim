@@ -1,10 +1,25 @@
-frappe.pages['bim-viewer'].on_page_load = function (wrapper) {
+﻿frappe.pages['bim-viewer'].on_page_load = function (wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: 'BIM Viewer',
 		single_column: true,
 	});
 
+	page.add_inner_button('📦 ' + __('BIM to BOM'), function () {
+		if (window.BIMViewerApp && window.BIMViewerApp.openBomWizardModal) {
+			window.BIMViewerApp.openBomWizardModal();
+		}
+	});
+	page.add_inner_button('⚡ ' + __('Clash Check'), function () {
+		var tabBtn = document.getElementById('tab-btn-clashes');
+		if (tabBtn) tabBtn.click();
+		if (window.BIMViewerApp && window.BIMViewerApp.executeClashDetection) {
+			window.BIMViewerApp.executeClashDetection();
+		}
+	});
+	page.add_inner_button('💥 ' + __('BIM Clashes'), function () {
+		frappe.set_route('List', 'BIM Clash');
+	});
 	page.add_inner_button('📐 ' + __('PDF Takeoff'), function () {
 		frappe.set_route('pdf-takeoff');
 	});
@@ -13,9 +28,6 @@ frappe.pages['bim-viewer'].on_page_load = function (wrapper) {
 	});
 	page.add_inner_button('📑 ' + __('Contracts & BOQ'), function () {
 		frappe.set_route('List', 'Construction Contract');
-	});
-	page.add_inner_button('🏠 ' + __('Workspace'), function () {
-		frappe.set_route('Workspaces', 'Construction');
 	});
 
 	// render the page markup (bim_viewer.html -> frappe.templates['bim_viewer'])
@@ -48,7 +60,7 @@ frappe.pages['bim-viewer'].on_page_load = function (wrapper) {
 		.then(function () { return import('/assets/construction_bim/js/bim_viewer.bundle.js?v=' + Date.now()); })
 		.then(function () {
 			var st = document.getElementById('bim-status');
-			if (st) st.textContent = 'Bundle loaded (' + new Date().toLocaleTimeString() + ')';
+			if (st) st.textContent = 'Ready — BIM Viewer & In-Viewer Clash Engine loaded (' + new Date().toLocaleTimeString() + ')';
 		})
 		.catch(function (e) {
 			console.error('bim_viewer bundle failed to load', e);

@@ -1,4 +1,4 @@
-// frontend_src/node_modules/pdfjs-dist/build/pdf.min.mjs
+// ../node_modules/pdfjs-dist/build/pdf.min.mjs
 var t = { d: (e2, i2) => {
   for (var s2 in i2) t.o(i2, s2) && !t.o(e2, s2) && Object.defineProperty(e2, s2, { enumerable: true, get: i2[s2] });
 }, o: (t2, e2) => Object.prototype.hasOwnProperty.call(t2, e2) };
@@ -13956,7 +13956,7 @@ var Pe = __webpack_exports__.shadow;
 var De = __webpack_exports__.stopEvent;
 var ke = __webpack_exports__.version;
 
-// frontend_src/pdf_takeoff_app.js
+// ../pdf_takeoff_app.js
 Jt.workerSrc = "/assets/construction_bim/js/pdfjs/pdf.worker.min.mjs";
 var API = {
   save_measurement: "construction_bim.bim.api.save_measurement",

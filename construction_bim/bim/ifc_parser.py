@@ -261,21 +261,33 @@ def _extract_placements(entities: dict[int, dict], length_scale: float = 1.0) ->
 # Properties & quantities
 # --------------------------------------------------------------------------
 
-def _extract_properties_for_element(eid: int, entities: dict[int, dict]) -> dict[str, Any]:
+def _index_property_relations(entities: dict[int, dict]) -> dict[int, list[int]]:
+    """Build mapping from element ID to list of property/quantity set definition IDs."""
+    rel_map: dict[int, list[int]] = {}
+    for ent in entities.values():
+        if ent["type"] == "IFCRELDEFINESBYPROPERTIES":
+            refs = _refs(ent["args_raw"])
+            if len(refs) >= 2:
+                prop_def_id = refs[-1]
+                for elem_id in refs[:-1]:
+                    rel_map.setdefault(elem_id, []).append(prop_def_id)
+    return rel_map
+
+
+def _extract_properties_for_element(eid: int, entities: dict[int, dict], prop_def_ids: list[int] | None = None) -> dict[str, Any]:
     """Collect IFCPROPERTYSET values related to an element via
     IFCRELDEFINESBYPROPERTIES. Keys become 'Property Name'. Values are
     decoded primitives (str/float/int/bool or None)."""
     props: dict[str, Any] = {}
-    for ent in entities.values():
-        if ent["type"] != "IFCRELDEFINESBYPROPERTIES":
-            continue
-        refs = _refs(ent["args_raw"])
-        if eid not in refs:
-            continue
-        # related objects first (index 0..n), then RelatingPropertyDefinition (last)
-        if len(refs) < 2:
-            continue
-        prop_def = entities.get(refs[-1])
+    if prop_def_ids is None:
+        prop_def_ids = []
+        for ent in entities.values():
+            if ent["type"] == "IFCRELDEFINESBYPROPERTIES":
+                refs = _refs(ent["args_raw"])
+                if eid in refs and len(refs) >= 2:
+                    prop_def_ids.append(refs[-1])
+    for pdef_id in prop_def_ids:
+        prop_def = entities.get(pdef_id)
         if not prop_def:
             continue
         if prop_def["type"] == "IFCPROPERTYSET":
@@ -344,19 +356,21 @@ def _decode_typed_literal(ifc_type: str, body: str) -> Any:
         return None
 
 
-def _extract_quantities_for_element(eid: int, entities: dict[int, dict], length_scale: float) -> dict[str, float]:
+def _extract_quantities_for_element(eid: int, entities: dict[int, dict], length_scale: float, prop_def_ids: list[int] | None = None) -> dict[str, float]:
     """Collect IFCELEMENTQUANTITY values via IFCRELDEFINESBYPROPERTIES.
 
     Returns {Name: value_in_canonical_SI} where lengths are scaled to metres.
     """
     quants: dict[str, float] = {}
-    for ent in entities.values():
-        if ent["type"] != "IFCRELDEFINESBYPROPERTIES":
-            continue
-        refs = _refs(ent["args_raw"])
-        if eid not in refs or len(refs) < 2:
-            continue
-        prop_def = entities.get(refs[-1])
+    if prop_def_ids is None:
+        prop_def_ids = []
+        for ent in entities.values():
+            if ent["type"] == "IFCRELDEFINESBYPROPERTIES":
+                refs = _refs(ent["args_raw"])
+                if eid in refs and len(refs) >= 2:
+                    prop_def_ids.append(refs[-1])
+    for pdef_id in prop_def_ids:
+        prop_def = entities.get(pdef_id)
         if not prop_def or prop_def["type"] != "IFCELEMENTQUANTITY":
             continue
         for qref in _resolve_refs(prop_def["args_raw"], entities):
@@ -488,6 +502,9 @@ def parse_ifc_text(content: str) -> dict[str, Any]:
     # Placements
     placements = _extract_placements(entities, length_scale)
 
+    # Property and quantity relation index
+    prop_rels = _index_property_relations(entities)
+
     elements: list[dict[str, Any]] = []
     storeys_set: set[str] = set()
     disciplines_set: set[str] = set()
@@ -507,10 +524,11 @@ def parse_ifc_text(content: str) -> dict[str, Any]:
             storeys_set.add(storey)
         disciplines_set.add(discipline)
 
-        properties = _extract_properties_for_element(eid, entities)
+        pdefs = prop_rels.get(eid, [])
+        properties = _extract_properties_for_element(eid, entities, pdefs)
         properties.setdefault("ifc_type", ifc_type)
         properties.setdefault("ifc_id", eid)
-        quantities = _extract_quantities_for_element(eid, entities, length_scale)
+        quantities = _extract_quantities_for_element(eid, entities, length_scale, pdefs)
 
         geo_hash = hashlib.md5(f"{global_id}:{ifc_type}:{name}".encode()).hexdigest()[:16]
 

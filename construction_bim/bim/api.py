@@ -540,3 +540,26 @@ def _links_for_element(bim_element: str) -> list[dict]:
                           fields=["name", "boq_reference_type", "boq_reference_name",
                                   "link_type", "confidence", "rule_id"],
                           limit_page_length=200)
+
+
+# --------------------------------------------------------------------------
+# Clash Detection & Discussion Endpoints (Forwarded)
+# --------------------------------------------------------------------------
+from construction_bim.api.clash import (
+    save_clashes_batch,
+    get_clashes,
+    get_clash,
+    add_clash_comment,
+    update_clash_status,
+    delete_clash,
+)
+
+# --------------------------------------------------------------------------
+# BIM to ERPNext BOM Integration Endpoints (Forwarded)
+# --------------------------------------------------------------------------
+from construction_bim.api.bom_integration import (
+    get_model_quantity_summary,
+    preview_bom_generation,
+    generate_or_update_bom,
+)
+
