@@ -4,8 +4,14 @@ import xml.etree.ElementTree as ET
 class TestBCFStandardsAndSchemaCompliance(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.doc3 = pathlib.Path("docs/study/openproject_bim/03_technical_specifications_and_schemas.md").read_text(encoding="utf-8")
-        cls.doc4 = pathlib.Path("docs/study/openproject_bim/04_api_contracts_and_bcf_exchange.md").read_text(encoding="utf-8")
+        base_dir = pathlib.Path(__file__).resolve().parent.parent
+        docs = base_dir / "study" / "openproject_bim"
+        if not docs.exists():
+            docs = base_dir / "docs" / "study" / "openproject_bim"
+        p3 = docs / "03_technical_specifications_and_schemas.md"
+        p4 = docs / "04_api_contracts_and_bcf_exchange.md"
+        cls.doc3 = p3.read_text(encoding="utf-8")
+        cls.doc4 = p4.read_text(encoding="utf-8")
         json_blocks = re.findall(r"`json\s*(.*?)\s*`", cls.doc3, re.DOTALL)
         cls.doctypes = {}
         for b in json_blocks:

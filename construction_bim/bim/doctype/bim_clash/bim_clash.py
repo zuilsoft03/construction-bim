@@ -208,7 +208,7 @@ class BIMClash(Document):
         except Exception as e:
             logger.warning(f"Could not create ToDo for clash {self.name}: {e}")
 
-    def add_comment(self, comment_text: str, user: str | None = None) -> dict:
+    def add_discussion_comment(self, comment_text: str, user: str | None = None) -> dict:
         """Add a native threaded Frappe Comment to this clash."""
         if not comment_text:
             frappe.throw(_("Comment text cannot be empty"))
@@ -222,7 +222,7 @@ class BIMClash(Document):
         comment.content = comment_text
         comment.comment_by = author
         comment.comment_email = author if "@" in author else None
-        comment.insert(ignore_permissions=True)
+        comment.insert()
         frappe.db.commit()
 
         return {
@@ -231,6 +231,12 @@ class BIMClash(Document):
             "comment_by": comment.comment_by,
             "creation": str(comment.creation),
         }
+
+    def add_comment(self, *args, **kwargs):
+        """Dispatches to standard Document.add_comment or discussion comment."""
+        if args and args[0] in ("Comment", "Workflow", "Label", "Like", "Assigned", "Assignment Completed"):
+            return super().add_comment(*args, **kwargs)
+        return self.add_discussion_comment(*args, **kwargs)
 
     def get_viewpoint(self) -> dict:
         """Return parsed BCF viewpoint."""

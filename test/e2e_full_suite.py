@@ -148,10 +148,15 @@ def run_full_suite() -> int:
     print("-" * 80)
     print(" TIER BREAKDOWN & TARGET THRESHOLDS")
     print("-" * 80)
-    print(f"  Tier 1: Feature Coverage (Happy Path)    : {tier_counts['Tier 1']:3d} / 65 Target  [ PASS ]")
-    print(f"  Tier 2: Boundary & Corner Cases          : {tier_counts['Tier 2']:3d} / 65 Target  [ PASS ]")
-    print(f"  Tier 3: Pairwise Cross-Feature Tests     : {tier_counts['Tier 3']:3d} / 13 Target  [ PASS ]")
-    print(f"  Tier 4: Real-World Application Scenarios : {tier_counts['Tier 4']:3d} /  5 Target  [ PASS ]")
+    t1_status = "[ PASS ]" if (tier_counts["Tier 1"] >= 65 and len(result.failures) == 0 and len(result.errors) == 0) else "[ FAIL ]"
+    t2_status = "[ PASS ]" if (tier_counts["Tier 2"] >= 65 and len(result.failures) == 0 and len(result.errors) == 0) else "[ FAIL ]"
+    t3_status = "[ PASS ]" if (tier_counts["Tier 3"] >= 13 and len(result.failures) == 0 and len(result.errors) == 0) else "[ FAIL ]"
+    t4_status = "[ PASS ]" if (tier_counts["Tier 4"] >= 5 and len(result.failures) == 0 and len(result.errors) == 0) else "[ FAIL ]"
+
+    print(f"  Tier 1: Feature Coverage (Happy Path)    : {tier_counts['Tier 1']:3d} / 65 Target  {t1_status}")
+    print(f"  Tier 2: Boundary & Corner Cases          : {tier_counts['Tier 2']:3d} / 65 Target  {t2_status}")
+    print(f"  Tier 3: Pairwise Cross-Feature Tests     : {tier_counts['Tier 3']:3d} / 13 Target  {t3_status}")
+    print(f"  Tier 4: Real-World Application Scenarios : {tier_counts['Tier 4']:3d} /  5 Target  {t4_status}")
     print("-" * 80)
     print(" FEATURE-BY-FEATURE VERIFICATION MATRIX")
     print("-" * 80)
@@ -163,7 +168,7 @@ def run_full_suite() -> int:
         name = FEATURE_DESCRIPTIONS.get(fkey, "Feature")
         c = feature_counts[fkey]
         t1, t2, t3, t4 = c["Tier 1"], c["Tier 2"], c["Tier 3"], c["Tier 4"]
-        status = "PASS" if (t1 >= 5 and t2 >= 5) else "OK"
+        status = "PASS" if (t1 >= 5 and t2 >= 5 and len(result.failures) == 0 and len(result.errors) == 0) else "FAIL"
         print(f" {fkey:<4} | {name:<46} | {t1:4d} | {t2:4d} | {t3:4d} | {t4:4d} | [ {status} ]")
 
     print("-" * 80)
@@ -172,7 +177,8 @@ def run_full_suite() -> int:
     for sid in range(1, 6):
         skey = f"S{sid}"
         name = FEATURE_DESCRIPTIONS.get(skey, "Scenario")
-        print(f" {skey:<4} | {name:<60} | [ PASS ]")
+        s_status = "[ PASS ]" if (result.wasSuccessful() and tier_counts["Tier 4"] >= 5) else "[ FAIL ]"
+        print(f" {skey:<4} | {name:<60} | {s_status}")
 
     print("=" * 80)
 

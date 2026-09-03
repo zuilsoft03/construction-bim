@@ -39,7 +39,7 @@ Comprehensive architectural study and technical blueprint comparing OpenProject 
 | 12 | API Contracts: BCF-XML ZIP Handler | Python controller for lossless BCF-XML v2.1/v3.0 import and export with snapshot management | M3 | Survey |
 | 13 | 3D Camera Math & Coordinate Conversion | Exact basis transformations (Three.js Y-up $\leftrightarrow$ BCF Z-up), FOV trigonometry, OrbitControls target reconstruction | M3 | Survey |
 | 14 | Client-Side Viewer Event Protocol | Standardized JSON event message contracts between WebGL viewer and Frappe Desk UI | M3 | Survey |
-| 15 | Master Documentation Index & Synthesis | Complete, publication-quality documentation suite in `docs/study/openproject_bim/` | M4 | Survey |
+| 15 | Master Documentation Index & Synthesis | Complete, publication-quality documentation suite in `study/openproject_bim/` | M4 | Survey |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |

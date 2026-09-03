@@ -58,6 +58,11 @@ frappe.ui.form.on("BIM Clash", {
 				frm.set_value("status", "Closed");
 				frm.save();
 			}, __("Actions"));
+		} else if (frm.doc.status === "Closed") {
+			frm.add_custom_button(__("Reopen Clash"), () => {
+				frm.set_value("status", "Open");
+				frm.save();
+			}, __("Actions"));
 		}
 	},
 

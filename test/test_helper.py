@@ -368,13 +368,14 @@ class BVHTree:
 def make_box_triangles(aabb: AABB3D) -> List[Triangle3D]:
     """Generate 12 triangles forming a 3D rectangular box mesh."""
     p0 = aabb.min
-    p7 = aabb.max
-    p1 = Vector3(p7.x, p0.y, p0.z)
-    p2 = Vector3(p7.x, p7.y, p0.z)
-    p3 = Vector3(p0.x, p7.y, p0.z)
-    p4 = Vector3(p0.x, p0.y, p7.z)
-    p5 = Vector3(p7.x, p0.y, p7.z)
-    p6 = p7
+    pmax = aabb.max
+    p1 = Vector3(pmax.x, p0.y, p0.z)
+    p2 = Vector3(pmax.x, pmax.y, p0.z)
+    p3 = Vector3(p0.x, pmax.y, p0.z)
+    p4 = Vector3(p0.x, p0.y, pmax.z)
+    p5 = Vector3(pmax.x, p0.y, pmax.z)
+    p6 = pmax
+    p7 = Vector3(p0.x, pmax.y, pmax.z)
 
     return [
         # Bottom (z = min)
@@ -906,7 +907,7 @@ def detect_clashes_between_elements(
         box_b_expanded = box_b.expand_by_margin(clearance)
         if not box_a.intersects(box_b_expanded, tolerance=tolerance):
             return None
-        inter_box = box_a.intersection(box_b_expanded)
+        inter_box = box_a.intersection(box_b) if is_hard_intersection else box_a.intersection(box_b_expanded)
         if not inter_box or not inter_box.is_valid():
             return None
     else:

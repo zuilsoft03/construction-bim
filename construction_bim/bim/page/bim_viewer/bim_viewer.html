@@ -1,4 +1,4 @@
-﻿<!-- BIM Viewer — 3D model viewer for construction_bim -->
+<!-- BIM Viewer — 3D model viewer for construction_bim -->
 <link rel="stylesheet" href="/assets/construction_bim/css/bim_viewer.css">
 
 <div id="bim-app">
@@ -83,9 +83,8 @@
         <input id="f-search" placeholder="Search name / type / id" style="flex:1;font-size:12px;padding:4px" />
         <button id="f-clear" class="btn btn-default btn-xs">Clear</button>
       </div>
-      <div class="row-actions" style="display:flex;gap:4px">
-        <button id="btn-fit" class="btn btn-default btn-xs" style="flex:1">Fit view</button>
-        <button id="btn-color-prop" class="btn btn-default btn-xs" style="flex:1" title="Color by property">Color by prop</button>
+      <div class="row-actions" style="margin-bottom:6px">
+        <button id="btn-fit" class="btn btn-default btn-xs" style="width:100%">Fit view</button>
       </div>
       <div style="margin-top:8px">
         <button id="btn-open-bom-wizard" class="btn btn-primary btn-xs" style="width:100%">📦 BIM to BOM Wizard</button>
@@ -109,7 +108,6 @@
       <button id="tool-orbit" class="active">Orbit</button>
       <button id="tool-select">Select</button>
       <button id="tool-measure">Measure</button>
-      <button id="tool-clip">Clip</button>
       <button id="tool-clashes">Clashes</button>
     </div>
     <div id="bim-tools">
@@ -117,7 +115,6 @@
       <button id="t-iso" title="Isometric view">◧</button>
       <button id="t-top" title="Top view">⊞</button>
       <button id="t-front" title="Front view">▭</button>
-      <button id="t-reset" title="Reset clip">✕</button>
     </div>
     <canvas id="bim-canvas"></canvas>
     <div id="bim-status">Load a model to begin</div>

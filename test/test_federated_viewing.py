@@ -166,15 +166,19 @@ class FederatedSceneManager:
         if discipline not in self.discipline_layers:
             self.discipline_layers[discipline] = {"visible": True, "opacity": 1.0, "ghosted": g}
         else:
-            self.discipline_layers[discipline]["ghosted"] = g
+            layer = self.discipline_layers[discipline]
+            if g and not layer.get("ghosted"):
+                layer["base_opacity"] = layer.get("opacity", 1.0)
+            layer["ghosted"] = g
             if g:
-                self.discipline_layers[discipline]["opacity"] = clamped_op
+                layer["opacity"] = clamped_op
+            else:
+                layer["opacity"] = layer.pop("base_opacity", 1.0)
 
         for m in self.models.values():
             if m.discipline.lower() == discipline.lower():
                 m.is_ghosted = g
-                if g:
-                    m.opacity = clamped_op
+                m.opacity = clamped_op if g else self.discipline_layers[discipline]["opacity"]
 
     def get_scene_bounding_box(self) -> AABB3D:
         total = AABB3D()
@@ -599,15 +603,18 @@ class TestFederatedViewing(unittest.TestCase):
         self.assertAlmostEqual(scene.discipline_layers["Structural"]["opacity"], 1.0, places=3)
 
     def test_ghosting_toggle_preserves_base_opacity(self):
-        """F3-T2-3: Disabling ghosting restores active state."""
+        """F3-T2-3: Disabling ghosting restores active state and base opacity."""
         scene = FederatedSceneManager()
         scene.load_model(1, "ARK", "Architectural", make_synthetic_ifc())
         scene.set_discipline_ghosted("Architectural", True, 0.15)
         self.assertTrue(scene.models[1].is_ghosted)
+        self.assertAlmostEqual(scene.models[1].opacity, 0.15)
 
         scene.set_discipline_ghosted("Architectural", False)
         self.assertFalse(scene.discipline_layers["Architectural"]["ghosted"])
         self.assertFalse(scene.models[1].is_ghosted)
+        self.assertAlmostEqual(scene.discipline_layers["Architectural"]["opacity"], 1.0)
+        self.assertAlmostEqual(scene.models[1].opacity, 1.0)
 
     def test_unknown_discipline_layer_operation(self):
         """F3-T2-4: Applying layer operation to unknown discipline auto-registers layer safely."""

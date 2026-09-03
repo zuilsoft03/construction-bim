@@ -833,13 +833,13 @@ const { BIMCameraMath } = require('../construction_bim/public/js/bim_camera_math
 function testCameraTransformations() {
     // 1. Basis Transformation Test
     const bcfPos = { x: 10.0, y: 25.0, z: 5.0 };
-    const threePos = BIMCameraMath.bcfToThreePosition(bcfPos);
+    const threePos = BIMCameraMath.bcfToThreeVector(bcfPos);
     
     assert.strictEqual(threePos.x, 10.0);
     assert.strictEqual(threePos.y, 5.0);
     assert.strictEqual(threePos.z, -25.0);
     
-    const roundtripBcfPos = BIMCameraMath.threeToBcfPosition(threePos);
+    const roundtripBcfPos = BIMCameraMath.threeToBcfVector(threePos);
     assert.deepStrictEqual(roundtripBcfPos, bcfPos, "Basis transformation roundtrip failed");
 
     // 2. Perspective FOV Conversion Test (60 deg horizontal, 16:9 aspect)

@@ -36,6 +36,7 @@ export interface ClashResult {
 
 export interface BCFViewpoint {
   camera_position: [number, number, number];
+  camera_direction?: [number, number, number];
   camera_target: [number, number, number];
   camera_up: [number, number, number];
   selected_elements: string[]; // GUIDs

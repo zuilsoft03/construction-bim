@@ -32414,26 +32414,26 @@
         const aabbsA = meshesA.map((m) => {
           if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
           const box = m.geometry.boundingBox.clone().applyMatrix4(m.matrixWorld);
-          if (tolerance > 0) box.expandByScalar(tolerance);
-          return box;
+          const padded = tolerance > 0 ? box.clone().expandByScalar(tolerance) : box;
+          return { box, padded };
         });
         const aabbsB = meshesB.map((m) => {
           if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
           const box = m.geometry.boundingBox.clone().applyMatrix4(m.matrixWorld);
-          if (tolerance > 0) box.expandByScalar(tolerance);
-          return box;
+          const padded = tolerance > 0 ? box.clone().expandByScalar(tolerance) : box;
+          return { box, padded };
         });
         const clashes = [];
         let broadphaseCount = 0;
         let narrowphaseCount = 0;
         for (let i = 0; i < meshesA.length; i++) {
           const meshA = meshesA[i];
-          const boxA = aabbsA[i];
+          const itemA = aabbsA[i];
           for (let j = 0; j < meshesB.length; j++) {
             const meshB = meshesB[j];
-            const boxB = aabbsB[j];
+            const itemB = aabbsB[j];
             broadphaseCount++;
-            if (!boxA.intersectsBox(boxB)) continue;
+            if (!itemA.padded.intersectsBox(itemB.padded)) continue;
             narrowphaseCount++;
             if (!meshA.geometry.boundsTree) {
               meshA.geometry.computeBoundsTree();
@@ -32444,7 +32444,7 @@
             const matrixToLocal = new Matrix4().copy(meshA.matrixWorld).invert().multiply(meshB.matrixWorld);
             const intersects2 = meshA.geometry.boundsTree.intersectsGeometry(meshB.geometry, matrixToLocal);
             if (intersects2) {
-              const isectBox = boxA.clone().intersect(boxB);
+              const isectBox = itemA.box.clone().intersect(itemB.box);
               const centroid = isectBox.getCenter(new Vector3());
               const size = isectBox.getSize(new Vector3());
               const volume = size.x * size.y * size.z;

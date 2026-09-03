@@ -33,6 +33,9 @@ def save_clashes_batch(
     Deduplicates against existing open/resolved clashes matching the same
     (model_a, model_b, guid_a, guid_b) or symmetric (model_b, model_a, guid_b, guid_a).
     """
+    if hasattr(frappe, "has_permission") and not frappe.has_permission("BIM Clash", "create"):
+        frappe.throw(_("Not permitted to create or update BIM Clash records"), frappe.PermissionError)
+
     if isinstance(clashes, str):
         try:
             clash_list = json.loads(clashes)
@@ -104,7 +107,7 @@ def save_clashes_batch(
                     existing.viewpoint = vp_str
                 if item.get("severity"):
                     existing.severity = item["severity"]
-                existing.save(ignore_permissions=True)
+                existing.save()
                 updated_count += 1
                 result_names.append(existing.name)
             else:
@@ -142,8 +145,10 @@ def save_clashes_batch(
             if cz is not None:
                 doc.collision_z = doc.collision_point_z = float(cz)
 
-            doc.penetration_depth = float(item.get("penetration_depth") or 0.0)
-            doc.intersection_volume = float(item.get("intersection_volume") or 0.0)
+            if item.get("penetration_depth") is not None:
+                doc.penetration_depth = float(item["penetration_depth"])
+            if item.get("intersection_volume") is not None:
+                doc.intersection_volume = float(item["intersection_volume"])
             doc.storey = item.get("storey")
             doc.grid_location = item.get("grid_location")
             doc.assigned_to = item.get("assigned_to")
@@ -178,7 +183,7 @@ def save_clashes_batch(
                 doc.viewpoint_json = vp_str
                 doc.viewpoint = vp_str
 
-            doc.insert(ignore_permissions=True)
+            doc.insert()
             created_count += 1
             result_names.append(doc.name)
 
@@ -328,10 +333,16 @@ def get_clashes(
 @frappe.whitelist()
 def get_clash(clash_name: str) -> dict[str, Any]:
     """Retrieve full details for a single clash including comments and BCF viewpoint."""
+    if hasattr(frappe, "has_permission") and not frappe.has_permission("BIM Clash", "read"):
+        frappe.throw(_("Not permitted to view BIM Clash records"), frappe.PermissionError)
+
     if not frappe.db.exists("BIM Clash", clash_name):
         frappe.throw(_("BIM Clash {0} does not exist").format(clash_name))
 
     doc = frappe.get_doc("BIM Clash", clash_name)
+    if hasattr(doc, "check_permission"):
+        doc.check_permission("read")
+
     comments = frappe.get_all(
         "Comment",
         filters={"reference_doctype": "BIM Clash", "reference_name": clash_name},
@@ -348,11 +359,16 @@ def get_clash(clash_name: str) -> dict[str, Any]:
 @frappe.whitelist()
 def add_clash_comment(clash_name: str, comment_text: str, user: str | None = None) -> dict[str, Any]:
     """Add a threaded discussion comment to a BIM Clash."""
+    if hasattr(frappe, "has_permission") and not frappe.has_permission("BIM Clash", "write"):
+        frappe.throw(_("Not permitted to comment on BIM Clash records"), frappe.PermissionError)
+
     if not frappe.db.exists("BIM Clash", clash_name):
         frappe.throw(_("BIM Clash {0} does not exist").format(clash_name))
 
     doc = frappe.get_doc("BIM Clash", clash_name)
-    return doc.add_comment(comment_text, user=user)
+    if hasattr(doc, "check_permission"):
+        doc.check_permission("write")
+    return doc.add_discussion_comment(comment_text, user=user)
 
 
 @frappe.whitelist()
@@ -363,6 +379,9 @@ def update_clash_status(
     resolution_type: str | None = None,
 ) -> dict[str, Any]:
     """Update clash status, resolution notes, and resolution audit trail."""
+    if hasattr(frappe, "has_permission") and not frappe.has_permission("BIM Clash", "write"):
+        frappe.throw(_("Not permitted to update BIM Clash records"), frappe.PermissionError)
+
     if not frappe.db.exists("BIM Clash", clash_name):
         frappe.throw(_("BIM Clash {0} does not exist").format(clash_name))
 
@@ -371,6 +390,9 @@ def update_clash_status(
         frappe.throw(_("Status must be one of {0}").format(", ".join(valid_statuses)))
 
     doc = frappe.get_doc("BIM Clash", clash_name)
+    if hasattr(doc, "check_permission"):
+        doc.check_permission("write")
+
     doc.status = status
     if status == "Resolved":
         if not doc.resolved_by:
@@ -384,7 +406,7 @@ def update_clash_status(
     if resolution_type:
         doc.resolution_type = resolution_type
 
-    doc.save(ignore_permissions=True)
+    doc.save()
     frappe.db.commit()
 
     return {
@@ -399,6 +421,13 @@ def update_clash_status(
 @frappe.whitelist()
 def delete_clash(clash_name: str) -> dict[str, str]:
     """Delete a clash record."""
-    frappe.delete_doc("BIM Clash", clash_name, ignore_permissions=True)
+    if hasattr(frappe, "has_permission") and not frappe.has_permission("BIM Clash", "delete"):
+        frappe.throw(_("Not permitted to delete BIM Clash records"), frappe.PermissionError)
+
+    doc = frappe.get_doc("BIM Clash", clash_name)
+    if hasattr(doc, "check_permission"):
+        doc.check_permission("delete")
+
+    frappe.delete_doc("BIM Clash", clash_name)
     frappe.db.commit()
     return {"deleted": clash_name}

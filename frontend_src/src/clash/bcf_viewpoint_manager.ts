@@ -24,9 +24,11 @@ export class BCFViewpointManager {
     const cam = this.camera;
     const ctrl = this.controls;
     const target = ctrl ? ctrl.target : new this.THREE.Vector3(0, 0, 0);
+    const dir = new this.THREE.Vector3().subVectors(target, cam.position).normalize();
 
     return {
       camera_position: [cam.position.x, cam.position.y, cam.position.z],
+      camera_direction: [dir.x, dir.y, dir.z],
       camera_target: [target.x, target.y, target.z],
       camera_up: [cam.up.x, cam.up.y, cam.up.z],
       selected_elements: selectedGuids,

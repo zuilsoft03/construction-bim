@@ -192,12 +192,23 @@ def get_model_quantity_summary(model: str) -> dict[str, Any]:
             0.0
         )
 
-        # Concrete categorization
-        is_concrete = any(k in etype for k in ["WALL", "SLAB", "COLUMN", "BEAM", "FOOTING", "PILE", "STAIR"])
-        is_steel = any(k in etype for k in ["MEMBER", "PLATE"]) or (disc == "structure" and not is_concrete)
+        # Material indication from properties or material attribute
+        mat_str = (props.get("material") or props.get("Material") or "").upper()
+
+        # Steel check (check material or specific steel types)
+        has_steel_mat = "STEEL" in mat_str or "TERAS" in mat_str or "TERÄS" in mat_str
+        has_conc_mat = "CONCRETE" in mat_str or "BETON" in mat_str
+
         is_rebar = any(k in etype for k in ["REINFORCING", "REBAR"])
         is_duct = any(k in etype for k in ["DUCT", "AIRTERMINAL"])
         is_pipe = any(k in etype for k in ["PIPE", "VALVE", "PUMP"])
+
+        if has_steel_mat and not has_conc_mat:
+            is_steel = True
+            is_concrete = False
+        else:
+            is_concrete = any(k in etype for k in ["WALL", "SLAB", "COLUMN", "BEAM", "FOOTING", "PILE", "STAIR"]) and not has_steel_mat
+            is_steel = any(k in etype for k in ["MEMBER", "PLATE"]) or (disc == "structure" and not is_concrete and not is_rebar and not is_duct and not is_pipe)
 
         # Fallback estimations based on bounding box or typical dimensions if explicit IFC quantity is missing
         if is_concrete and vol <= 0.0 and area > 0.0:
@@ -370,8 +381,6 @@ def preview_bom_generation(
         "total_cost": round(total_rm_cost, 2),
         "quantity_summary": summary,
     }
-
-
 @frappe.whitelist()
 def generate_or_update_bom(
     model: str,
@@ -390,6 +399,9 @@ def generate_or_update_bom(
     Creates BOM lines, sets item pricing and waste factors, records traceability
     in BIM BOQ Link, and returns full calculation details.
     """
+    if hasattr(frappe, "has_permission") and not frappe.has_permission("BOM", "create"):
+        frappe.throw(_("Not permitted to create or modify BOM records"), frappe.PermissionError)
+
     # 1. Validate inputs and calculate preview lines
     preview = preview_bom_generation(
         model=model,
@@ -566,7 +578,7 @@ def _create_boq_traceability_links(model: str, bom_name: str, calculated_items: 
         # Find matching item code
         matched_item = None
         for item in calculated_items:
-            cat = item.get("category", "").upper()
+            cat = (item.get("category") or "").upper()
             if ("CONCRETE" in cat and any(k in etype for k in ["WALL", "SLAB", "COLUMN", "BEAM"])) or \
                ("STEEL" in cat and any(k in etype for k in ["MEMBER", "PLATE", "COLUMN", "BEAM"])) or \
                ("DUCT" in cat and "DUCT" in etype) or \

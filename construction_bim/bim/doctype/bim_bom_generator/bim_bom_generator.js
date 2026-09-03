@@ -82,7 +82,7 @@ function show_bom_preview_dialog(data) {
 				<td>${frappe.utils.escape_html(it.item_code || "")}</td>
 				<td class="text-right">${it.raw_quantity}</td>
 				<td class="text-right">${it.waste_pct}%</td>
-				<td class="text-right"><b>${it.qty}</b> ${it.uom}</td>
+				<td class="text-right"><b>${it.qty}</b> ${frappe.utils.escape_html(it.uom || "")}</td>
 				<td class="text-right">${format_currency(it.rate)}</td>
 				<td class="text-right"><b>${format_currency(it.amount)}</b></td>
 			</tr>

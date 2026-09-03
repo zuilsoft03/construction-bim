@@ -1,4 +1,4 @@
-﻿frappe.pages['bim-viewer'].on_page_load = function (wrapper) {
+frappe.pages['bim-viewer'].on_page_load = function (wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: 'BIM Viewer',
@@ -61,6 +61,9 @@
 		.then(function () {
 			var st = document.getElementById('bim-status');
 			if (st) st.textContent = 'Ready — BIM Viewer & In-Viewer Clash Engine loaded (' + new Date().toLocaleTimeString() + ')';
+			if (window.BIMViewerApp && window.BIMViewerApp.handleRouteParams) {
+				window.BIMViewerApp.handleRouteParams();
+			}
 		})
 		.catch(function (e) {
 			console.error('bim_viewer bundle failed to load', e);
@@ -70,4 +73,10 @@
 				indicator: 'red',
 			});
 		});
+};
+
+frappe.pages['bim-viewer'].on_page_show = function () {
+	if (window.BIMViewerApp && window.BIMViewerApp.handleRouteParams) {
+		window.BIMViewerApp.handleRouteParams();
+	}
 };

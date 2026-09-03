@@ -1,4 +1,4 @@
-﻿// Direct web-ifc -> three.js builder. Loads after web-ifc-api-iife.js (window.WebIFC).
+// Direct web-ifc -> three.js builder. Loads after web-ifc-api-iife.js (window.WebIFC).
 // Exposes window.IFCEngine = { THREE, WebIFC, buildIfcScene, OrbitControls, MeshBVH, computeBoundsTree, disposeBoundsTree, acceleratedRaycast, detectClashes, generateBcfViewpoint, createCentroidMarker, createIntersectionBoxHelper }
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -184,19 +184,19 @@ function detectClashes(sourceA, sourceB, options = {}) {
     sourceB.traverse(o => { if (o.isMesh) meshesB.push(o); });
   }
 
-  // Pre-calculate world bounding boxes for broadphase
+  // Pre-calculate world bounding boxes for broadphase and metrics
   const aabbsA = meshesA.map(m => {
     if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
     const box = m.geometry.boundingBox.clone().applyMatrix4(m.matrixWorld);
-    if (tolerance > 0) box.expandByScalar(tolerance);
-    return box;
+    const padded = tolerance > 0 ? box.clone().expandByScalar(tolerance) : box;
+    return { box, padded };
   });
 
   const aabbsB = meshesB.map(m => {
     if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
     const box = m.geometry.boundingBox.clone().applyMatrix4(m.matrixWorld);
-    if (tolerance > 0) box.expandByScalar(tolerance);
-    return box;
+    const padded = tolerance > 0 ? box.clone().expandByScalar(tolerance) : box;
+    return { box, padded };
   });
 
   const clashes = [];
@@ -205,15 +205,15 @@ function detectClashes(sourceA, sourceB, options = {}) {
 
   for (let i = 0; i < meshesA.length; i++) {
     const meshA = meshesA[i];
-    const boxA = aabbsA[i];
+    const itemA = aabbsA[i];
 
     for (let j = 0; j < meshesB.length; j++) {
       const meshB = meshesB[j];
-      const boxB = aabbsB[j];
+      const itemB = aabbsB[j];
       broadphaseCount++;
 
-      // Broadphase AABB overlap test
-      if (!boxA.intersectsBox(boxB)) continue;
+      // Broadphase AABB overlap test using padded bounds
+      if (!itemA.padded.intersectsBox(itemB.padded)) continue;
 
       narrowphaseCount++;
       // Ensure BVH tree exists on both geometries
@@ -234,8 +234,8 @@ function detectClashes(sourceA, sourceB, options = {}) {
       const intersects = meshA.geometry.boundsTree.intersectsGeometry(meshB.geometry, matrixToLocal);
 
       if (intersects) {
-        // Calculate intersection bounding box
-        const isectBox = boxA.clone().intersect(boxB);
+        // Calculate intersection bounding box from unexpanded raw boxes
+        const isectBox = itemA.box.clone().intersect(itemB.box);
         const centroid = isectBox.getCenter(new THREE.Vector3());
         const size = isectBox.getSize(new THREE.Vector3());
         const volume = size.x * size.y * size.z;

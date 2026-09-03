@@ -1,14 +1,18 @@
-﻿"""Bundle extracted page app code and webifc core into public/js/*.bundle.js via esbuild."""
+"""Bundle extracted page app code and webifc core into public/js/*.bundle.js via esbuild."""
 import pathlib
 import re
 import subprocess
 import sys
 import shutil
 
+import os
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "frontend_src"
 
-NODE_BIN = shutil.which("node") or r"C:\Users\gavie\AppData\Local\hermes\node\node.exe"
+NODE_BIN = os.environ.get("NODE_BIN") or shutil.which("node")
+if not NODE_BIN:
+    raise SystemExit("node not found on PATH; install Node.js or set NODE_BIN")
 PAGES = ["bim_viewer", "pdf_takeoff"]
 
 

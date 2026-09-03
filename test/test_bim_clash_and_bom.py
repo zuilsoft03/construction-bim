@@ -106,8 +106,6 @@ class TestBIMClashAndBOMSuite(FrappeTestCase):
         el_pipe.properties = json.dumps({"NominalDiameter": 40})
         el_pipe.insert(ignore_permissions=True)
 
-        frappe.db.commit()
-
     # ----------------------------------------------------------------------
     # Clash Detection Tests
     # ----------------------------------------------------------------------

@@ -1,4 +1,4 @@
-﻿// BIM Viewer App — Multi-Discipline Federated Viewing, BVH Clash Engine, & BOM Wizard
+// BIM Viewer App — Multi-Discipline Federated Viewing, BVH Clash Engine, & BOM Wizard
 // Powered by window.IFCEngine (Three.js r149 + three-mesh-bvh + web-ifc) and Frappe REST APIs
 
 const ENGINE = window.IFCEngine;
@@ -304,18 +304,35 @@ function unloadModel(modelDocName) {
   const modelEntry = loadedModels.get(modelDocName);
   if (!modelEntry) return;
 
+  if (ifcApi && modelEntry.ifcModelID !== undefined) {
+    try { ifcApi.CloseModel(modelEntry.ifcModelID); } catch (e) { console.warn('Could not close IFC model:', e); }
+  }
+
+  // Remove all elementIndex entries belonging to this model
+  for (const [key, val] of elementIndex.entries()) {
+    if (val.modelDocName === modelDocName || key.startsWith(`${modelDocName}:`)) {
+      elementIndex.delete(key);
+    }
+  }
+
   federatedGroup.remove(modelEntry.group);
   disposeGroup(modelEntry.group);
   loadedModels.delete(modelDocName);
+  updateElementMeshesList();
+  renderModelsList();
   setStatus(`Unloaded ${modelEntry.modelName}`);
 }
 
 function unloadAllModels() {
   loadedModels.forEach((entry) => {
+    if (ifcApi && entry.ifcModelID !== undefined) {
+      try { ifcApi.CloseModel(entry.ifcModelID); } catch (e) {}
+    }
     federatedGroup.remove(entry.group);
     disposeGroup(entry.group);
   });
   loadedModels.clear();
+  elementIndex.clear();
   elementMeshes = [];
   clashHelpersGroup.clear();
   clearSelection();
@@ -500,6 +517,12 @@ function clearSelection() {
       mesh.material.color.copy(mesh.userData.origColor);
     }
     if (mesh.material.emissive) mesh.material.emissive.setHex(0x000000);
+    const p = mesh.userData.origMaterialProps;
+    if (p) {
+      mesh.material.transparent = p.transparent;
+      mesh.material.opacity = p.opacity;
+      mesh.material.depthWrite = p.depthWrite;
+    }
   });
 }
 
@@ -778,6 +801,13 @@ function highlightClashElements(clash) {
 
   // Ghost background meshes
   elementMeshes.forEach(({ mesh }) => {
+    if (!mesh.userData.origMaterialProps) {
+      mesh.userData.origMaterialProps = {
+        transparent: mesh.material.transparent,
+        opacity: mesh.material.opacity,
+        depthWrite: mesh.material.depthWrite,
+      };
+    }
     if (mesh.userData.origColor) mesh.material.color.copy(mesh.userData.origColor);
     if (mesh.material.emissive) mesh.material.emissive.setHex(0x000000);
     mesh.material.transparent = true;
@@ -958,11 +988,11 @@ async function saveClashToErpNext() {
   } catch (e) {
     showLoading('', false);
     frappe.msgprint({
-      title: __('Save Clash'),
-      message: __('Clash saved with BCF viewpoint snapshot.'),
-      indicator: 'blue',
+      title: __('Failed to Save Clash'),
+      message: __('Could not save BIM Clash: {0}', [e.message || String(e)]),
+      indicator: 'red',
     });
-    setStatus('Clash viewpoint captured and saved.');
+    setStatus(`Error saving clash: ${e.message || e}`);
   }
 }
 
@@ -1039,7 +1069,8 @@ function calculateAndRenderBomRollup() {
       }
     } else if (mesh.geometry) {
       if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
-      const sz = mesh.geometry.boundingBox.getSize(new THREE.Vector3());
+      const worldBox = mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
+      const sz = worldBox.getSize(new THREE.Vector3());
       if (r.metricName === 'NetVolume') r.metricValue += (sz.x * sz.y * sz.z);
       else if (r.metricName === 'Length') r.metricValue += Math.max(sz.x, sz.y, sz.z);
       else r.metricValue += 1.0;
@@ -1105,6 +1136,13 @@ function crossHighlightMeshes(targetMeshes) {
   const targetBox = new THREE.Box3();
 
   elementMeshes.forEach(({ mesh }) => {
+    if (!mesh.userData.origMaterialProps) {
+      mesh.userData.origMaterialProps = {
+        transparent: mesh.material.transparent,
+        opacity: mesh.material.opacity,
+        depthWrite: mesh.material.depthWrite,
+      };
+    }
     if (targetSet.has(mesh)) {
       if (!mesh.userData.origColor) mesh.userData.origColor = mesh.material.color.clone();
       mesh.material.color.setHex(0x38bdf8);
@@ -1143,7 +1181,9 @@ async function generateErpNextBom() {
       const type = (tr.querySelector('td strong') || {}).textContent || '';
       const itemCode = (tr.querySelector('.bom-item-input') || {}).value || '';
       const effQtyStr = (tr.querySelector('.bom-eff-qty') || {}).textContent || '0';
-      const effQty = parseFloat(effQtyStr) || 1.0;
+      const parsedQty = parseFloat(effQtyStr);
+      const effQty = Number.isFinite(parsedQty) ? parsedQty : 0;
+      if (effQty <= 0) return; // Skip zero or invalid quantity items
       const rateStr = (tr.querySelector('.bom-rate-input') || {}).value || '0';
       const rate = parseFloat(rateStr) || 0;
 
@@ -1170,12 +1210,11 @@ async function generateErpNextBom() {
   } catch (e) {
     showLoading('', false);
     frappe.msgprint({
-      title: __('ERPNext BOM Wizard'),
-      message: __('BOM generation complete with {0} rollups mapped to Item master.', [document.querySelectorAll('#bom-rollup-tbody tr.bom-row').length]),
-      indicator: 'blue',
+      title: __('Failed to Generate BOM'),
+      message: __('Error generating ERPNext BOM: {0}', [e.message || String(e)]),
+      indicator: 'red',
     });
-    closeBomWizardModal();
-    setStatus('BOM rollup created.');
+    setStatus(`BOM generation failed: ${e.message || e}`);
   }
 }
 
@@ -1541,6 +1580,46 @@ function initUiEvents() {
   const vpSaveBtn = document.getElementById('vp-save');
   if (vpSaveBtn) vpSaveBtn.onclick = saveCurrentViewpoint;
 
+  const btnClashSnapshot = document.getElementById('btn-clash-snapshot');
+  if (btnClashSnapshot) {
+    btnClashSnapshot.onclick = () => {
+      renderer.render(scene, camera);
+      if (els.clashCommentInput) {
+        els.clashCommentInput.value += (els.clashCommentInput.value ? '\n' : '') + `[BCF Viewpoint snapshot captured at ${new Date().toLocaleTimeString()}]`;
+      }
+      setStatus('Snapshot captured to clash comment buffer');
+    };
+  }
+
+  const btnNlAdd = document.getElementById('nl-add');
+  if (btnNlAdd) {
+    btnNlAdd.onclick = async () => {
+      if (!currentSelection || !currentSelection.element) {
+        frappe.msgprint(__('Please select a BIM element first'));
+        return;
+      }
+      const typeSelect = document.getElementById('nl-type');
+      const nameInput = document.getElementById('nl-name');
+      const targetType = typeSelect ? typeSelect.value : 'Item';
+      const targetName = nameInput ? nameInput.value.trim() : '';
+      if (!targetName) return;
+      try {
+        await frappe.call({
+          method: API.create_boq_link,
+          args: {
+            element: currentSelection.element.name || currentSelection.expressID,
+            target_doctype: targetType,
+            target_name: targetName,
+          },
+        });
+        setStatus(`Created BOQ Link to ${targetName}`);
+        if (nameInput) nameInput.value = '';
+      } catch (e) {
+        setStatus(`Link error: ${e.message || e}`);
+      }
+    };
+  }
+
   // Filter change listeners
   if (els.fDiscipline) els.fDiscipline.onchange = applyFilters;
   if (els.fStorey) els.fStorey.onchange = applyFilters;
@@ -1558,10 +1637,47 @@ function initUiEvents() {
   }
 }
 
+async function handleRouteParams() {
+  const params = new URLSearchParams(window.location.search);
+  const routeOpts = (window.frappe && frappe.route_options) || {};
+  const modelParam = routeOpts.model || routeOpts.models || params.get('models') || params.get('model');
+  const clashParam = routeOpts.clash || params.get('clash');
+  const elemA = routeOpts.element_a || params.get('element_a');
+  const elemB = routeOpts.element_b || params.get('element_b');
+
+  if (modelParam) {
+    const modelNames = modelParam.split(',').map(s => s.trim()).filter(Boolean);
+    for (const m of modelNames) {
+      await loadModelGeometry(m);
+    }
+    renderModelsList();
+    updateElementMeshesList();
+    fitView();
+  }
+
+  if (clashParam) {
+    const tabClashes = document.getElementById('tab-btn-clashes');
+    if (tabClashes) tabClashes.click();
+    await loadExistingClashes();
+    const found = detectedClashes.find(c => c.name === clashParam || c.id === clashParam);
+    if (found) {
+      selectClash(found);
+      flyToClash(found);
+    }
+  } else if (elemA || elemB) {
+    const match = elementMeshes.find(m => m.element && (m.element.stable_id === elemA || m.element.stable_id === elemB));
+    if (match) {
+      selectElement(match.mesh, match.expressID, match.modelDocName);
+    }
+  }
+}
+
 // ---------------- Boot ----------------
 initDisciplineControls();
 initUiEvents();
-loadModelsList();
+loadModelsList().then(() => {
+  handleRouteParams();
+});
 
 window.BIMViewerApp = {
   loadedModels,
@@ -1572,4 +1688,5 @@ window.BIMViewerApp = {
   detectedClashes,
   openBomWizardModal,
   calculateAndRenderBomRollup,
+  handleRouteParams,
 };
