@@ -1,4 +1,4 @@
-﻿// Project Studio Frontend Application (OpenProject BIM Parity)
+// Project Studio Frontend Application (OpenProject BIM Parity)
 // Manages All Projects Hub, Project Home, Work Packages, Boards, BCF, Documents, Settings
 
 class ProjectStudioApp {
@@ -170,6 +170,19 @@ class ProjectStudioApp {
 			self.openFileUploadDialog();
 		});
 
+		// Standalone CAD & PDF buttons
+		$('#btn-open-dwg-fullscreen').on('click', function () {
+			window.open(`/app/dwg-viewer?project=${encodeURIComponent(self.currentProject)}`, '_blank');
+		});
+		$('#btn-open-pdf-fullscreen').on('click', function () {
+			window.open(`/app/pdf-takeoff?project=${encodeURIComponent(self.currentProject)}`, '_blank');
+		});
+
+		// Schedule meeting button
+		$('#btn-schedule-meeting').on('click', function () {
+			self.openScheduleMeetingDialog();
+		});
+
 		// Project settings save
 		$('#btn-save-project-settings').on('click', function () {
 			self.saveProjectSettings();
@@ -256,10 +269,18 @@ class ProjectStudioApp {
 			this.renderWorkPackages();
 		} else if (tabKey === 'boards') {
 			this.renderKanbanBoard();
+		} else if (tabKey === 'gantt') {
+			this.renderGanttChart();
 		} else if (tabKey === 'bcf') {
 			this.renderBcfViewer();
+		} else if (tabKey === 'cad') {
+			$('#iframe-dwg-viewer').attr('src', `/app/dwg-viewer?project=${encodeURIComponent(this.currentProject)}`);
+		} else if (tabKey === 'pdf') {
+			$('#iframe-pdf-viewer').attr('src', `/app/pdf-takeoff?project=${encodeURIComponent(this.currentProject)}`);
 		} else if (tabKey === 'documents') {
 			this.renderDocumentsTree();
+		} else if (tabKey === 'meetings') {
+			this.renderMeetingsTab();
 		} else if (tabKey === 'members') {
 			this.renderMembersTable();
 		} else if (tabKey === 'settings') {
@@ -635,6 +656,87 @@ class ProjectStudioApp {
 	}
 
 	// -------------------------------------------------------------------------
+	// TAB 4: GANTT SCHEDULE TIMELINE
+	// -------------------------------------------------------------------------
+	renderGanttChart() {
+		const self = this;
+		frappe.call({
+			method: 'construction_bim.api.project_studio.list_work_packages',
+			args: { project: self.currentProject, filter_key: 'all_open' }
+		}).then(r => {
+			const items = r.message || [];
+			const $target = $('#frappe-gantt-target');
+			$target.empty();
+
+			if (items.length === 0) {
+				$target.html('<div class="text-muted text-center p-4">No scheduled work packages found for Gantt chart.</div>');
+				return;
+			}
+
+			// Format tasks for Gantt
+			const nowStr = (frappe.datetime && frappe.datetime.get_today) ? frappe.datetime.get_today() : new Date().toISOString().split('T')[0];
+			const ganttTasks = items.map(it => {
+				const start = it.exp_start_date || nowStr;
+				const end = it.exp_end_date || ((frappe.datetime && frappe.datetime.add_days) ? frappe.datetime.add_days(start, 7) : start);
+				return {
+					id: it.id,
+					name: `[${it.type}] ${it.subject}`,
+					start: start,
+					end: end,
+					progress: it.progress || 0,
+					custom_class: `bar-${it.type.toLowerCase()}`
+				};
+			});
+
+			if (window.Gantt) {
+				try {
+					new window.Gantt('#frappe-gantt-target', ganttTasks, {
+						view_modes: ['Quarter Day', 'Half Day', 'Day', 'Week', 'Month'],
+						view_mode: 'Day',
+						date_format: 'YYYY-MM-DD',
+						on_click: (task) => {
+							const wp = items.find(i => i.id === task.id);
+							if (wp) self.openWorkPackageInspector(wp);
+						}
+					});
+					return;
+				} catch (e) {
+					console.warn('Frappe Gantt instantiation failed, rendering custom timeline fallback', e);
+				}
+			}
+
+			// Custom Interactive Timeline Visualization Fallback
+			let html = '<div class="custom-gantt-table table-responsive"><table class="table table-bordered table-condensed"><thead><tr><th width="30%">Work Package</th><th width="15%">Start Date</th><th width="15%">Due Date</th><th width="40%">Timeline Progress</th></tr></thead><tbody>';
+			items.forEach(it => {
+				const pillCls = `wp-pill-${(it.type || 'task').toLowerCase()}`;
+				const progress = Math.min(100, Math.max(0, it.progress || (it.status === 'Completed' ? 100 : 25)));
+				html += `
+					<tr class="wp-gantt-row" data-id="${it.id}" style="cursor: pointer;">
+						<td><span class="wp-pill ${pillCls}">${it.type}</span> <strong>${it.subject}</strong></td>
+						<td><small>${it.exp_start_date || '--'}</small></td>
+						<td><small>${it.exp_end_date || '--'}</small></td>
+						<td>
+							<div class="progress" style="margin: 0; height: 18px; border-radius: 9px; background: #e2e8f0;">
+								<div class="progress-bar progress-bar-striped" role="progressbar" style="width: ${progress}%; background: #0284c7;">
+									${progress}%
+								</div>
+							</div>
+						</td>
+					</tr>
+				`;
+			});
+			html += '</tbody></table></div>';
+			$target.html(html);
+
+			$target.find('.wp-gantt-row').on('click', function () {
+				const id = $(this).data('id');
+				const wp = items.find(i => i.id === id);
+				if (wp) self.openWorkPackageInspector(wp);
+			});
+		});
+	}
+
+	// -------------------------------------------------------------------------
 	// TAB 5: BCF 2-PANE COORDINATION VIEWER (Screenshot 4)
 	// -------------------------------------------------------------------------
 	renderBcfViewer() {
@@ -756,6 +858,94 @@ class ProjectStudioApp {
 	}
 
 	// -------------------------------------------------------------------------
+	// TAB 9: MEETINGS & TOOLBOX TALKS
+	// -------------------------------------------------------------------------
+	renderMeetingsTab() {
+		const self = this;
+		const data = this.projectOverviewData || {};
+		const meetings = data.meetings || [];
+		const $cont = $('#meetings-tab-container');
+		$cont.empty();
+
+		if (meetings.length === 0) {
+			$cont.html('<div class="text-muted text-center p-4">No coordination meetings or toolbox talks logged yet. Click <strong>New Meeting</strong> above to create one.</div>');
+			return;
+		}
+
+		meetings.forEach(m => {
+			$cont.append(`
+				<div class="meeting-card p-3 mb-3" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+					<div class="flex-between">
+						<div>
+							<span class="badge ${m.type === 'Toolbox Talk' ? 'badge-warning' : 'badge-primary'}">${m.type}</span>
+							<h4 class="mt-1 mb-1 font-weight-bold">${m.title}</h4>
+							<small class="text-muted"><i class="fa fa-calendar"></i> ${m.date} &nbsp;|&nbsp; <i class="fa fa-user"></i> Conductor: ${m.host || 'Site Coordinator'} &nbsp;|&nbsp; <i class="fa fa-users"></i> Attendees: ${m.participants || 0}</small>
+						</div>
+						<button class="btn btn-default btn-xs btn-view-meeting-doc" data-doctype="${m.type}" data-name="${m.name}"><i class="fa fa-eye"></i> View Doc</button>
+					</div>
+				</div>
+			`);
+		});
+
+		$cont.find('.btn-view-meeting-doc').on('click', function () {
+			const dt = $(this).data('doctype');
+			const nm = $(this).data('name');
+			frappe.set_route('Form', dt, nm);
+		});
+	}
+
+	openScheduleMeetingDialog() {
+		const self = this;
+		const d = new frappe.ui.Dialog({
+			title: __('Schedule Coordination Meeting or Safety Briefing'),
+			fields: [
+				{ fieldname: 'meeting_type', label: __('Type'), fieldtype: 'Select', options: 'Toolbox Talk\nCoordination Meeting', default: 'Toolbox Talk' },
+				{ fieldname: 'subject', label: __('Topic / Subject'), fieldtype: 'Data', reqd: 1 },
+				{ fieldname: 'date', label: __('Date'), fieldtype: 'Date', default: (frappe.datetime && frappe.datetime.get_today) ? frappe.datetime.get_today() : new Date().toISOString().split('T')[0] },
+				{ fieldname: 'conductor', label: __('Conductor / Host'), fieldtype: 'Data' }
+			],
+			primary_action_label: __('Create Meeting'),
+			primary_action(values) {
+				if (values.meeting_type === 'Toolbox Talk') {
+					frappe.call({
+						method: 'frappe.client.insert',
+						args: {
+							doc: {
+								doctype: 'Toolbox Talk',
+								project: self.currentProject,
+								topic_category: values.subject,
+								date: values.date,
+								conductor_name: values.conductor || frappe.session.user
+							}
+						}
+					}).then(() => {
+						d.hide();
+						frappe.show_alert({ message: __('Toolbox talk scheduled.'), indicator: 'green' });
+						self.loadProjectData(self.currentProject);
+					});
+				} else {
+					frappe.call({
+						method: 'frappe.client.insert',
+						args: {
+							doc: {
+								doctype: 'Event',
+								subject: values.subject,
+								starts_on: values.date + ' 09:00:00',
+								event_type: 'Private'
+							}
+						}
+					}).then(() => {
+						d.hide();
+						frappe.show_alert({ message: __('Meeting created.'), indicator: 'green' });
+						self.loadProjectData(self.currentProject);
+					});
+				}
+			}
+		});
+		d.show();
+	}
+
+	// -------------------------------------------------------------------------
 	// TAB 10: MEMBERS
 	// -------------------------------------------------------------------------
 	renderMembersTable() {
@@ -805,6 +995,41 @@ class ProjectStudioApp {
 		}).then(() => {
 			frappe.show_alert({ message: __('Project settings saved successfully.'), indicator: 'green' });
 			self.loadProjectsList();
+		});
+	}
+
+	toggleArchiveProject() {
+		const self = this;
+		const proj = this.allProjects.find(p => p.name === this.currentProject);
+		const currentActive = proj ? proj.is_active : 'Yes';
+		const nextActive = currentActive === 'Yes' ? 'No' : 'Yes';
+		const actionWord = nextActive === 'No' ? __('Archive') : __('Restore');
+
+		frappe.confirm(__('Are you sure you want to {0} this project?', [actionWord.toLowerCase()]), () => {
+			self.updateProjectSettingsField(self.currentProject, { is_active: nextActive }).then(() => {
+				frappe.show_alert({ message: __('Project {0}d successfully.', [actionWord.toLowerCase()]), indicator: 'orange' });
+				self.loadProjectsList().then(() => {
+					self.switchTab('all-projects');
+				});
+			});
+		});
+	}
+
+	confirmDeleteProject() {
+		const self = this;
+		frappe.confirm(__('⚠️ Are you sure you want to PERMANENTLY DELETE {0}? This cannot be undone.', [self.currentProject]), () => {
+			frappe.call({
+				method: 'frappe.client.delete',
+				args: {
+					doctype: 'Project',
+					name: self.currentProject
+				}
+			}).then(() => {
+				frappe.show_alert({ message: __('Project deleted.'), indicator: 'red' });
+				self.loadProjectsList().then(() => {
+					self.switchTab('all-projects');
+				});
+			});
 		});
 	}
 
