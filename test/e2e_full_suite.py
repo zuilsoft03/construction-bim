@@ -185,13 +185,23 @@ def run_full_suite() -> int:
     print("-" * 80)
     print(" TIER 4 REAL-WORLD APPLICATION SCENARIOS (Nordic LCA Datasets)")
     print("-" * 80)
+    failed_tests = [getattr(tc, "id", lambda: str(tc))() for tc, _ in result.failures + result.errors]
     skipped_tests = [getattr(tc, "id", lambda: str(tc))() for tc, _ in getattr(result, "skipped", [])]
+    executed_scenarios = [m for m in dir(TestRealWorldScenarios) if m.startswith("test_scenario_")]
+
     for sid in range(1, 6):
         skey = f"S{sid}"
         name = FEATURE_DESCRIPTIONS.get(skey, "Scenario")
-        if any(skey.lower() in st.lower() for st in skipped_tests):
+        pattern = f"scenario_{sid}"
+        scenario_executed = any(pattern in m.lower() for m in executed_scenarios)
+        is_skipped = any(pattern in st.lower() for st in skipped_tests)
+        is_failed = any(pattern in ft.lower() for ft in failed_tests)
+
+        if is_failed:
+            s_status = "[ FAIL ]"
+        elif is_skipped:
             s_status = "[ SKIP ]"
-        elif result.wasSuccessful() and tier_counts["Tier 4"] >= 5:
+        elif scenario_executed and not has_errors:
             s_status = "[ PASS ]"
         else:
             s_status = "[ FAIL ]"
@@ -199,12 +209,19 @@ def run_full_suite() -> int:
 
     print("=" * 80)
 
-    if result.wasSuccessful() and skipped_count == 0:
+    all_thresholds_met = (
+        tier_counts["Tier 1"] >= 65 and
+        tier_counts["Tier 2"] >= 65 and
+        tier_counts["Tier 3"] >= 13 and
+        tier_counts["Tier 4"] >= 5
+    )
+
+    if result.wasSuccessful() and skipped_count == 0 and all_thresholds_met:
         print(" OVERALL RESULT: [ 100% PASS ] - ALL 4 TIERS FULLY VERIFIED")
         print("=" * 80)
         return 0
-    elif result.wasSuccessful() and skipped_count > 0:
-        print(f" OVERALL RESULT: [ PARTIAL PASS ] - {skipped_count} Tests Skipped, 0 Failures")
+    elif result.wasSuccessful() and (skipped_count > 0 or not all_thresholds_met):
+        print(f" OVERALL RESULT: [ PARTIAL PASS ] - {skipped_count} Tests Skipped, Thresholds Met: {all_thresholds_met}")
         print("=" * 80)
         return 0
     else:

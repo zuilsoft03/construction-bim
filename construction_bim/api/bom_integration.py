@@ -406,8 +406,11 @@ def generate_or_update_bom(
     elif hasattr(frappe, "has_permission") and not frappe.has_permission("BOM", "create"):
         frappe.throw(_("Not permitted to create BOM records"), frappe.PermissionError)
 
-    if hasattr(frappe, "has_permission") and not (frappe.has_permission("Item", "write") or frappe.has_permission("Item", "create")):
-        frappe.throw(_("Not permitted to manage Item master data for BOM generation"), frappe.PermissionError)
+    # Validate specific create permissions for master data DocTypes
+    if hasattr(frappe, "has_permission"):
+        for dt in ("Item", "UOM", "Item Group", "BIM BOQ Link"):
+            if not frappe.has_permission(dt, "create"):
+                frappe.throw(_("Not permitted to create {0} records required for BOM generation").format(dt), frappe.PermissionError)
 
     # 1. Validate inputs and calculate preview lines
     preview = preview_bom_generation(
@@ -448,6 +451,10 @@ def generate_or_update_bom(
     # 4. Create or Update BOM Document
     if existing_bom and frappe.db.exists("BOM", existing_bom):
         bom_doc = frappe.get_doc("BOM", existing_bom)
+        if hasattr(bom_doc, "check_permission"):
+            bom_doc.check_permission("write")
+        elif hasattr(frappe, "has_permission") and not frappe.has_permission("BOM", "write", doc=bom_doc):
+            frappe.throw(_("Not permitted to modify BOM {0}").format(existing_bom), frappe.PermissionError)
         if bom_doc.docstatus != 0:
             frappe.throw(_("Cannot update submitted or cancelled BOM {0}").format(existing_bom))
         bom_doc.items = []
@@ -479,8 +486,11 @@ def generate_or_update_bom(
 
     bom_doc.raw_material_cost = round(total_rm_cost, 2)
     bom_doc.total_cost = round(total_rm_cost, 2)
-    bom_doc.flags.ignore_permissions = True
-    bom_doc.save()
+    if existing_bom:
+        bom_doc.save()
+    else:
+        bom_doc.flags.ignore_permissions = True
+        bom_doc.save()
 
     # 5. Traceability: Record BIM BOQ Link entries
     links_created = _create_boq_traceability_links(model, bom_doc.name, items_to_add)
@@ -527,6 +537,8 @@ def _resolve_mapping_rules(mapping_rules: Any) -> list[dict[str, Any]]:
 def _ensure_uom_exists(uom_name: str) -> None:
     """Ensure standard UOM exists in ERPNext."""
     if not frappe.db.exists("UOM", uom_name):
+        if hasattr(frappe, "has_permission") and not frappe.has_permission("UOM", "create"):
+            frappe.throw(_("Not permitted to create UOM {0}").format(uom_name), frappe.PermissionError)
         uom = frappe.new_doc("UOM")
         uom.uom_name = uom_name
         uom.insert(ignore_permissions=True)
@@ -544,6 +556,8 @@ def _ensure_item_exists(
     if not frappe.db.exists("Item", item_code):
         # Ensure Item Group exists
         if not frappe.db.exists("Item Group", item_group):
+            if hasattr(frappe, "has_permission") and not frappe.has_permission("Item Group", "create"):
+                frappe.throw(_("Not permitted to create Item Group {0}").format(item_group), frappe.PermissionError)
             ig = frappe.new_doc("Item Group")
             ig.item_group_name = item_group
             ig.is_group = 0
@@ -551,6 +565,8 @@ def _ensure_item_exists(
 
         _ensure_uom_exists(default_uom)
 
+        if hasattr(frappe, "has_permission") and not frappe.has_permission("Item", "create"):
+            frappe.throw(_("Not permitted to create Item {0}").format(item_code), frappe.PermissionError)
         item = frappe.new_doc("Item")
         item.item_code = item_code
         item.item_name = item_name or item_code
@@ -566,6 +582,8 @@ def _ensure_default_company() -> str:
     """Create a default company if none exists."""
     company_name = "Default Construction Company"
     if not frappe.db.exists("Company", company_name):
+        if hasattr(frappe, "has_permission") and not frappe.has_permission("Company", "create"):
+            frappe.throw(_("Not permitted to create Company records"), frappe.PermissionError)
         c = frappe.new_doc("Company")
         c.company_name = company_name
         c.default_currency = "USD"
@@ -605,6 +623,8 @@ def _create_boq_traceability_links(model: str, bom_name: str, calculated_items: 
                 "boq_reference_type": "Item",
                 "boq_reference_name": matched_item,
             }):
+                if hasattr(frappe, "has_permission") and not frappe.has_permission("BIM BOQ Link", "create"):
+                    continue
                 link = frappe.new_doc("BIM BOQ Link")
                 link.bim_element = el.name
                 link.boq_reference_type = "Item"
