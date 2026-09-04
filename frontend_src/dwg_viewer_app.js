@@ -35,8 +35,31 @@ export class DWGViewerApp {
     const urlParams = new URLSearchParams(window.location.search);
     const modelParam = urlParams.get("model");
     const issueParam = urlParams.get("issue");
+    const fileParam = urlParams.get("file");
 
     try {
+      if (fileParam) {
+        try {
+          this.showToast(`Loading ${fileParam.split("/").pop()}...`, "info");
+          const ext = fileParam.split(".").pop()?.toLowerCase();
+          if (ext === "dxf") {
+            const textResp = await fetch(fileParam);
+            const content = await textResp.text();
+            const parsed = parseDXFText(content);
+            parsed.model_name = decodeURIComponent(fileParam.split("/").pop() || "CAD Drawing");
+            this.renderer.setDrawing(parsed);
+            this.bcf.activeModelName = parsed.model_name;
+            this.updateLayerUI();
+            this.updateSpacesUI(parsed.spaces);
+            await this.loadIssues();
+            this.showToast(`Loaded ${parsed.model_name} (${parsed.entity_count} entities)`, "success");
+            return;
+          }
+        } catch (fileErr) {
+          console.warn("Could not parse direct file param, falling back to sample drawing:", fileErr);
+        }
+      }
+
       this.showToast("Loading CAD Drawing...", "info");
       const resp = await fetch("/api/method/construction_bim.api.cad.get_sample_cad_drawing");
       const data = await resp.json();

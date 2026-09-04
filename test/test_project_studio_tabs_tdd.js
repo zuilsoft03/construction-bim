@@ -53,9 +53,9 @@ test("Viewport contains all 12 view containers (#view-*)", () => {
 
 // 3. Quick Create
 test("Quick-Create dropdown contains all 7 work package types and project actions", () => {
-	const expectedTypes = ["TASK", "MILESTONE", "PHASE", "ISSUE", "REMARK", "REQUEST", "CLASH"];
+	const expectedTypes = ["Task", "Milestone", "Phase", "Issue", "Remark", "Request", "Clash"];
 	expectedTypes.forEach(type => {
-		const regex = new RegExp(`data-type=[\"']${type}[\"']`, "i");
+		const regex = new RegExp(`data-type=[\"']${type}[\"']`);
 		assert(regex.test(htmlContent), `Quick create dropdown must have data-type="${type}"`);
 	});
 	assert(/data-type=["']project[\"']/i.test(htmlContent), "Quick create dropdown must support project creation");
@@ -66,6 +66,8 @@ test("Quick-Create dropdown contains all 7 work package types and project action
 test("BCF view contains spatial model tree, 3D canvas, and floating drawer", () => {
 	assert(/id=["']bcf-models-tree["']/i.test(htmlContent), "BCF view must contain #bcf-models-tree");
 	assert(/id=[\"']bcf-webgl-container[\"']/i.test(htmlContent), "BCF view must contain #bcf-webgl-container");
+	assert(/id=[\"']iframe-bcf-3d-viewer[\"']/i.test(htmlContent), "BCF view must contain #iframe-bcf-3d-viewer");
+	assert(/id=[\"']btn-bcf-upload-ifc[\"']/i.test(htmlContent), "BCF view must contain #btn-bcf-upload-ifc quick upload button");
 	assert(/id=[\"']bcf-floating-drawer[\"']/i.test(htmlContent), "BCF view must contain #bcf-floating-drawer");
 	assert(/id=[\"']bcf-cards-container[\"']/i.test(htmlContent), "BCF view must contain #bcf-cards-container");
 });
