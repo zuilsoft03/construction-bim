@@ -13,6 +13,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import math
 import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
@@ -415,7 +416,8 @@ if frappe:
         proj_doc = frappe.get_doc("Project", project)
         proj_doc.check_permission("write")
 
-        cat_folder = CATEGORY_DRIVE_FOLDER_MAP.get(category.lower(), "00_Admin")
+        category = category.lower()
+        cat_folder = CATEGORY_DRIVE_FOLDER_MAP.get(category, "00_Admin")
 
         created_records = {}
 
@@ -513,8 +515,7 @@ if frappe:
             est.insert()
             estimate_name = est.name
 
-        if not proj_doc.get("custom_contract_amount") or float(proj_doc.get("custom_contract_amount")) == 0:
-            proj_doc.custom_contract_amount = parsed["total_amount"]
+        if not proj_doc.get("custom_boq_source"):
             proj_doc.custom_boq_source = "Construction Estimate"
             proj_doc.save()
 
@@ -552,7 +553,11 @@ if frappe:
         model_doc = frappe.get_doc("BIM Model", model_name)
         model_doc.check_permission("write")
 
-        offset = {"x": float(offset_x), "y": float(offset_y), "z": float(offset_z)}
+        ox, oy, oz = float(offset_x), float(offset_y), float(offset_z)
+        if not (math.isfinite(ox) and math.isfinite(oy) and math.isfinite(oz)):
+            frappe.throw("Coordinate offsets must be finite numbers (not NaN or Infinity).")
+
+        offset = {"x": ox, "y": oy, "z": oz}
         model_doc.db_set("coordinate_offset", json.dumps(offset))
         frappe.db.commit()
 
