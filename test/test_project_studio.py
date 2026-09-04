@@ -390,6 +390,33 @@ class TestProjectStudio(unittest.TestCase):
         )
         self.assertEqual(settings_res["status"], "success")
 
+    def test_schedule_project_meeting_and_toolbox_talk(self):
+        """Verify scheduling of Toolbox Talk with required fields and Coordination Meeting (Event)."""
+        # Case A: Toolbox Talk
+        res_tbt = project_studio.schedule_project_meeting(
+            project=self.project.name,
+            meeting_type="Toolbox Talk",
+            subject="Scaffolding Fall Protection & Harness Inspection",
+            date="2026-09-04",
+            conductor="Safety Officer Juan"
+        )
+        self.assertEqual(res_tbt["doctype"], "Toolbox Talk")
+        tbt_doc = frappe.get_doc("Toolbox Talk", res_tbt["name"])
+        self.assertEqual(tbt_doc.topic, "Scaffolding Fall Protection & Harness Inspection")
+        self.assertEqual(tbt_doc.conducted_by, "Safety Officer Juan")
+        self.assertEqual(tbt_doc.project, self.project.name)
+
+        # Case B: Coordination Meeting (Event)
+        res_event = project_studio.schedule_project_meeting(
+            project=self.project.name,
+            meeting_type="Coordination Meeting",
+            subject="MEP vs Structural Coordination Grid 4",
+            date="2026-09-05"
+        )
+        self.assertEqual(res_event["doctype"], "Event")
+        ev_doc = frappe.get_doc("Event", res_event["name"])
+        self.assertEqual(ev_doc.subject, "MEP vs Structural Coordination Grid 4")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

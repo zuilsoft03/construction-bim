@@ -17,6 +17,18 @@ def _doctype_exists(doctype):
 	return not frappe.db.exists("DocType", "DocType")
 
 
+def _resolve_project_name(project):
+	"""Resolves a project identifier to its canonical Project document name."""
+	if not project:
+		return project
+	if frappe.db.exists("Project", project):
+		return project
+	alt = frappe.db.get_value("Project", {"project_name": project}, "name")
+	if alt:
+		return alt
+	return project
+
+
 @frappe.whitelist()
 def list_projects(include_archived=0, search_query=None):
 	"""Returns all projects with hierarchical structure, health status, favorites, and storage stats."""
@@ -105,6 +117,7 @@ def list_projects(include_archived=0, search_query=None):
 @frappe.whitelist()
 def get_project_overview(project):
 	"""Returns the 7-widget dashboard metrics matching OpenProject BIM Project Home."""
+	project = _resolve_project_name(project)
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
 
@@ -205,6 +218,7 @@ def get_project_overview(project):
 		for tb in tbts:
 			meetings.append({
 				"type": "Toolbox Talk",
+				"doctype": "Toolbox Talk",
 				"name": tb.name,
 				"title": getattr(tb, "topic", None) or getattr(tb, "topic_category", None) or tb.name,
 				"date": str(tb.date),
@@ -222,7 +236,8 @@ def get_project_overview(project):
 		)
 		for ev in events:
 			meetings.append({
-				"type": "Meeting",
+				"type": "Coordination Meeting",
+				"doctype": "Event",
 				"name": ev.name,
 				"title": ev.subject,
 				"date": str(ev.starts_on).split(" ")[0],
@@ -291,6 +306,7 @@ def get_project_overview(project):
 @frappe.whitelist()
 def list_work_packages(project, filter_key=None, type_filter=None, search=None):
 	"""Returns hierarchical work packages with color-coded type pills, status, assignees, and filters."""
+	project = _resolve_project_name(project)
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
 
@@ -376,6 +392,7 @@ def list_work_packages(project, filter_key=None, type_filter=None, search=None):
 @frappe.whitelist()
 def quick_create_work_package(project, wp_type, subject, description=None, priority="Normal", assignee=None, due_date=None, parent_wp=None):
 	"""Polymorphically creates a work package (Task, Milestone, Phase, Issue, Remark, Request, Clash)."""
+	project = _resolve_project_name(project)
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
 
@@ -524,6 +541,7 @@ def update_work_package_status(task_name, new_column, group_by="status"):
 @frappe.whitelist()
 def get_bcf_coordination_data(project):
 	"""Returns BIM models and BCF topics associated with the project."""
+	project = _resolve_project_name(project)
 	models = []
 	if _doctype_exists("BIM Model"):
 		m_list = frappe.get_all(
@@ -570,6 +588,7 @@ def get_bcf_coordination_data(project):
 @frappe.whitelist()
 def get_project_document_tree(project):
 	"""Returns the 5-folder project taxonomy with auto-launchers for BIM, CAD, and PDF."""
+	project = _resolve_project_name(project)
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
 
@@ -685,6 +704,7 @@ def get_project_document_tree(project):
 @frappe.whitelist()
 def update_project_settings(project, settings_json):
 	"""Updates project properties (health_status, status_narrative, is_template, is_favorite, parent_project)."""
+	project = _resolve_project_name(project)
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
 
@@ -763,6 +783,39 @@ def clone_project_from_template(template_project, new_project_name, client=None,
 		"new_project": new_proj.name,
 		"project_name": new_proj.project_name
 	}
+
+
+@frappe.whitelist()
+def schedule_project_meeting(project, meeting_type, subject, date=None, conductor=None):
+	"""Schedules either a Toolbox Talk or a Frappe Event for the project."""
+	if not frappe.db.exists("Project", project):
+		alt = frappe.db.get_value("Project", {"project_name": project}, "name")
+		if alt:
+			project = alt
+		else:
+			frappe.throw(_("Project {0} not found.").format(project))
+
+	if not subject:
+		frappe.throw(_("Briefing Topic / Subject is required."))
+
+	meeting_date = date or nowdate()
+	user = frappe.session.user
+
+	if meeting_type == "Toolbox Talk":
+		doc = frappe.new_doc("Toolbox Talk")
+		doc.project = project
+		doc.topic = subject
+		doc.date = meeting_date
+		doc.conducted_by = conductor or user or "Safety Officer"
+		doc.insert(ignore_permissions=True)
+		return {"doctype": "Toolbox Talk", "name": doc.name}
+	else:
+		doc = frappe.new_doc("Event")
+		doc.subject = subject
+		doc.starts_on = f"{meeting_date} 09:00:00"
+		doc.event_type = "Private"
+		doc.insert(ignore_permissions=True)
+		return {"doctype": "Event", "name": doc.name}
 
 
 def _format_bytes(bytes_val):
