@@ -144,7 +144,7 @@ def topics_collection(project_id: str, topic_type: Optional[str] = None,
         if data.get("labels"):
             doc_topic.labels = json.dumps(data.get("labels"))
 
-        doc_topic.insert(ignore_permissions=True)
+        doc_topic.insert()
         frappe.db.commit()
 
         return _serialize_topic(doc_topic)
@@ -175,11 +175,13 @@ def topic_resource(project_id: str, topic_guid: str) -> Any:
     method = frappe.local.request.method if hasattr(frappe, "local") and hasattr(frappe.local, "request") else "GET"
 
     if method == "DELETE":
-        frappe.delete_doc("BCF Topic", doc_topic.name, ignore_permissions=True)
+        doc_topic.check_permission("delete")
+        frappe.delete_doc("BCF Topic", doc_topic.name)
         frappe.db.commit()
         return {"status": "deleted", "guid": topic_guid}
 
     if method in ("PUT", "POST"):
+        doc_topic.check_permission("write")
         data = frappe.local.form_dict
         if isinstance(data.get("data"), str):
             data = json.loads(data.get("data"))
@@ -187,9 +189,10 @@ def topic_resource(project_id: str, topic_guid: str) -> Any:
         for f in ["title", "topic_type", "topic_status", "priority", "description", "assigned_to", "due_date"]:
             if f in data:
                 setattr(doc_topic, f, data[f])
-        doc_topic.save(ignore_permissions=True)
+        doc_topic.save()
         frappe.db.commit()
 
+    doc_topic.check_permission("read")
     return _serialize_topic(doc_topic)
 
 
@@ -201,9 +204,11 @@ def topic_resource(project_id: str, topic_guid: str) -> Any:
 def comments_collection(project_id: str, topic_guid: str) -> Any:
     """List or create comments for a topic."""
     doc_topic = frappe.get_doc("BCF Topic", {"guid": topic_guid})
+    doc_topic.check_permission("read")
     method = frappe.local.request.method if hasattr(frappe, "local") and hasattr(frappe.local, "request") else "GET"
 
     if method == "POST":
+        frappe.has_permission("BCF Comment", "create", throw=True)
         data = frappe.local.form_dict
         if isinstance(data.get("data"), str):
             data = json.loads(data.get("data"))
@@ -214,7 +219,7 @@ def comments_collection(project_id: str, topic_guid: str) -> Any:
         comm.comment = data.get("comment", "")
         comm.status = data.get("status", "Open")
         comm.author = data.get("author") or frappe.session.user
-        comm.insert(ignore_permissions=True)
+        comm.insert()
         frappe.db.commit()
         return {
             "guid": comm.guid,
@@ -237,9 +242,11 @@ def comments_collection(project_id: str, topic_guid: str) -> Any:
 def viewpoints_collection(project_id: str, topic_guid: str) -> Any:
     """List or create viewpoints for a topic."""
     doc_topic = frappe.get_doc("BCF Topic", {"guid": topic_guid})
+    doc_topic.check_permission("read")
     method = frappe.local.request.method if hasattr(frappe, "local") and hasattr(frappe.local, "request") else "GET"
 
     if method == "POST":
+        frappe.has_permission("BCF Viewpoint", "create", throw=True)
         data = frappe.local.form_dict
         if isinstance(data.get("data"), str):
             data = json.loads(data.get("data"))
@@ -257,7 +264,7 @@ def viewpoints_collection(project_id: str, topic_guid: str) -> Any:
         if data.get("snapshot"):
             vp.snapshot = data.get("snapshot")
 
-        vp.insert(ignore_permissions=True)
+        vp.insert()
         frappe.db.commit()
         return _serialize_viewpoint(vp)
 
@@ -273,6 +280,7 @@ def viewpoints_collection(project_id: str, topic_guid: str) -> Any:
 def viewpoint_resource(project_id: str, topic_guid: str, viewpoint_guid: str) -> Dict[str, Any]:
     """Get single viewpoint full spatial definition."""
     vp = frappe.get_doc("BCF Viewpoint", {"guid": viewpoint_guid})
+    vp.check_permission("read")
     return _serialize_viewpoint(vp)
 
 

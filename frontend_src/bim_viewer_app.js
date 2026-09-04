@@ -2258,11 +2258,18 @@ function crossHighlightMappedQuantities() {
   setStatus('Cross-highlighted mapped takeoff elements (Green = Costed, Ghost = Unmapped)');
 }
 
+let isAligningModels = false;
+
 async function autoAlignModels() {
+  if (isAligningModels) return;
   if (!detectedDriftModels.length) {
     frappe.msgprint(__('No models currently require coordinate alignment.'));
     return;
   }
+
+  isAligningModels = true;
+  const btnFix = document.getElementById('btn-fix-alignment');
+  if (btnFix) btnFix.disabled = true;
 
   showLoading('Aligning model coordinates to project base point…', true);
   try {
@@ -2294,6 +2301,8 @@ async function autoAlignModels() {
   } catch (e) {
     frappe.msgprint({ title: __('Alignment Error'), message: e.message || e, indicator: 'red' });
   } finally {
+    isAligningModels = false;
+    if (btnFix) btnFix.disabled = false;
     showLoading('', false);
   }
 }

@@ -810,7 +810,7 @@ class MockFrappeModule:
         return doc
 
     @staticmethod
-    def has_permission(doctype: str, ptype: str = "read", doc: Any = None, user: Optional[str] = None) -> bool:
+    def has_permission(doctype: str, ptype: str = "read", doc: Any = None, user: Optional[str] = None, throw: bool = False) -> bool:
         return True
 
     @staticmethod

@@ -32,6 +32,9 @@ def generate_rfi_from_clash(
         frappe.throw(_("BIM Clash {0} does not exist").format(clash_name))
 
     clash = frappe.get_doc("BIM Clash", clash_name)
+    clash.check_permission("write")
+    frappe.has_permission("BCF Topic", "create", throw=True)
+    frappe.has_permission("BCF Viewpoint", "create", throw=True)
 
     disc_a = getattr(clash, "discipline_a", None) or getattr(clash, "element_a_discipline", "Discipline A")
     disc_b = getattr(clash, "discipline_b", None) or getattr(clash, "element_b_discipline", "Discipline B")
@@ -86,7 +89,7 @@ def generate_rfi_from_clash(
     topic.bim_clash = clash.name
     topic.assigned_to = assigned_to or clash.assigned_to
     topic.labels = json.dumps(["RFI", disc_a, disc_b])
-    topic.insert(ignore_permissions=True)
+    topic.insert()
 
     # 4. Attach Viewpoint
     vp = frappe.new_doc("BCF Viewpoint")
@@ -98,16 +101,16 @@ def generate_rfi_from_clash(
     vp.camera_up_vector = json.dumps({"x": 0.0, "y": 0.0, "z": 1.0})
     vp.field_of_view = 60.0
     vp.selection = json.dumps([{"ifc_guid": guid_a}, {"ifc_guid": guid_b}])
-    vp.insert(ignore_permissions=True)
+    vp.insert()
 
     topic.default_viewpoint = vp.name
-    topic.save(ignore_permissions=True)
+    topic.save()
 
     # Link back to clash
     clash.bcf_topic = topic.name
     clash.bcf_guid = topic.guid
     clash.viewpoint = vp.name
-    clash.save(ignore_permissions=True)
+    clash.save()
     frappe.db.commit()
 
     return {

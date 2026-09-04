@@ -723,7 +723,7 @@ class ProjectStudioApp {
 	openWorkPackageInspector(wp) {
 		const self = this;
 		const d = new frappe.ui.Dialog({
-			title: `[${wp.type}] #${wp.id} - ${wp.subject}`,
+			title: `[${escapeHtml(wp.type)}] #${escapeHtml(wp.id)} - ${escapeHtml(wp.subject)}`,
 			fields: [
 				{ fieldname: 'status', label: __('Status'), fieldtype: 'Select', options: 'Open\nWorking\nPending Review\nCompleted\nCancelled', default: wp.status },
 				{ fieldname: 'priority', label: __('Priority'), fieldtype: 'Select', options: 'Low\nNormal\nHigh\nUrgent', default: wp.priority },
@@ -754,9 +754,9 @@ class ProjectStudioApp {
 
 		let linkHtml = '<div class="text-muted"><small>Native Task in ERPNext.</small></div>';
 		if (wp.bcf_topic) {
-			linkHtml = `<div class="alert alert-warning d-flex align-items-center gap-2"><span class="mr-1">${ICONS.cube}</span> <div>Linked to BCF Clash Topic: <strong>${wp.bcf_topic}</strong></div></div>`;
+			linkHtml = `<div class="alert alert-warning d-flex align-items-center gap-2"><span class="mr-1">${ICONS.cube}</span> <div>Linked to BCF Clash Topic: <strong>${escapeHtml(wp.bcf_topic)}</strong></div></div>`;
 		} else if (wp.rfi_link) {
-			linkHtml = `<div class="alert alert-info d-flex align-items-center gap-2"><span class="mr-1">${ICONS.info}</span> <div>Linked to Technical RFI: <strong>${wp.rfi_link}</strong></div></div>`;
+			linkHtml = `<div class="alert alert-info d-flex align-items-center gap-2"><span class="mr-1">${ICONS.info}</span> <div>Linked to Technical RFI: <strong>${escapeHtml(wp.rfi_link)}</strong></div></div>`;
 		}
 		d.fields_dict.linked_info.$wrapper.html(linkHtml);
 		d.show();
@@ -780,13 +780,15 @@ class ProjectStudioApp {
 			$wrapper.empty();
 
 			columns.forEach(col => {
+				const safeColId = escapeHtml(col.id);
+				const safeColTitle = escapeHtml(col.title);
 				const $col = $(`
-					<div class="kanban-column" data-col-id="${col.id}">
+					<div class="kanban-column" data-col-id="${safeColId}">
 						<div class="column-header">
-							<span>${col.title}</span>
-							<span class="badge col-card-count">${col.cards.length}</span>
+							<span>${safeColTitle}</span>
+							<span class="badge col-card-count">${col.cards ? col.cards.length : 0}</span>
 						</div>
-						<div class="column-cards-list" data-col-id="${col.id}">
+						<div class="column-cards-list" data-col-id="${safeColId}">
 							<!-- Cards -->
 						</div>
 					</div>
@@ -810,7 +812,8 @@ class ProjectStudioApp {
 
 					if (taskId && targetColumnId) {
 						// Optimistic DOM update
-						const $draggedCard = $(`[data-task="${taskId}"]`);
+						const safeTaskId = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(taskId) : String(taskId).replace(/["\\]/g, '\\$&');
+						const $draggedCard = $(`[data-task="${safeTaskId}"]`);
 						if ($draggedCard.length > 0) {
 							$cardsList.append($draggedCard);
 							self.updateBoardColumnCounts();
@@ -831,26 +834,35 @@ class ProjectStudioApp {
 				});
 
 				// Populate cards
-				col.cards.forEach(card => {
-					const pillCls = `wp-pill-${(card.type || 'task').toLowerCase()}`;
-					const assigneeName = card.assignee_name || '';
+				(col.cards || []).forEach(card => {
+					const allowedTypes = ['task', 'milestone', 'phase', 'issue', 'clash'];
+					const rawType = String(card.type || 'task').toLowerCase();
+					const safeType = allowedTypes.includes(rawType) ? rawType : 'task';
+					const pillCls = `wp-pill-${safeType}`;
+
+					const allowedPriorities = ['low', 'normal', 'high', 'urgent'];
+					const rawPriority = String(card.priority || 'normal').toLowerCase();
+					const safePriority = allowedPriorities.includes(rawPriority) ? rawPriority : 'normal';
+					const priorityCls = `priority-${safePriority}`;
+
+					const assigneeName = String(card.assignee_name || '').trim();
 					const assigneeInitials = assigneeName ? assigneeName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '';
 					const assigneeHtml = assigneeName ? `
-						<span class="card-assignee-pill" title="${assigneeName}">
-							<span class="assignee-avatar">${assigneeInitials}</span>
-							<span class="assignee-text">${assigneeName}</span>
+						<span class="card-assignee-pill" title="${escapeHtml(assigneeName)}">
+							<span class="assignee-avatar">${escapeHtml(assigneeInitials)}</span>
+							<span class="assignee-text">${escapeHtml(assigneeName)}</span>
 						</span>
 					` : '';
 
 					const $card = $(`
-						<div class="kanban-card" draggable="true" data-task="${card.id}">
+						<div class="kanban-card" draggable="true" data-task="${escapeHtml(card.id)}">
 							<div class="kanban-card-head">
-								<span class="wp-pill ${pillCls}">${card.type}</span>
-								<span class="card-priority priority-${(card.priority || 'normal').toLowerCase()}">${card.priority}</span>
+								<span class="wp-pill ${pillCls}">${escapeHtml(card.type)}</span>
+								<span class="card-priority ${priorityCls}">${escapeHtml(card.priority)}</span>
 							</div>
-							<div class="kanban-card-title">${card.subject}</div>
+							<div class="kanban-card-title">${escapeHtml(card.subject)}</div>
 							<div class="kanban-card-foot">
-								<span class="card-date-badge">${ICONS.calendar} <span>${card.exp_end_date || '--'}</span></span>
+								<span class="card-date-badge">${ICONS.calendar} <span>${escapeHtml(card.exp_end_date || '--')}</span></span>
 								${assigneeHtml}
 							</div>
 						</div>
@@ -949,14 +961,17 @@ class ProjectStudioApp {
 
 			// Custom Interactive Timeline Visualization Fallback
 			let html = '<div class="custom-gantt-table table-responsive"><table class="table table-bordered table-condensed"><thead><tr><th width="30%">Work Package</th><th width="15%">Start Date</th><th width="15%">Due Date</th><th width="40%">Timeline Progress</th></tr></thead><tbody>';
+			const allowedTypes = ['task', 'milestone', 'phase', 'issue', 'clash'];
 			items.forEach(it => {
-				const pillCls = `wp-pill-${(it.type || 'task').toLowerCase()}`;
+				const rawType = String(it.type || 'task').toLowerCase();
+				const safeType = allowedTypes.includes(rawType) ? rawType : 'task';
+				const pillCls = `wp-pill-${safeType}`;
 				const progress = Math.min(100, Math.max(0, it.progress || (it.status === 'Completed' ? 100 : 25)));
 				html += `
-					<tr class="wp-gantt-row" data-id="${it.id}" style="cursor: pointer;">
-						<td><span class="wp-pill ${pillCls}">${it.type}</span> <strong>${it.subject}</strong></td>
-						<td><small>${it.exp_start_date || '--'}</small></td>
-						<td><small>${it.exp_end_date || '--'}</small></td>
+					<tr class="wp-gantt-row" data-id="${escapeHtml(it.id)}" style="cursor: pointer;">
+						<td><span class="wp-pill ${pillCls}">${escapeHtml(it.type)}</span> <strong>${escapeHtml(it.subject)}</strong></td>
+						<td><small>${escapeHtml(it.exp_start_date || '--')}</small></td>
+						<td><small>${escapeHtml(it.exp_end_date || '--')}</small></td>
 						<td>
 							<div class="progress" style="margin: 0; height: 18px; border-radius: 9px; background: #e2e8f0;">
 								<div class="progress-bar progress-bar-striped" role="progressbar" style="width: ${progress}%; background: #0284c7;">
@@ -1010,14 +1025,17 @@ class ProjectStudioApp {
 			} else {
 				models.forEach(m => {
 					const isChecked = targetModel ? (m.name === targetModel || m.model_name === targetModel) : true;
+					const safeName = escapeHtml(m.name);
+					const safeDiscipline = escapeHtml(m.discipline || 'IFC');
+					const safeModelName = escapeHtml(m.model_name || m.name);
 					$tree.append(`
 						<div class="model-tree-row p-2 flex-between" style="border-bottom: 1px solid #f1f5f9; border-radius: 6px;">
 							<label style="font-weight: normal; font-size: 12.5px; cursor: pointer; margin: 0; display: flex; align-items: center; gap: 6px;">
-								<input type="checkbox" class="model-tree-cb" ${isChecked ? 'checked' : ''} data-model="${m.name}">
-								<span class="badge" style="background:#e0e7ff; color:#4338ca; font-size:10px; font-weight:600;">${m.discipline || 'IFC'}</span>
-								<span>${m.model_name || m.name}</span>
+								<input type="checkbox" class="model-tree-cb" ${isChecked ? 'checked' : ''} data-model="${safeName}">
+								<span class="badge" style="background:#e0e7ff; color:#4338ca; font-size:10px; font-weight:600;">${safeDiscipline}</span>
+								<span>${safeModelName}</span>
 							</label>
-							<a href="javascript:void(0)" class="action-focus-model text-muted ml-1" data-model="${m.name}" title="View this model">${ICONS.eye}</a>
+							<a href="javascript:void(0)" class="action-focus-model text-muted ml-1" data-model="${safeName}" title="View this model">${ICONS.eye}</a>
 						</div>
 					`);
 				});
@@ -1089,6 +1107,7 @@ class ProjectStudioApp {
 
 			folders.forEach(f => {
 				const cfg = folderConfig[f.folder_name] || { icon: ICONS.folder, bg: '#f1f5f9', color: '#475467' };
+				const safeFolderName = escapeHtml(f.folder_name);
 				const $box = $(`
 					<div class="doc-folder-card">
 						<div class="folder-header">
@@ -1096,8 +1115,8 @@ class ProjectStudioApp {
 								${cfg.icon}
 							</div>
 							<div class="folder-title-box">
-								<span class="folder-name">${f.folder_name}</span>
-								<span class="folder-count-badge">${f.files.length} items</span>
+								<span class="folder-name">${safeFolderName}</span>
+								<span class="folder-count-badge">${f.files ? f.files.length : 0} items</span>
 							</div>
 						</div>
 						<div class="folder-files-list">
@@ -1107,17 +1126,22 @@ class ProjectStudioApp {
 				`);
 
 				const $fList = $box.find('.folder-files-list');
-				if (f.files.length === 0) {
+				if (!f.files || f.files.length === 0) {
 					$fList.append('<div class="text-muted p-3 text-center" style="font-size:12px;">No files in folder</div>');
 				} else {
 					f.files.forEach(file => {
+						const safeRoute = escapeHtml(file.route_target || '');
+						const safeUrl = escapeHtml(file.file_url || '');
+						const safeModelId = escapeHtml(file.model_id || file.id || '');
+						const safeFileName = escapeHtml(file.file_name || '');
+						const safeBadge = escapeHtml(file.badge || 'File');
 						$fList.append(`
-							<a href="javascript:void(0)" class="file-item-link" data-route="${file.route_target}" data-url="${file.file_url}" data-model-id="${file.model_id || file.id || ''}">
+							<a href="javascript:void(0)" class="file-item-link" data-route="${safeRoute}" data-url="${safeUrl}" data-model-id="${safeModelId}">
 								<div class="file-item-left">
 									<span class="text-muted mr-1">${ICONS.file}</span>
-									<span class="file-name-text">${file.file_name}</span>
+									<span class="file-name-text">${safeFileName}</span>
 								</div>
-								<span class="folder-count-badge">${file.badge || 'File'}</span>
+								<span class="folder-count-badge">${safeBadge}</span>
 							</a>
 						`);
 					});

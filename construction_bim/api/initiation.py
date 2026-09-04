@@ -331,6 +331,7 @@ if frappe:
             frappe.throw(f"Project '{project}' not found.", frappe.DoesNotExistError)
 
         doc = frappe.get_doc("Project", project)
+        doc.check_permission("read")
 
         # 1. Drive folder verification
         drive_folder = doc.get("custom_drive_folder")
@@ -411,8 +412,10 @@ if frappe:
         if not frappe.db.exists("Project", project):
             frappe.throw(f"Project '{project}' not found.")
 
-        cat_folder = CATEGORY_DRIVE_FOLDER_MAP.get(category.lower(), "00_Admin")
         proj_doc = frappe.get_doc("Project", project)
+        proj_doc.check_permission("write")
+
+        cat_folder = CATEGORY_DRIVE_FOLDER_MAP.get(category.lower(), "00_Admin")
 
         created_records = {}
 
@@ -425,7 +428,7 @@ if frappe:
                 "discipline": disc,
                 "file": file_url,
             })
-            bim_model.insert(ignore_permissions=True)
+            bim_model.insert()
             created_records["BIM Model"] = bim_model.name
 
         elif category == "contract":
@@ -437,7 +440,7 @@ if frappe:
                     "contract_document": file_url,
                     "status": "Draft",
                 })
-                contract.insert(ignore_permissions=True)
+                contract.insert()
                 created_records["Construction Contract"] = contract.name
 
         elif category in ("boq", "takeoff"):
@@ -461,6 +464,7 @@ if frappe:
     def parse_boq_file(file_url: str) -> Dict[str, Any]:
         """Inspect and parse an uploaded BOQ spreadsheet (CSV)."""
         file_doc = frappe.get_doc("File", {"file_url": file_url})
+        file_doc.check_permission("read")
         content = file_doc.get_content()
         if isinstance(content, bytes):
             content = content.decode("utf-8", errors="replace")
@@ -485,7 +489,11 @@ if frappe:
         if not frappe.db.exists("Project", project):
             frappe.throw(f"Project '{project}' not found.")
 
+        proj_doc = frappe.get_doc("Project", project)
+        proj_doc.check_permission("write")
+
         file_doc = frappe.get_doc("File", {"file_url": file_url})
+        file_doc.check_permission("read")
         content = file_doc.get_content()
         if isinstance(content, bytes):
             content = content.decode("utf-8", errors="replace")
@@ -502,14 +510,13 @@ if frappe:
                 "total_cost": parsed["total_amount"],
                 "status": "Baselined",
             })
-            est.insert(ignore_permissions=True)
+            est.insert()
             estimate_name = est.name
 
-        proj_doc = frappe.get_doc("Project", project)
         if not proj_doc.get("custom_contract_amount") or float(proj_doc.get("custom_contract_amount")) == 0:
             proj_doc.custom_contract_amount = parsed["total_amount"]
             proj_doc.custom_boq_source = "Construction Estimate"
-            proj_doc.save(ignore_permissions=True)
+            proj_doc.save()
 
         frappe.db.commit()
 
@@ -542,8 +549,11 @@ if frappe:
         if not frappe.db.exists("BIM Model", model_name):
             frappe.throw(f"BIM Model '{model_name}' not found.")
 
+        model_doc = frappe.get_doc("BIM Model", model_name)
+        model_doc.check_permission("write")
+
         offset = {"x": float(offset_x), "y": float(offset_y), "z": float(offset_z)}
-        frappe.db.set_value("BIM Model", model_name, "coordinate_offset", json.dumps(offset))
+        model_doc.db_set("coordinate_offset", json.dumps(offset))
         frappe.db.commit()
 
         return {
@@ -555,6 +565,12 @@ if frappe:
     @frappe.whitelist()
     def approve_project_initiation(project: str) -> Dict[str, Any]:
         """Execute formal Stage-Gate Sign-Off, freeze baseline, and flip status to Open/In Progress."""
+        if not frappe.db.exists("Project", project):
+            frappe.throw(f"Project '{project}' not found.")
+
+        proj = frappe.get_doc("Project", project)
+        proj.check_permission("write")
+
         status = get_initiation_status(project)
         readiness = status.get("readiness", {})
 
@@ -565,12 +581,11 @@ if frappe:
                 frappe.ValidationError,
             )
 
-        proj = frappe.get_doc("Project", project)
         status_field = proj.meta.get_field("status")
         status_opts = [opt.strip() for opt in (status_field.options or "").split("\n") if opt.strip()] if status_field else []
         proj.status = "In Progress" if "In Progress" in status_opts else "Open"
         proj.custom_overall_progress = 0
-        proj.save(ignore_permissions=True)
+        proj.save()
 
         frappe.get_doc({
             "doctype": "Comment",
