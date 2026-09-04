@@ -79,6 +79,15 @@ var ProjectStudioApp = class {
     $("#btn-edit-status-narrative").on("click", function() {
       self.editStatusNarrativePrompt();
     });
+    $("#btn-toggle-sidebar").on("click", function() {
+      $("#studio-sidebar").toggleClass("collapsed");
+    });
+    $(document).on("keydown", function(e) {
+      if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) {
+        e.preventDefault();
+        $("#studio-global-search").focus().select();
+      }
+    });
     $(".wp-sidebar-filter").on("click", "li[data-filter]", function() {
       $(".wp-sidebar-filter li[data-filter]").removeClass("active");
       $(this).addClass("active");
@@ -208,6 +217,21 @@ var ProjectStudioApp = class {
     this.currentTab = tabKey;
     $(".studio-nav-list .nav-item").removeClass("active");
     $(`.studio-nav-list .nav-item[data-tab="${tabKey}"]`).addClass("active");
+    const tabTitles = {
+      "home": "Home",
+      "work-packages": "Work Packages",
+      "boards": "Boards",
+      "gantt": "Gantt Charts",
+      "bcf": "BIM / BCF Coordination",
+      "cad": "2D CAD (DWG)",
+      "pdf": "PDF Plans & Takeoff",
+      "documents": "Documents",
+      "meetings": "Meetings & Safety",
+      "members": "Members",
+      "settings": "Settings",
+      "all-projects": "Active Projects"
+    };
+    $("#studio-active-title").text(tabTitles[tabKey] || tabKey);
     $(".studio-tab-view").hide();
     if (tabKey === "all-projects") {
       $("#current-project-title").text("All projects");
@@ -296,6 +320,16 @@ var ProjectStudioApp = class {
     if (!this.projectOverviewData) return;
     const data = this.projectOverviewData;
     const summary = data.summary || {};
+    const userGreeting = frappe.session.user_fullname || frappe.session.user || "Administrator";
+    $("#home-user-greeting").text(userGreeting);
+    const wpCounts = data.work_packages_counts || {};
+    const openTasks = wpCounts.open !== void 0 ? wpCounts.open : data.tasks ? data.tasks.length : 0;
+    const clashes = data.coordination && data.coordination.topics ? data.coordination.topics.length : 0;
+    const progress = Math.round(summary.percent_complete || 0);
+    $("#home-stat-open-tasks").text(openTasks);
+    $("#home-stat-clashes").text(clashes);
+    $("#home-stat-progress").text(`${progress}%`);
+    $("#sparkline-progress-bar").css("width", `${Math.min(100, Math.max(5, progress))}%`);
     $("#overview-description").text(summary.description || __("No description provided."));
     $("#overview-dates").text(`${summary.expected_start_date || "--"} to ${summary.expected_end_date || "--"}`);
     $("#overview-progress").text(`${Math.round(summary.percent_complete || 0)}%`);
