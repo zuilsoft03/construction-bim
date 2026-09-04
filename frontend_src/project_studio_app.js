@@ -107,6 +107,19 @@ class ProjectStudioApp {
 			self.editStatusNarrativePrompt();
 		});
 
+		// Collapse / expand sidebar
+		$('#btn-toggle-sidebar').on('click', function () {
+			$('#studio-sidebar').toggleClass('collapsed');
+		});
+
+		// Keyboard shortcut ⌘K / Ctrl+K
+		$(document).on('keydown', function (e) {
+			if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+				e.preventDefault();
+				$('#studio-global-search').focus().select();
+			}
+		});
+
 		// Work packages filter clicks
 		$('.wp-sidebar-filter').on('click', 'li[data-filter]', function () {
 			$('.wp-sidebar-filter li[data-filter]').removeClass('active');
@@ -271,6 +284,22 @@ class ProjectStudioApp {
 		$('.studio-nav-list .nav-item').removeClass('active');
 		$(`.studio-nav-list .nav-item[data-tab="${tabKey}"]`).addClass('active');
 
+		const tabTitles = {
+			'home': 'Home',
+			'work-packages': 'Work Packages',
+			'boards': 'Boards',
+			'gantt': 'Gantt Charts',
+			'bcf': 'BIM / BCF Coordination',
+			'cad': '2D CAD (DWG)',
+			'pdf': 'PDF Plans & Takeoff',
+			'documents': 'Documents',
+			'meetings': 'Meetings & Safety',
+			'members': 'Members',
+			'settings': 'Settings',
+			'all-projects': 'Active Projects'
+		};
+		$('#studio-active-title').text(tabTitles[tabKey] || tabKey);
+
 		$('.studio-tab-view').hide();
 
 		if (tabKey === 'all-projects') {
@@ -380,6 +409,20 @@ class ProjectStudioApp {
 		if (!this.projectOverviewData) return;
 		const data = this.projectOverviewData;
 		const summary = data.summary || {};
+
+		// Greeting & Top Metric Cards (Frappe UI Style)
+		const userGreeting = frappe.session.user_fullname || frappe.session.user || 'Administrator';
+		$('#home-user-greeting').text(userGreeting);
+
+		const wpCounts = data.work_packages_counts || {};
+		const openTasks = wpCounts.open !== undefined ? wpCounts.open : (data.tasks ? data.tasks.length : 0);
+		const clashes = (data.coordination && data.coordination.topics ? data.coordination.topics.length : 0);
+		const progress = Math.round(summary.percent_complete || 0);
+
+		$('#home-stat-open-tasks').text(openTasks);
+		$('#home-stat-clashes').text(clashes);
+		$('#home-stat-progress').text(`${progress}%`);
+		$('#sparkline-progress-bar').css('width', `${Math.min(100, Math.max(5, progress))}%`);
 
 		// Description & Dates
 		$('#overview-description').text(summary.description || __('No description provided.'));

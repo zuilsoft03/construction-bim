@@ -5,12 +5,33 @@ frappe.pages['project-studio'].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
-	// Hide native Frappe page-head for pure full-screen OpenProject Studio look
+	// Hide native Frappe page-head for pure full-screen Frappe UI look
 	page.page_head.hide();
 	$(page.wrapper).find('.page-head').hide();
 	$(page.wrapper).find('.page-header').hide();
 	page.body.css({ padding: '0', margin: '0', height: '100%' });
 	$(wrapper).closest('.main-section').css({ padding: '0' });
+
+	// Manage full-width studio mode on body to eliminate double sidebar
+	$('body').addClass('in-project-studio');
+	$('.body-sidebar, .body-sidebar-container, .layout-side-section, .desk-sidebar').hide();
+	$('.layout-main-section').css({ width: '100%', 'max-width': '100%', flex: '1 1 100%', padding: '0' });
+
+	// Listen to route changes to restore Frappe workspace sidebar when navigating away
+	if (frappe.router && frappe.router.on) {
+		frappe.router.on('change', function () {
+			var r = frappe.get_route ? frappe.get_route() : [];
+			if (r && r[0] === 'project-studio') {
+				$('body').addClass('in-project-studio');
+				$('.body-sidebar, .body-sidebar-container, .layout-side-section, .desk-sidebar').hide();
+				$('.layout-main-section').css({ width: '100%', 'max-width': '100%', flex: '1 1 100%', padding: '0' });
+			} else {
+				$('body').removeClass('in-project-studio');
+				$('.body-sidebar, .body-sidebar-container, .layout-side-section, .desk-sidebar').show();
+				$('.layout-main-section').css({ width: '', 'max-width': '', flex: '', padding: '' });
+			}
+		});
+	}
 
 	// Load Font Awesome icons
 	if (!document.getElementById('font-awesome-css')) {
@@ -47,7 +68,7 @@ frappe.pages['project-studio'].on_page_load = function (wrapper) {
 };
 
 frappe.pages['project-studio'].on_page_show = function () {
-	if (window.curProjectStudio && window.curProjectStudio.init) {
-		// Update URL routing if necessary
-	}
+	$('body').addClass('in-project-studio');
+	$('.body-sidebar, .body-sidebar-container, .layout-side-section, .desk-sidebar').hide();
+	$('.layout-main-section').css({ width: '100%', 'max-width': '100%', flex: '1 1 100%', padding: '0' });
 };

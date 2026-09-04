@@ -1,112 +1,118 @@
 <div id="project-studio-root" class="project-studio-container">
-	<!-- Top Navigation Header -->
-	<header class="studio-header">
-		<div class="studio-header-left">
-			<div class="project-selector-dropdown dropdown">
-				<button class="btn btn-default dropdown-toggle project-switcher-btn" type="button" id="projectSwitcherBtn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-					<span class="project-icon"><i class="fa fa-cubes"></i></span>
-					<span id="current-project-title" class="project-title-text">All projects</span>
-					<span class="caret"></span>
-				</button>
+	<!-- Unified Left Sidebar (Frappe UI Style, Matching Reference Photo) -->
+	<aside id="studio-sidebar" class="studio-sidebar">
+		<!-- Sidebar Brand Header with Project Switcher Pill -->
+		<div class="sidebar-header-brand">
+			<div class="brand-dropdown dropdown">
+				<div class="brand-info dropdown-toggle" id="projectSwitcherBtn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<div class="brand-logo"><i class="fa fa-cubes"></i></div>
+					<div class="brand-names">
+						<span class="brand-app-name">Project Studio <i class="fa fa-angle-down text-muted"></i></span>
+						<span class="brand-project-name" id="current-project-title">All projects</span>
+					</div>
+				</div>
 				<ul class="dropdown-menu project-switcher-menu" id="project-switcher-list" aria-labelledby="projectSwitcherBtn">
-					<li class="dropdown-header">Projects</li>
-					<li><a href="javascript:void(0)" data-project="all"><i class="fa fa-th-list text-muted"></i> <strong>All projects (Hub)</strong></a></li>
+					<li class="dropdown-header">PROJECTS</li>
+					<li><a href="javascript:void(0)" class="action-select-proj" data-project="all"><i class="fa fa-th-list text-muted"></i> <strong>All projects (Hub)</strong></a></li>
 					<li role="separator" class="divider"></li>
 					<li id="project-switcher-loading" class="text-muted p-2 text-center"><small><i class="fa fa-spinner fa-spin"></i> Loading projects...</small></li>
 				</ul>
 			</div>
-			<button id="btn-toggle-sidebar" class="btn btn-default btn-xs sidebar-toggle-btn" title="Toggle Sidebar">
-				<i class="fa fa-bars"></i>
-			</button>
 		</div>
 
-		<div class="studio-header-center">
-			<div class="input-group studio-search-group">
-				<span class="input-group-addon"><i class="fa fa-search"></i></span>
-				<input type="text" id="studio-global-search" class="form-control" placeholder="Search work packages, models, documents in project...">
+		<!-- Search Section in Sidebar with ⌘K badge -->
+		<div class="sidebar-search-section">
+			<div class="sidebar-search-wrapper">
+				<i class="fa fa-search search-icon"></i>
+				<input type="text" id="studio-global-search" class="sidebar-search-field" placeholder="Search...">
+				<span class="shortcut-pill">⌘K</span>
 			</div>
 		</div>
 
-		<div class="studio-header-right">
-			<button id="btn-studio-refresh" class="btn btn-default btn-sm" title="Refresh Studio Data">
-				<i class="fa fa-refresh"></i>
-			</button>
-			<button id="btn-fullscreen" class="btn btn-default btn-sm" title="Toggle Fullscreen">
-				<i class="fa fa-arrows-alt"></i>
-			</button>
-			<a href="/app/construction" class="btn btn-default btn-sm" title="Exit to Construction Workspace">
-				<i class="fa fa-th"></i> <span class="hidden-xs">Desk</span>
-			</a>
-		</div>
-	</header>
+		<!-- Nav links (11 required tabs) -->
+		<nav class="studio-nav">
+			<ul class="studio-nav-list">
+				<li class="nav-item active" data-tab="home">
+					<a href="javascript:void(0)"><i class="fa fa-home nav-icon"></i> <span>Home</span></a>
+				</li>
+				<li class="nav-item" data-tab="work-packages">
+					<a href="javascript:void(0)"><i class="fa fa-tasks nav-icon"></i> <span>Work Packages</span></a>
+				</li>
+				<li class="nav-item" data-tab="boards">
+					<a href="javascript:void(0)"><i class="fa fa-columns nav-icon"></i> <span>Boards</span></a>
+				</li>
+				<li class="nav-item" data-tab="gantt">
+					<a href="javascript:void(0)"><i class="fa fa-align-left nav-icon"></i> <span>Gantt Charts</span></a>
+				</li>
+				<li class="nav-item" data-tab="bcf">
+					<a href="javascript:void(0)"><i class="fa fa-cube nav-icon"></i> <span>BIM / BCF</span></a>
+				</li>
+				<li class="nav-item" data-tab="cad">
+					<a href="javascript:void(0)"><i class="fa fa-pencil nav-icon"></i> <span>2D CAD (DWG)</span></a>
+				</li>
+				<li class="nav-item" data-tab="pdf">
+					<a href="javascript:void(0)"><i class="fa fa-file-pdf-o nav-icon"></i> <span>PDF Plans</span></a>
+				</li>
+				<li class="nav-item" data-tab="documents">
+					<a href="javascript:void(0)"><i class="fa fa-folder-o nav-icon"></i> <span>Documents</span></a>
+				</li>
+				<li class="nav-item" data-tab="meetings">
+					<a href="javascript:void(0)"><i class="fa fa-comments-o nav-icon"></i> <span>Meetings & Safety</span></a>
+				</li>
+				<li class="nav-item" data-tab="members">
+					<a href="javascript:void(0)"><i class="fa fa-users nav-icon"></i> <span>Members</span></a>
+				</li>
+				<li class="nav-item" data-tab="settings">
+					<a href="javascript:void(0)"><i class="fa fa-cog nav-icon"></i> <span>Settings</span></a>
+				</li>
+			</ul>
+		</nav>
 
-	<!-- Main Studio Body -->
-	<div class="studio-body">
-		<!-- Left Collapsible Navigation Sidebar -->
-		<aside id="studio-sidebar" class="studio-sidebar">
-			<!-- Pinned Quick Create (+) Button -->
-			<div class="sidebar-quick-create dropdown">
-				<button class="btn btn-primary btn-block quick-create-btn dropdown-toggle" type="button" id="quickCreateBtn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-					<i class="fa fa-plus"></i> <span class="quick-create-label">Create</span> <span class="caret"></span>
+		<!-- Bottom Collapse Trigger -->
+		<div class="sidebar-footer-action">
+			<button id="btn-toggle-sidebar" class="btn-sidebar-collapse" title="Toggle Sidebar">
+				<i class="fa fa-indent"></i> <span>Collapse</span>
+			</button>
+		</div>
+	</aside>
+
+	<!-- Main Container with Clean Topbar and Viewport -->
+	<div class="studio-main-container">
+		<!-- Clean Light Topbar (Matching Reference Photo) -->
+		<header class="studio-header">
+			<div class="studio-header-left">
+				<h3 class="studio-page-title" id="studio-active-title">Home</h3>
+			</div>
+			<div class="studio-header-right">
+				<button id="btn-studio-refresh" class="btn btn-default btn-sm" title="Refresh">
+					<i class="fa fa-refresh"></i> Refresh
 				</button>
-				<ul class="dropdown-menu quick-create-menu" aria-labelledby="quickCreateBtn">
-					<li><a href="javascript:void(0)" class="action-quick-add" data-type="project"><i class="fa fa-folder-open-o text-primary"></i> <strong>Project</strong></a></li>
-					<li><a href="javascript:void(0)" class="action-quick-add" data-type="user"><i class="fa fa-user-plus text-info"></i> Invite user</a></li>
-					<li role="separator" class="divider"></li>
-					<li class="dropdown-header">WORK PACKAGES</li>
-					<li><a href="javascript:void(0)" class="action-quick-add" data-type="Task"><span class="wp-pill wp-pill-task">Task</span> Standard Task</a></li>
-					<li><a href="javascript:void(0)" class="action-quick-add" data-type="Milestone"><span class="wp-pill wp-pill-milestone">Milestone</span> Stage Deadline</a></li>
-					<li><a href="javascript:void(0)" class="action-quick-add" data-type="Phase"><span class="wp-pill wp-pill-phase">Phase</span> PM² Stage Gate</a></li>
-					<li><a href="javascript:void(0)" class="action-quick-add" data-type="Issue"><span class="wp-pill wp-pill-issue">Issue</span> Snag / Punchlist</a></li>
-					<li><a href="javascript:void(0)" class="action-quick-add" data-type="Remark"><span class="wp-pill wp-pill-remark">Remark</span> Site Observation</a></li>
-					<li><a href="javascript:void(0)" class="action-quick-add" data-type="Request"><span class="wp-pill wp-pill-request">Request</span> RFI / Change</a></li>
-					<li><a href="javascript:void(0)" class="action-quick-add" data-type="Clash"><span class="wp-pill wp-pill-clash">Clash</span> 3D Coordination</a></li>
-				</ul>
+				<div class="dropdown d-inline-block">
+					<button class="btn btn-default btn-sm dropdown-toggle" type="button" id="quickCreateBtn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<i class="fa fa-plus text-success"></i> Create <span class="caret"></span>
+					</button>
+					<ul class="dropdown-menu dropdown-menu-right quick-create-menu" aria-labelledby="quickCreateBtn">
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="project"><i class="fa fa-folder-open-o text-primary"></i> <strong>Project</strong></a></li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="user"><i class="fa fa-user-plus text-info"></i> Invite user</a></li>
+						<li role="separator" class="divider"></li>
+						<li class="dropdown-header">WORK PACKAGES</li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Task"><span class="wp-pill wp-pill-task">Task</span> Standard Task</a></li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Milestone"><span class="wp-pill wp-pill-milestone">Milestone</span> Stage Deadline</a></li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Phase"><span class="wp-pill wp-pill-phase">Phase</span> PM² Stage Gate</a></li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Issue"><span class="wp-pill wp-pill-issue">Issue</span> Snag / Punchlist</a></li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Remark"><span class="wp-pill wp-pill-remark">Remark</span> Site Observation</a></li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Request"><span class="wp-pill wp-pill-request">Request</span> RFI / Change</a></li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Clash"><span class="wp-pill wp-pill-clash">Clash</span> 3D Coordination</a></li>
+					</ul>
+				</div>
+				<button id="btn-fullscreen" class="btn btn-default btn-sm" title="Toggle Fullscreen">
+					<i class="fa fa-arrows-alt"></i>
+				</button>
+				<a href="/app/construction" class="btn btn-default btn-sm" title="Exit to Construction Workspace">
+					<i class="fa fa-th"></i> <span class="hidden-xs">Desk</span>
+				</a>
 			</div>
-
-			<!-- Nav links -->
-			<nav class="studio-nav">
-				<ul class="studio-nav-list">
-					<li class="nav-item active" data-tab="home">
-						<a href="javascript:void(0)"><i class="fa fa-home"></i> <span>Project home</span></a>
-					</li>
-					<li class="nav-item" data-tab="work-packages">
-						<a href="javascript:void(0)"><i class="fa fa-tasks"></i> <span>Work packages</span></a>
-					</li>
-					<li class="nav-item" data-tab="boards">
-						<a href="javascript:void(0)"><i class="fa fa-columns"></i> <span>Boards</span></a>
-					</li>
-					<li class="nav-item" data-tab="gantt">
-						<a href="javascript:void(0)"><i class="fa fa-align-left"></i> <span>Gantt charts</span></a>
-					</li>
-					<li class="nav-item" data-tab="bcf">
-						<a href="javascript:void(0)"><i class="fa fa-cube"></i> <span>BIM / BCF</span></a>
-					</li>
-					<li class="nav-item" data-tab="cad">
-						<a href="javascript:void(0)"><i class="fa fa-pencil"></i> <span>2D CAD (DWG)</span></a>
-					</li>
-					<li class="nav-item" data-tab="pdf">
-						<a href="javascript:void(0)"><i class="fa fa-file-pdf-o"></i> <span>PDF Plans</span></a>
-					</li>
-					<li class="nav-item" data-tab="documents">
-						<a href="javascript:void(0)"><i class="fa fa-folder-o"></i> <span>Documents</span></a>
-					</li>
-					<li class="nav-item" data-tab="meetings">
-						<a href="javascript:void(0)"><i class="fa fa-comments-o"></i> <span>Meetings & Safety</span></a>
-					</li>
-					<li class="nav-item" data-tab="members">
-						<a href="javascript:void(0)"><i class="fa fa-users"></i> <span>Members</span></a>
-					</li>
-					<li class="nav-item" data-tab="settings">
-						<a href="javascript:void(0)"><i class="fa fa-cog"></i> <span>Project settings</span></a>
-					</li>
-				</ul>
-			</nav>
-
-			<div class="sidebar-footer">
-				<small class="text-muted"><span id="sidebar-active-status">Active</span></small>
-			</div>
-		</aside>
+		</header>
 
 		<!-- Main Viewport Workspace -->
 		<main id="studio-viewport" class="studio-viewport">
@@ -124,9 +130,11 @@
 						<button id="btn-add-project" class="btn btn-success"><i class="fa fa-plus"></i> + Add</button>
 					</div>
 				</div>
-
-				<div class="projects-table-container">
-					<div class="table-toolbar">
+				<div class="view-content">
+					<div class="projects-table-toolbar flex-between">
+						<div class="toolbar-left">
+							<button id="btn-add-subproject" class="btn btn-default btn-sm"><i class="fa fa-level-down"></i> Subproject</button>
+						</div>
 						<div class="search-box">
 							<input type="text" id="projects-filter-input" class="form-control input-sm" placeholder="Filter projects...">
 						</div>
@@ -153,6 +161,48 @@
 
 			<!-- TAB 1: PROJECT HOME DASHBOARD (Screenshot 2) -->
 			<section id="view-home" class="studio-tab-view">
+				<!-- Frappe UI Greeting Section (Hey, Administrator) -->
+				<div class="home-greeting-section">
+					<h2 class="home-greeting-title">Hey, <span id="home-user-greeting">Administrator</span></h2>
+					<div class="row row-metrics-summary mb-4">
+						<div class="col-md-4">
+							<div class="metric-stat-card p-3">
+								<small class="text-muted font-weight-bold">Open Tasks</small>
+								<div class="d-flex align-items-baseline justify-content-between mt-1">
+									<span class="metric-number" id="home-stat-open-tasks">0</span>
+									<span class="badge-success-soft">On Track</span>
+								</div>
+								<div class="metric-sparkline-bar mt-2" style="height: 3px; background: #e0f2fe; border-radius: 2px;">
+									<div id="sparkline-open-bar" style="width: 70%; height: 100%; background: #0284c7; border-radius: 2px;"></div>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="metric-stat-card p-3">
+								<small class="text-muted font-weight-bold">Active Clashes</small>
+								<div class="d-flex align-items-baseline justify-content-between mt-1">
+									<span class="metric-number" id="home-stat-clashes">0</span>
+									<span class="badge-neutral-soft">Coordination</span>
+								</div>
+								<div class="metric-sparkline-bar mt-2" style="height: 3px; background: #fee2e2; border-radius: 2px;">
+									<div id="sparkline-clashes-bar" style="width: 25%; height: 100%; background: #dc2626; border-radius: 2px;"></div>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="metric-stat-card p-3">
+								<small class="text-muted font-weight-bold">Overall Progress</small>
+								<div class="d-flex align-items-baseline justify-content-between mt-1">
+									<span class="metric-number" id="home-stat-progress">0%</span>
+									<span class="badge-info-soft">Schedule</span>
+								</div>
+								<div class="metric-sparkline-bar mt-2" style="height: 3px; background: #f1f5f9; border-radius: 2px;">
+									<div id="sparkline-progress-bar" style="width: 40%; height: 100%; background: #6366f1; border-radius: 2px;"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 				<div class="dashboard-grid">
 					<!-- Top Row: Overview Summary & Status Narrative -->
 					<div class="dashboard-card card-summary">
