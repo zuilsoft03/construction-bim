@@ -1742,10 +1742,15 @@ function initUiEvents() {
 async function handleRouteParams() {
   const params = new URLSearchParams(window.location.search);
   const routeOpts = (window.frappe && frappe.route_options) || {};
+  const projectParam = routeOpts.project || params.get('project');
   const modelParam = routeOpts.model || routeOpts.models || params.get('models') || params.get('model');
   const clashParam = routeOpts.clash || params.get('clash');
   const elemA = routeOpts.element_a || params.get('element_a');
   const elemB = routeOpts.element_b || params.get('element_b');
+
+  if (projectParam) {
+    activeProject = projectParam;
+  }
 
   if (modelParam && modelParam !== 'none') {
     const modelNames = modelParam.split(',').map(s => s.trim()).filter(Boolean);
@@ -1793,10 +1798,6 @@ async function handleRouteParams() {
     }
   }
 
-  const projectParam = routeOpts.project || params.get('project');
-  if (projectParam) {
-    activeProject = projectParam;
-  }
   const modeParam = routeOpts.mode || params.get('mode');
   if (modeParam === 'coordination') {
     setAppMode('coordination');
@@ -2277,11 +2278,14 @@ async function autoAlignModels() {
         },
       });
 
-      const modelMesh = loadedModels.get(drift.model);
-      if (modelMesh) {
-        modelMesh.position.x += vec[0];
-        modelMesh.position.y += vec[1];
-        modelMesh.position.z += vec[2];
+      let entry = loadedModels.get(drift.model);
+      if (!entry) {
+        entry = [...loadedModels.values()].find(e => e.modelName === drift.model);
+      }
+      if (entry && entry.group) {
+        entry.group.position.x += vec[0];
+        entry.group.position.y += vec[1];
+        entry.group.position.z += vec[2];
       }
     }
     frappe.show_alert({ message: '✅ Multi-discipline models auto-aligned to project origin', indicator: 'green' });

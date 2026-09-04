@@ -577,8 +577,8 @@ class ProjectStudioApp {
 		(data.subprojects || []).forEach(s => {
 			$subList.append(`
 				<li class="flex-between p-1">
-					<span class="d-inline-flex align-items-center gap-1"><span class="text-primary mr-1">${ICONS.folder}</span> ${s.project_name}</span>
-					<span class="status-active-pill"><span class="status-dot-green"></span> ${s.status}</span>
+					<span class="d-inline-flex align-items-center gap-1"><span class="text-primary mr-1">${ICONS.folder}</span> ${escapeHtml(s.project_name)}</span>
+					<span class="status-active-pill"><span class="status-dot-green"></span> ${escapeHtml(s.status)}</span>
 				</li>
 			`);
 		});
@@ -593,10 +593,10 @@ class ProjectStudioApp {
 			$meetList.append(`
 				<div class="meeting-item p-2 mb-1" style="border-bottom: 1px solid #f1f5f9;">
 					<div class="flex-between">
-						<strong>${m.title}</strong>
-						<span class="badge badge-info">${m.type}</span>
+						<strong>${escapeHtml(m.title)}</strong>
+						<span class="badge badge-info">${escapeHtml(m.type)}</span>
 					</div>
-					<small class="text-muted d-inline-flex align-items-center gap-1 mt-1">${ICONS.calendar} <span>${m.date} | ${m.host || 'Coordinator'}</span></small>
+					<small class="text-muted d-inline-flex align-items-center gap-1 mt-1">${ICONS.calendar} <span>${escapeHtml(m.date)} | ${escapeHtml(m.host || 'Coordinator')}</span></small>
 				</div>
 			`);
 		});
@@ -608,12 +608,14 @@ class ProjectStudioApp {
 		const $memGrid = $('#members-avatars-grid');
 		$memGrid.empty();
 		(data.members || []).forEach(m => {
+			const memberName = String(m.full_name || m.user || 'Member').trim();
+			const initials = memberName ? memberName.substring(0, 2).toUpperCase() : 'MB';
 			$memGrid.append(`
 				<div class="member-chip p-1" style="display: inline-flex; align-items: center; gap: 6px; margin: 4px;">
 					<span class="avatar-circle" style="width:28px;height:28px;border-radius:50%;background:#4338ca;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;">
-						${(m.full_name || m.user).substring(0, 2).toUpperCase()}
+						${escapeHtml(initials)}
 					</span>
-					<small class="font-weight-medium">${m.full_name || m.user}</small>
+					<small class="font-weight-medium">${escapeHtml(memberName)}</small>
 				</div>
 			`);
 		});
@@ -624,9 +626,9 @@ class ProjectStudioApp {
 		(data.news || []).forEach(n => {
 			$newsCont.append(`
 				<div class="news-bulletin p-2 mb-2" style="background: #f8fafc; border-left: 3px solid #6366f1; border-radius: 4px;">
-					<h5 class="m-0 font-weight-bold">${n.title}</h5>
-					<small class="text-muted">${n.author} on ${n.date}</small>
-					<p class="m-0 mt-1 text-secondary" style="font-size: 12px;">${n.content}</p>
+					<h5 class="m-0 font-weight-bold">${escapeHtml(n.title)}</h5>
+					<small class="text-muted">${escapeHtml(n.author)} on ${escapeHtml(n.date)}</small>
+					<p class="m-0 mt-1 text-secondary" style="font-size: 12px;">${escapeHtml(n.content)}</p>
 				</div>
 			`);
 		});
@@ -647,17 +649,20 @@ class ProjectStudioApp {
 		const self = this;
 		milestones.forEach(m => {
 			const completedCls = m.completed ? 'completed' : '';
+			const safeTitle = escapeHtml(m.title || '');
+			const safeDueDate = escapeHtml(m.due_date || '');
+			const safeStatus = escapeHtml(m.status || '');
 			const $pt = $(`
-				<div class="milestone-marker-point" data-id="${m.id}" title="${m.title} (${m.due_date || 'TBD'})">
-					<span class="milestone-date">${(m.due_date || '').substring(5)}</span>
+				<div class="milestone-marker-point" data-id="${escapeHtml(m.id)}" title="${safeTitle} (${safeDueDate || 'TBD'})">
+					<span class="milestone-date">${safeDueDate.length >= 5 ? safeDueDate.substring(5) : safeDueDate}</span>
 					<div class="milestone-diamond ${completedCls}"></div>
-					<span class="milestone-label">${m.title}</span>
+					<span class="milestone-label">${safeTitle}</span>
 				</div>
 			`);
 			$pt.on('click', function () {
 				frappe.msgprint({
 					title: __('Milestone Delivery Details'),
-					message: `<h4>${m.title}</h4><p><strong>Target Due Date:</strong> ${m.due_date || 'None'}</p><p><strong>Status:</strong> ${m.status}</p>`,
+					message: `<h4>${safeTitle}</h4><p><strong>Target Due Date:</strong> ${safeDueDate || 'None'}</p><p><strong>Status:</strong> ${safeStatus}</p>`,
 					indicator: m.completed ? 'green' : 'orange'
 				});
 			});
@@ -688,18 +693,21 @@ class ProjectStudioApp {
 				return;
 			}
 
+			const allowedTypes = ['task', 'milestone', 'phase', 'issue', 'clash'];
 			items.forEach(it => {
-				const pillCls = `wp-pill-${(it.type || 'task').toLowerCase()}`;
+				const rawType = String(it.type || 'task').toLowerCase();
+				const safeType = allowedTypes.includes(rawType) ? rawType : 'task';
+				const pillCls = `wp-pill-${safeType}`;
 				const indent = it.parent_task ? '&nbsp;&nbsp;&nbsp;&nbsp;↳ ' : '';
 				const $tr = $(`
-					<tr class="wp-row-item" data-id="${it.id}" style="cursor: pointer;">
-						<td><small class="text-muted">#${it.id.replace('TASK-', '')}</small></td>
-						<td>${indent}<strong>${it.subject}</strong></td>
-						<td><span class="wp-pill ${pillCls}">${it.type}</span></td>
-						<td><span class="status-dot"></span> ${it.status}</td>
-						<td><small>${it.assignee_name || 'Unassigned'}</small></td>
-						<td><small>${it.priority}</small></td>
-						<td><small class="text-muted">${it.exp_end_date || '--'}</small></td>
+					<tr class="wp-row-item" data-id="${escapeHtml(it.id)}" style="cursor: pointer;">
+						<td><small class="text-muted">#${escapeHtml(String(it.id).replace('TASK-', ''))}</small></td>
+						<td>${indent}<strong>${escapeHtml(it.subject)}</strong></td>
+						<td><span class="wp-pill ${pillCls}">${escapeHtml(it.type)}</span></td>
+						<td><span class="status-dot"></span> ${escapeHtml(it.status)}</td>
+						<td><small>${escapeHtml(it.assignee_name || 'Unassigned')}</small></td>
+						<td><small>${escapeHtml(it.priority)}</small></td>
+						<td><small class="text-muted">${escapeHtml(it.exp_end_date || '--')}</small></td>
 					</tr>
 				`);
 

@@ -43,12 +43,12 @@ class ConstructionContract(Document):
 			frappe.throw(_("Retainage Rate must be between 0% and 100%."))
 
 	def on_submit(self):
-		self.status = "Active"
+		self.db_set("status", "Active")
 		if self.project:
 			self.update_project_contract_info()
 
 	def on_cancel(self):
-		self.status = "Terminated"
+		self.db_set("status", "Terminated")
 
 	def update_project_contract_info(self):
 		if not frappe.db.exists("Project", self.project):
