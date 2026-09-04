@@ -1742,19 +1742,40 @@ function initUiEvents() {
 async function handleRouteParams() {
   const params = new URLSearchParams(window.location.search);
   const routeOpts = (window.frappe && frappe.route_options) || {};
+  const projectParam = routeOpts.project || params.get('project');
   const modelParam = routeOpts.model || routeOpts.models || params.get('models') || params.get('model');
   const clashParam = routeOpts.clash || params.get('clash');
   const elemA = routeOpts.element_a || params.get('element_a');
   const elemB = routeOpts.element_b || params.get('element_b');
 
-  if (modelParam) {
+  if (projectParam) {
+    activeProject = projectParam;
+  }
+
+  if (modelParam && modelParam !== 'none') {
     const modelNames = modelParam.split(',').map(s => s.trim()).filter(Boolean);
     for (const m of modelNames) {
-      await loadModelGeometry(m);
+      if (!loadedModels.has(m)) {
+        await loadModelGeometry(m);
+      }
     }
     renderModelsList();
     updateElementMeshesList();
+    if (typeof populateFacets === 'function') populateFacets();
     fitView();
+  } else if (projectParam && typeof availableModels !== 'undefined' && availableModels.length) {
+    const projModels = availableModels.filter(m => m.project === projectParam);
+    if (projModels.length > 0) {
+      for (const m of projModels) {
+        if (!loadedModels.has(m.name)) {
+          await loadModelGeometry(m.name);
+        }
+      }
+      renderModelsList();
+      updateElementMeshesList();
+      if (typeof populateFacets === 'function') populateFacets();
+      fitView();
+    }
   }
 
   if (clashParam) {
@@ -1777,10 +1798,6 @@ async function handleRouteParams() {
     }
   }
 
-  const projectParam = routeOpts.project || params.get('project');
-  if (projectParam) {
-    activeProject = projectParam;
-  }
   const modeParam = routeOpts.mode || params.get('mode');
   if (modeParam === 'coordination') {
     setAppMode('coordination');
@@ -2241,11 +2258,18 @@ function crossHighlightMappedQuantities() {
   setStatus('Cross-highlighted mapped takeoff elements (Green = Costed, Ghost = Unmapped)');
 }
 
+let isAligningModels = false;
+
 async function autoAlignModels() {
+  if (isAligningModels) return;
   if (!detectedDriftModels.length) {
     frappe.msgprint(__('No models currently require coordinate alignment.'));
     return;
   }
+
+  isAligningModels = true;
+  const btnFix = document.getElementById('btn-fix-alignment');
+  if (btnFix) btnFix.disabled = true;
 
   showLoading('Aligning model coordinates to project base point…', true);
   try {
@@ -2261,11 +2285,14 @@ async function autoAlignModels() {
         },
       });
 
-      const modelMesh = loadedModels.get(drift.model);
-      if (modelMesh) {
-        modelMesh.position.x += vec[0];
-        modelMesh.position.y += vec[1];
-        modelMesh.position.z += vec[2];
+      let entry = loadedModels.get(drift.model);
+      if (!entry) {
+        entry = [...loadedModels.values()].find(e => e.modelName === drift.model);
+      }
+      if (entry && entry.group) {
+        entry.group.position.x += vec[0];
+        entry.group.position.y += vec[1];
+        entry.group.position.z += vec[2];
       }
     }
     frappe.show_alert({ message: '✅ Multi-discipline models auto-aligned to project origin', indicator: 'green' });
@@ -2274,6 +2301,8 @@ async function autoAlignModels() {
   } catch (e) {
     frappe.msgprint({ title: __('Alignment Error'), message: e.message || e, indicator: 'red' });
   } finally {
+    isAligningModels = false;
+    if (btnFix) btnFix.disabled = false;
     showLoading('', false);
   }
 }
@@ -2522,48 +2551,6 @@ function initInViewerIssueCreation() {
         btnConfirm.textContent = 'Create BCF Issue';
       }
     };
-  }
-}
-
-async function handleRouteParams() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const projectParam = urlParams.get('project');
-  const modelParam = urlParams.get('model');
-  const viewpointParam = urlParams.get('viewpoint');
-
-  if (modelParam) {
-    if (!loadedModels.has(modelParam)) {
-      await loadModelGeometry(modelParam);
-      renderModelsList();
-      updateElementMeshesList();
-      populateFacets();
-      fitView();
-    }
-    return;
-  }
-
-  if (projectParam && availableModels.length) {
-    const projModels = availableModels.filter(m => m.project === projectParam);
-    if (projModels.length > 0) {
-      for (const m of projModels) {
-        if (!loadedModels.has(m.name)) {
-          await loadModelGeometry(m.name);
-        }
-      }
-      renderModelsList();
-      updateElementMeshesList();
-      populateFacets();
-      fitView();
-      return;
-    }
-  }
-
-  if (availableModels.length > 0 && loadedModels.size === 0) {
-    await loadModelGeometry(availableModels[0].name);
-    renderModelsList();
-    updateElementMeshesList();
-    populateFacets();
-    fitView();
   }
 }
 

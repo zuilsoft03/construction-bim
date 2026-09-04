@@ -1,9 +1,9 @@
 {
  "name": "Construction",
  "idx": 0,
- "label": "Construction BIM",
+ "label": "Project Studio Bim",
  "icon": "hard-hat",
- "title": "Construction BIM",
+ "title": "Project Studio Bim",
  "sequence_id": 2.5,
  "for_user": "",
  "parent_page": "",

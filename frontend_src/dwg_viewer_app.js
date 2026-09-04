@@ -8,6 +8,16 @@ import { CADCanvasRenderer, CADTheme } from "./src/cad/cad_canvas_renderer";
 import { CADMeasurementEngine } from "./src/cad/cad_measurement_tools";
 import { BCFCollaborationManager, BCFTopicItem } from "./src/cad/bcf_collaboration_manager";
 
+function escapeHtml(str: any): string {
+  if (str == null) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export class DWGViewerApp {
   public canvas: HTMLCanvasElement;
   public renderer: CADCanvasRenderer;
@@ -44,6 +54,9 @@ export class DWGViewerApp {
           const ext = fileParam.split(".").pop()?.toLowerCase();
           if (ext === "dxf") {
             const textResp = await fetch(fileParam);
+            if (!textResp.ok) {
+              throw new Error(`Failed to fetch DXF file: ${textResp.status} ${textResp.statusText}`);
+            }
             const content = await textResp.text();
             const parsed = parseDXFText(content);
             parsed.model_name = decodeURIComponent(fileParam.split("/").pop() || "CAD Drawing");
@@ -52,6 +65,12 @@ export class DWGViewerApp {
             this.updateLayerUI();
             this.updateSpacesUI(parsed.spaces);
             await this.loadIssues();
+            if (issueParam) {
+              const targetIssue = this.bcf.issues.find((i) => i.name === issueParam);
+              if (targetIssue) {
+                this.selectIssue(targetIssue);
+              }
+            }
             this.showToast(`Loaded ${parsed.model_name} (${parsed.entity_count} entities)`, "success");
             return;
           }
@@ -332,8 +351,8 @@ export class DWGViewerApp {
 
       row.innerHTML = `
         <div class="layer-info">
-          <span class="color-swatch" style="background-color: ${layer.color}"></span>
-          <span class="layer-name" title="${name}">${name}</span>
+          <span class="color-swatch"></span>
+          <span class="layer-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
         </div>
         <div class="layer-actions">
           <button class="btn-layer-vis ${isVis ? 'on' : 'off'}" title="Toggle Visibility">
@@ -341,6 +360,10 @@ export class DWGViewerApp {
           </button>
         </div>
       `;
+      const swatch = row.querySelector(".color-swatch") as HTMLElement | null;
+      if (swatch) {
+        swatch.style.backgroundColor = layer.color || "#cccccc";
+      }
 
       row.querySelector(".btn-layer-vis")?.addEventListener("click", () => {
         this.renderer.layerVisibility[name] = !this.renderer.layerVisibility[name];
@@ -387,14 +410,14 @@ export class DWGViewerApp {
 
       card.innerHTML = `
         <div class="issue-card-header">
-          <span class="pin-badge">#${issue.pin_number || 1}</span>
-          <span class="issue-title">${issue.title}</span>
-          <span class="status-pill ${badgeClass}">${issue.topic_status}</span>
+          <span class="pin-badge">#${escapeHtml(issue.pin_number || 1)}</span>
+          <span class="issue-title">${escapeHtml(issue.title)}</span>
+          <span class="status-pill ${badgeClass}">${escapeHtml(issue.topic_status)}</span>
         </div>
         <div class="issue-card-meta">
-          <span>Priority: <strong>${issue.priority}</strong></span>
-          <span>Type: ${issue.topic_type}</span>
-          <span>💬 ${issue.comment_count || 0}</span>
+          <span>Priority: <strong>${escapeHtml(issue.priority)}</strong></span>
+          <span>Type: ${escapeHtml(issue.topic_type)}</span>
+          <span>💬 ${escapeHtml(issue.comment_count || 0)}</span>
         </div>
       `;
 
@@ -408,13 +431,17 @@ export class DWGViewerApp {
     if (!modal) return;
     modal.classList.remove("hidden");
 
+    const safeSnapshot = issue.snapshot && /^(?:data:image\/(?:png|jpeg|webp|gif);base64,|https?:\/\/|\/files\/)/i.test(issue.snapshot)
+      ? escapeHtml(issue.snapshot)
+      : null;
+
     modal.innerHTML = `
       <div class="drawer-header">
         <div class="header-left">
-          <span class="pin-badge large">#${issue.pin_number || 1}</span>
+          <span class="pin-badge large">#${escapeHtml(issue.pin_number || 1)}</span>
           <div>
-            <h3>${issue.title}</h3>
-            <span class="status-pill">${issue.topic_status}</span>
+            <h3>${escapeHtml(issue.title)}</h3>
+            <span class="status-pill">${escapeHtml(issue.topic_status)}</span>
           </div>
         </div>
         <button class="btn-close" id="btn-close-issue-detail">✕</button>
@@ -422,14 +449,14 @@ export class DWGViewerApp {
 
       <div class="drawer-body">
         <div class="meta-grid">
-          <div><label>Priority:</label> <span>${issue.priority}</span></div>
-          <div><label>Type:</label> <span>${issue.topic_type}</span></div>
-          <div><label>Stage:</label> <span>${issue.stage || 'Coordination'}</span></div>
-          <div><label>Assigned:</label> <span>${issue.assigned_to || 'Unassigned'}</span></div>
+          <div><label>Priority:</label> <span>${escapeHtml(issue.priority)}</span></div>
+          <div><label>Type:</label> <span>${escapeHtml(issue.topic_type)}</span></div>
+          <div><label>Stage:</label> <span>${escapeHtml(issue.stage || 'Coordination')}</span></div>
+          <div><label>Assigned:</label> <span>${escapeHtml(issue.assigned_to || 'Unassigned')}</span></div>
         </div>
 
-        ${issue.description ? `<p class="issue-desc">${issue.description}</p>` : ''}
-        ${issue.snapshot ? `<img class="issue-snapshot" src="${issue.snapshot}" alt="Snapshot" />` : ''}
+        ${issue.description ? `<p class="issue-desc">${escapeHtml(issue.description)}</p>` : ''}
+        ${safeSnapshot ? `<img class="issue-snapshot" src="${safeSnapshot}" alt="Snapshot" />` : ''}
 
         <div class="comment-section">
           <h4>Discussion</h4>
@@ -438,7 +465,7 @@ export class DWGViewerApp {
             <textarea id="issue-reply-text" placeholder="Write a reply or coordination note..."></textarea>
             <div class="reply-actions">
               <select id="select-issue-status-transition">
-                <option value="" ${issue.topic_status === 'Open' ? 'selected' : ''}>Keep Current (${issue.topic_status})</option>
+                <option value="" ${issue.topic_status === 'Open' ? 'selected' : ''}>Keep Current (${escapeHtml(issue.topic_status)})</option>
                 <option value="In Progress">In Progress</option>
                 <option value="Resolved">Resolved</option>
                 <option value="Closed">Closed</option>
@@ -494,8 +521,8 @@ export class DWGViewerApp {
         .map(
           (c: any) => `
         <div class="comment-bubble">
-          <div class="comment-author"><strong>${c.comment_by}</strong> <small>${c.creation}</small></div>
-          <div class="comment-content">${c.content}</div>
+          <div class="comment-author"><strong>${escapeHtml(c.comment_by)}</strong> <small>${escapeHtml(c.creation)}</small></div>
+          <div class="comment-content">${escapeHtml(c.content)}</div>
         </div>
       `
         )

@@ -499,6 +499,8 @@ class MockDoc:
         res = mock_frappe_db.insert(self)
         if callable(getattr(self, "after_insert", None)):
             self.after_insert()
+        if callable(getattr(self, "on_update", None)):
+            self.on_update()
         return res
 
     def save(self, ignore_permissions: bool = False) -> MockDoc:
@@ -506,17 +508,23 @@ class MockDoc:
             self.validate()
         if callable(getattr(self, "before_save", None)):
             self.before_save()
-        return mock_frappe_db.save(self)
+        res = mock_frappe_db.save(self)
+        if callable(getattr(self, "on_update", None)):
+            self.on_update()
+        return res
 
     def submit(self) -> MockDoc:
+        if callable(getattr(self, "validate", None)):
+            self.validate()
         if callable(getattr(self, "before_submit", None)):
             self.before_submit()
         self.docstatus = 1
-        if callable(getattr(self, "validate", None)):
-            self.validate()
         if callable(getattr(self, "on_submit", None)):
             self.on_submit()
-        return mock_frappe_db.save(self)
+        res = mock_frappe_db.save(self)
+        if callable(getattr(self, "on_update", None)):
+            self.on_update()
+        return res
 
     def cancel(self) -> MockDoc:
         if callable(getattr(self, "before_cancel", None)):
@@ -524,7 +532,14 @@ class MockDoc:
         self.docstatus = 2
         if callable(getattr(self, "on_cancel", None)):
             self.on_cancel()
-        return mock_frappe_db.save(self)
+        res = mock_frappe_db.save(self)
+        if callable(getattr(self, "on_update", None)):
+            self.on_update()
+        return res
+
+    def check_permission(self, ptype: str = "read") -> None:
+        """Stub: always passes in test environment."""
+        pass
 
     def delete(self, ignore_permissions: bool = False) -> None:
         mock_frappe_db.delete(self.doctype, self.name)
@@ -809,8 +824,18 @@ class MockFrappeModule:
             return promoted
         return doc
 
+    # Test override: add (doctype, ptype) tuples here to simulate denied permission.
+    # Example: MockFrappeModule._denied_permissions.add(("Project", "write"))
+    _denied_permissions: set = set()
+
     @staticmethod
-    def has_permission(doctype: str, ptype: str = "read", doc: Any = None, user: Optional[str] = None) -> bool:
+    def has_permission(doctype: str, ptype: str = "read", doc: Any = None, user: Optional[str] = None, throw: bool = False) -> bool:
+        denied = MockFrappeModule._denied_permissions
+        key = (doctype, ptype)
+        if key in denied or ("*", ptype) in denied:
+            if throw:
+                raise ValidationError(f"No permission for {ptype} on {doctype}")
+            return False
         return True
 
     @staticmethod
@@ -833,16 +858,16 @@ class MockFrappeModule:
                         elif op == "!=" and val == target:
                             match = False
                             break
-                        elif op == ">" and not (val > target):
+                        elif op == ">" and (val is None or not (val > target)):
                             match = False
                             break
-                        elif op == "<" and not (val < target):
+                        elif op == "<" and (val is None or not (val < target)):
                             match = False
                             break
-                        elif op == ">=" and not (val >= target):
+                        elif op == ">=" and (val is None or not (val >= target)):
                             match = False
                             break
-                        elif op == "<=" and not (val <= target):
+                        elif op == "<=" and (val is None or not (val <= target)):
                             match = False
                             break
                         elif op == "like":

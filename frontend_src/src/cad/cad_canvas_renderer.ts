@@ -170,9 +170,12 @@ export class CADCanvasRenderer {
     const w = this.canvas.clientWidth;
     const h = this.canvas.clientHeight;
     const padding = 60; // pixels padding
-    const zoomX = (w - padding * 2) / ext.width;
-    const zoomY = (h - padding * 2) / ext.height;
-    this.zoom = Math.max(Math.min(zoomX, zoomY), 1e-4);
+    const safeWidth = ext.width > 0 ? ext.width : 1;
+    const safeHeight = ext.height > 0 ? ext.height : 1;
+    const zoomX = (w - padding * 2) / safeWidth;
+    const zoomY = (h - padding * 2) / safeHeight;
+    const fitZoom = Math.min(zoomX, zoomY);
+    this.zoom = Number.isFinite(fitZoom) ? Math.max(Math.min(fitZoom, 20.0), 1e-4) : 1;
 
     this.render();
   }
@@ -247,11 +250,13 @@ export class CADCanvasRenderer {
   private drawGrid(pal: ThemeColors, w: number, h: number) {
     // Dynamic grid spacing based on zoom level
     const targetPixelSpacing = 80;
-    const rawUnitSpacing = targetPixelSpacing / this.zoom;
-    const mag = Math.pow(10, Math.floor(Math.log10(rawUnitSpacing)));
-    let unitSpacing = mag;
-    if (rawUnitSpacing / mag > 5) unitSpacing = mag * 5;
-    else if (rawUnitSpacing / mag > 2) unitSpacing = mag * 2;
+    const safeZoom = Number.isFinite(this.zoom) && this.zoom > 0 ? this.zoom : 1;
+    const rawUnitSpacing = targetPixelSpacing / safeZoom;
+    const mag = Math.pow(10, Math.floor(Math.log10(Math.max(rawUnitSpacing, 1e-6))));
+    let unitSpacing = mag > 0 && Number.isFinite(mag) ? mag : 1;
+    if (rawUnitSpacing / unitSpacing > 5) unitSpacing *= 5;
+    else if (rawUnitSpacing / unitSpacing > 2) unitSpacing *= 2;
+    if (!Number.isFinite(unitSpacing) || unitSpacing <= 0) unitSpacing = 1;
 
     const topLeft = this.screenToWorld(0, 0);
     const bottomRight = this.screenToWorld(w, h);

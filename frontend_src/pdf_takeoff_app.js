@@ -455,7 +455,13 @@ const takeoffUrlParams = new URLSearchParams(window.location.search);
 const takeoffFileParam = takeoffUrlParams.get('file');
 loadDocuments().then(() => {
   if (takeoffFileParam) {
-    const fname = decodeURIComponent(takeoffFileParam.split('/').pop());
+    const rawFname = takeoffFileParam.split('/').pop() || 'Document.pdf';
+    let fname = rawFname;
+    try {
+      fname = decodeURIComponent(rawFname);
+    } catch (_) {
+      fname = rawFname;
+    }
     openPdf(takeoffFileParam, 'PARAM_PDF', fname);
   }
 });

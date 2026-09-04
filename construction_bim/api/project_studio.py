@@ -120,6 +120,7 @@ def get_project_overview(project):
 	project = _resolve_project_name(project)
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
+	frappe.has_permission("Project", "read", project, throw=True)
 
 	doc = frappe.get_doc("Project", project)
 
@@ -309,6 +310,7 @@ def list_work_packages(project, filter_key=None, type_filter=None, search=None):
 	project = _resolve_project_name(project)
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
+	frappe.has_permission("Project", "read", project, throw=True)
 
 	filters = {"project": project}
 
@@ -395,6 +397,7 @@ def quick_create_work_package(project, wp_type, subject, description=None, prior
 	project = _resolve_project_name(project)
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
+	frappe.has_permission("Project", "write", project, throw=True)
 
 	VALID_WP_TYPES = ["Task", "Milestone", "Phase", "Issue", "Remark", "Request", "Clash"]
 	WP_TYPE_MAP = {t.lower(): t for t in VALID_WP_TYPES}
@@ -526,6 +529,12 @@ def update_work_package_status(task_name, new_column, group_by="status"):
 		frappe.throw(_("Task {0} not found.").format(task_name))
 
 	task = frappe.get_doc("Task", task_name)
+	proj = getattr(task, "project", None)
+	if proj and frappe.db.exists("Project", proj):
+		frappe.has_permission("Project", "write", proj, throw=True)
+	else:
+		task.check_permission("write")
+
 	if group_by == "status":
 		task.status = new_column
 	elif group_by == "priority":
@@ -534,7 +543,7 @@ def update_work_package_status(task_name, new_column, group_by="status"):
 		if new_column != "unassigned" and callable(getattr(task, "add_assign", None)):
 			task.add_assign(new_column)
 
-	task.save(ignore_permissions=True)
+	task.save()
 	return {"status": "success", "task": task.name, "new_value": new_column}
 
 
@@ -542,6 +551,9 @@ def update_work_package_status(task_name, new_column, group_by="status"):
 def get_bcf_coordination_data(project):
 	"""Returns BIM models and BCF topics associated with the project."""
 	project = _resolve_project_name(project)
+	if not frappe.db.exists("Project", project):
+		frappe.throw(_("Project {0} not found.").format(project))
+	frappe.has_permission("Project", "read", project, throw=True)
 	models = []
 	if _doctype_exists("BIM Model"):
 		m_list = frappe.get_all(
@@ -561,26 +573,23 @@ def get_bcf_coordination_data(project):
 	topics = []
 	if _doctype_exists("BCF Topic"):
 		bcf_projs = frappe.get_all("BCF Project", filters={"erpnext_project": project}, pluck="name") if _doctype_exists("BCF Project") else []
-		topic_filters = {}
 		if bcf_projs:
-			topic_filters["bcf_project"] = ["in", bcf_projs]
-
-		t_list = frappe.get_all(
-			"BCF Topic",
-			filters=topic_filters if bcf_projs else None,
-			fields=["name", "title", "topic_type", "priority", "topic_status", "creation", "assigned_to"],
-			limit_page_length=50
-		)
-		for t in t_list:
-			topics.append({
-				"name": t.name,
-				"title": t.title,
-				"topic_type": t.topic_type or "Clash",
-				"priority": t.priority or "Normal",
-				"status": getattr(t, "topic_status", "Open"),
-				"creation": str(t.creation),
-				"assigned_to": t.assigned_to
-			})
+			t_list = frappe.get_all(
+				"BCF Topic",
+				filters={"bcf_project": ["in", bcf_projs]},
+				fields=["name", "title", "topic_type", "priority", "topic_status", "creation", "assigned_to"],
+				limit_page_length=50
+			)
+			for t in t_list:
+				topics.append({
+					"name": t.name,
+					"title": t.title,
+					"topic_type": t.topic_type or "Clash",
+					"priority": t.priority or "Normal",
+					"status": getattr(t, "topic_status", "Open"),
+					"creation": str(t.creation),
+					"assigned_to": t.assigned_to
+				})
 
 	return {"models": models, "topics": topics}
 
@@ -591,6 +600,7 @@ def get_project_document_tree(project):
 	project = _resolve_project_name(project)
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
+	frappe.has_permission("Project", "read", project, throw=True)
 
 	folders = [
 		{"folder_name": "01 Contracts & NTP", "icon": "fa fa-file-text-o", "files": []},
@@ -708,6 +718,7 @@ def update_project_settings(project, settings_json):
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
 
+	frappe.has_permission("Project", "write", project, throw=True)
 	data = json.loads(settings_json) if isinstance(settings_json, str) else settings_json
 	doc = frappe.get_doc("Project", project)
 
@@ -726,7 +737,7 @@ def update_project_settings(project, settings_json):
 	if "is_active" in data:
 		doc.is_active = "Yes" if data["is_active"] in [1, True, "Yes"] else "No"
 
-	doc.save(ignore_permissions=True)
+	doc.save()
 	return {"status": "success", "project": doc.name}
 
 
@@ -735,6 +746,9 @@ def clone_project_from_template(template_project, new_project_name, client=None,
 	"""Clones a project from a template project including PM² phases and milestones."""
 	if not frappe.db.exists("Project", template_project):
 		frappe.throw(_("Template Project {0} not found.").format(template_project))
+
+	frappe.has_permission("Project", "read", template_project, throw=True)
+	frappe.has_permission("Project", "create", throw=True)
 
 	tmpl = frappe.get_doc("Project", template_project)
 
@@ -745,7 +759,7 @@ def clone_project_from_template(template_project, new_project_name, client=None,
 	new_proj.status = "Open"
 	new_proj.is_active = "Yes"
 	new_proj.health_status = "On Track"
-	new_proj.insert(ignore_permissions=True)
+	new_proj.insert()
 
 	# Clone PM² Project Phases if Project Phase exists
 	if _doctype_exists("Project Phase"):
@@ -795,6 +809,8 @@ def schedule_project_meeting(project, meeting_type, subject, date=None, conducto
 		else:
 			frappe.throw(_("Project {0} not found.").format(project))
 
+	frappe.has_permission("Project", "write", project, throw=True)
+
 	if not subject:
 		frappe.throw(_("Briefing Topic / Subject is required."))
 
@@ -814,6 +830,9 @@ def schedule_project_meeting(project, meeting_type, subject, date=None, conducto
 		doc.subject = subject
 		doc.starts_on = f"{meeting_date} 09:00:00"
 		doc.event_type = "Private"
+		doc.description = f"Project Studio BIM Coordination: {project}"
+		if hasattr(doc, "custom_project"):
+			doc.custom_project = project
 		doc.insert(ignore_permissions=True)
 		return {"doctype": "Event", "name": doc.name}
 

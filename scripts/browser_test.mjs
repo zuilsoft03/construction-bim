@@ -1,6 +1,7 @@
 import http from "http";
 import fs from "fs";
 import path from "path";
+import os from "os";
 import { spawn } from "child_process";
 
 async function getJson(url) {
@@ -64,11 +65,15 @@ async function run() {
     usr: "Administrator",
     pwd: "admin",
   });
-  console.log("Login HTTP Status:", loginRes.status, "SID:", loginRes.sid);
+  console.log("Login HTTP Status:", loginRes.status);
 
   console.log("2. Spawning dedicated headless Chrome on port 9333...");
-  const chromePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
-  const tempProfile = `C:\\Users\\gavie\\AppData\\Local\\Temp\\chrome_prof_${Date.now()}`;
+  const chromePath =
+    process.env.CHROME_BIN ||
+    (process.platform === "win32"
+      ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+      : "/usr/bin/google-chrome");
+  const tempProfile = path.join(os.tmpdir(), `chrome_prof_${Date.now()}`);
   const chromeProc = spawn(chromePath, [
     "--headless=new",
     "--remote-debugging-port=9333",
@@ -147,7 +152,21 @@ async function run() {
     }
   };
 
-  await new Promise((resolve) => (ws.onopen = resolve));
+  await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("WebSocket connection timed out")), 10000);
+    ws.onopen = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+    ws.onerror = (err) => {
+      clearTimeout(timer);
+      reject(err);
+    };
+    ws.onclose = () => {
+      clearTimeout(timer);
+      reject(new Error("WebSocket closed before opening"));
+    };
+  });
   console.log("WebSocket connected to Chrome.");
 
   await send("Network.enable");
@@ -236,14 +255,20 @@ async function run() {
     await new Promise((r) => setTimeout(r, 1500));
     const checkView = await send("Runtime.evaluate", {
       expression: `(() => {
+        const activeNav = document.querySelector('.studio-nav-list .nav-item.active');
+        const activeTabDom = activeNav ? activeNav.getAttribute('data-tab') : null;
         const activeViews = Array.from(document.querySelectorAll('.studio-tab-view')).filter(e => e.style.display !== 'none' && !e.classList.contains('hidden')).map(e => e.id);
-        return { activeTab: '${tab}', activeViews };
+        return { requestedTab: '${tab}', activeTab: activeTabDom, activeViews };
       })()`,
       returnByValue: true,
     });
     console.log(`Tab [${tab}] transition:`, JSON.stringify(checkView.result.value));
     const tabShot = await send("Page.captureScreenshot", { format: "png" });
-    fs.writeFileSync(`C:/Users/gavie/.gemini/antigravity/brain/2dd394fd-82af-44f8-b50d-5723a4284a51/tab_${tab}.png`, Buffer.from(tabShot.data, "base64"));
+    const artifactDir = process.env.ARTIFACT_DIR || "C:/Users/gavie/.gemini/antigravity/brain/2dd394fd-82af-44f8-b50d-5723a4284a51";
+    if (!fs.existsSync(artifactDir)) {
+      fs.mkdirSync(artifactDir, { recursive: true });
+    }
+    fs.writeFileSync(path.join(artifactDir, `tab_${tab}.png`), Buffer.from(tabShot.data, "base64"));
   }
 
   // Test navigating to All Projects (Hub) via project switcher
@@ -256,22 +281,26 @@ async function run() {
   });
   await new Promise((r) => setTimeout(r, 1500));
   const allProjShot = await send("Page.captureScreenshot", { format: "png" });
-  fs.writeFileSync("C:/Users/gavie/.gemini/antigravity/brain/2dd394fd-82af-44f8-b50d-5723a4284a51/tab_all-projects.png", Buffer.from(allProjShot.data, "base64"));
+  const artifactDir = process.env.ARTIFACT_DIR || "C:/Users/gavie/.gemini/antigravity/brain/2dd394fd-82af-44f8-b50d-5723a4284a51";
+  if (!fs.existsSync(artifactDir)) {
+    fs.mkdirSync(artifactDir, { recursive: true });
+  }
+  fs.writeFileSync(path.join(artifactDir, "tab_all-projects.png"), Buffer.from(allProjShot.data, "base64"));
 
   // Test Quick Create (+) Task modal
   console.log("Testing Quick Create (+) Task modal...");
   await send("Runtime.evaluate", {
     expression: `(() => {
-      const btn = document.querySelector('.action-quick-add[data-type="Task"]');
+      const btn = document.querySelector('.primary-action') || document.querySelector('button[data-label="Create"]') || document.querySelector('.action-quick-add[data-type="Task"]');
       if (btn) btn.click();
     })()`,
   });
   await new Promise((r) => setTimeout(r, 1000));
   const quickCreateShot = await send("Page.captureScreenshot", { format: "png" });
-  fs.writeFileSync("C:/Users/gavie/.gemini/antigravity/brain/2dd394fd-82af-44f8-b50d-5723a4284a51/modal_quick_create.png", Buffer.from(quickCreateShot.data, "base64"));
+  fs.writeFileSync(path.join(artifactDir, "modal_quick_create.png"), Buffer.from(quickCreateShot.data, "base64"));
 
   const finalShot = await send("Page.captureScreenshot", { format: "png" });
-  fs.writeFileSync("C:/Users/gavie/.gemini/antigravity/brain/2dd394fd-82af-44f8-b50d-5723a4284a51/browser_test_final.png", Buffer.from(finalShot.data, "base64"));
+  fs.writeFileSync(path.join(artifactDir, "browser_test_final.png"), Buffer.from(finalShot.data, "base64"));
 
   console.log("======================================================================");
   console.log("SUMMARY:");
@@ -280,8 +309,9 @@ async function run() {
   console.log(`  Network errors (HTTP >= 400): ${networkErrors.length}`);
   console.log("======================================================================");
 
+  const hasErrors = uncaughtErrors.length > 0;
   ws.close();
-  process.exit(0);
+  process.exit(hasErrors ? 1 : 0);
 }
 
 run().catch((err) => {

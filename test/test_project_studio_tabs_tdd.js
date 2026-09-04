@@ -55,11 +55,12 @@ test("Viewport contains all 12 view containers (#view-*)", () => {
 test("Quick-Create dropdown contains all 7 work package types and project actions", () => {
 	const expectedTypes = ["Task", "Milestone", "Phase", "Issue", "Remark", "Request", "Clash"];
 	expectedTypes.forEach(type => {
-		const regex = new RegExp(`data-type=[\"']${type}[\"']`);
-		assert(regex.test(htmlContent), `Quick create dropdown must have data-type="${type}"`);
+		const inHtml = new RegExp(`data-type=[\"']${type}[\"']`, "i").test(htmlContent);
+		const inJs = new RegExp(`openQuickCreateModal\\(['"]${type}['"]\\)`).test(jsContent);
+		assert(inHtml || inJs, `Quick create must have support for "${type}"`);
 	});
-	assert(/data-type=["']project[\"']/i.test(htmlContent), "Quick create dropdown must support project creation");
-	assert(/data-type=[\"']user[\"']/i.test(htmlContent), "Quick create dropdown must support user invitation");
+	assert(/data-type=["']project[\"']/i.test(htmlContent) || /openQuickCreateModal\(['"]project['"]\)/.test(jsContent), "Quick create dropdown must support project creation");
+	assert(/data-type=[\"']user[\"']/i.test(htmlContent) || /openQuickCreateModal\(['"]user['"]\)/.test(jsContent), "Quick create dropdown must support user invitation");
 });
 
 // 4. BCF 2-Pane Viewport

@@ -472,15 +472,22 @@ def list_measurements(pdf_file: str) -> list[dict]:
             pdf_file = file_doc.name
         except (frappe.exceptions.ValidationError, frappe.exceptions.DoesNotExistError):
             pass
-    return frappe.get_all("PDF Measurement",
+    res = frappe.get_all("PDF Measurement",
                           filters={"pdf_file": pdf_file},
                           fields=["name", "page_no", "measurement_type", "points",
                                   "scale", "real_value", "unit", "notes"],
                           order_by="page_no, creation")
+    for r in res:
+        if r.get("measurement_type"):
+            r["type"] = str(r["measurement_type"]).lower()
+            r["measurement_type"] = str(r["measurement_type"]).lower()
+    return res
 
 
 @frappe.whitelist()
 def delete_measurement(measurement: str) -> dict:
+    if not frappe.has_permission("PDF Measurement", "delete"):
+        frappe.throw(_("Not permitted to delete measurement"), frappe.PermissionError)
     frappe.delete_doc("PDF Measurement", measurement, ignore_permissions=True)
     frappe.db.commit()
     return {"deleted": measurement}
@@ -578,6 +585,8 @@ def create_in_viewer_issue(title: str, topic_type: str = "Issue", priority: str 
                            camera_json: str | None = None, element_guid: str | None = None,
                            project: str | None = None) -> dict:
     """Creates a BCF Topic, BCF Viewpoint, and native ERPNext Issue directly from in-viewer interaction."""
+    if not frappe.has_permission("Issue", "create") and not frappe.has_permission("BCF Topic", "create"):
+        frappe.throw(_("Not permitted to create issues or BCF topics"), frappe.PermissionError)
     import uuid
     topic_guid = str(uuid.uuid4())
     

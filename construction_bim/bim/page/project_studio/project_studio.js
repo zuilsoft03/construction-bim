@@ -5,14 +5,12 @@ frappe.pages['project-studio'].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
-	// Hide native Frappe page-head for pure full-screen Frappe UI look
-	page.page_head.hide();
-	$(page.wrapper).find('.page-head').hide();
-	$(page.wrapper).find('.page-header').hide();
-	page.body.css({ padding: '0', margin: '0', height: '100%' });
+	// Keep native Frappe page-head visible with clean padding
+	page.page_head.show();
+	page.body.css({ padding: '0', margin: '0', height: 'calc(100vh - 110px)' });
 	$(wrapper).closest('.main-section').css({ padding: '0' });
 
-	// Manage full-width studio mode on body to eliminate double sidebar
+	// Manage full-width studio mode on body to eliminate duplicate workspace sidebar
 	$('body').addClass('in-project-studio');
 	$('.body-sidebar, .body-sidebar-container, .layout-side-section, .desk-sidebar').hide();
 	$('.layout-main-section').css({ width: '100%', 'max-width': '100%', flex: '1 1 100%', padding: '0' });
@@ -59,7 +57,7 @@ frappe.pages['project-studio'].on_page_load = function (wrapper) {
 		.then(function (module) {
 			console.log('Project Studio bundle loaded successfully.');
 			if (window.ProjectStudioApp) {
-				window.curProjectStudio = new window.ProjectStudioApp();
+				window.curProjectStudio = new window.ProjectStudioApp({ page: page, wrapper: wrapper });
 			}
 		})
 		.catch(function (err) {

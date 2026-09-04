@@ -48,6 +48,10 @@ def create_task_from_bcf_topic(topic_name_or_guid: str, project: Optional[str] =
     else:
         topic = frappe.get_doc("BCF Topic", {"guid": topic_name_or_guid})
 
+    topic.check_permission("read")
+    topic.check_permission("write")
+    frappe.has_permission("Task", "create", throw=True)
+
     if topic.erpnext_task and frappe.db.exists("Task", topic.erpnext_task):
         return {
             "status": "already_linked",
@@ -59,6 +63,9 @@ def create_task_from_bcf_topic(topic_name_or_guid: str, project: Optional[str] =
     if not erp_project and topic.bcf_project:
         erp_project = frappe.db.get_value("BCF Project", topic.bcf_project, "erpnext_project")
 
+    if erp_project and frappe.db.exists("Project", erp_project):
+        frappe.has_permission("Project", "write", erp_project, throw=True)
+
     task = frappe.new_doc("Task")
     task.subject = f"[BIM] {topic.title}"
     task.project = erp_project
@@ -68,11 +75,11 @@ def create_task_from_bcf_topic(topic_name_or_guid: str, project: Optional[str] =
     if topic.due_date:
         task.exp_end_date = str(topic.due_date).split("T")[0].split(" ")[0]
 
-    task.insert(ignore_permissions=True)
+    task.insert()
 
     # Link back
     topic.erpnext_task = task.name
-    topic.save(ignore_permissions=True)
+    topic.save()
     frappe.db.commit()
 
     return {
@@ -83,7 +90,6 @@ def create_task_from_bcf_topic(topic_name_or_guid: str, project: Optional[str] =
     }
 
 
-@frappe.whitelist()
 def sync_bcf_topic_to_task(topic_doc) -> None:
     """Propagate changes from BCF Topic to the linked ERPNext Task."""
     if isinstance(topic_doc, str):
@@ -110,7 +116,6 @@ def sync_bcf_topic_to_task(topic_doc) -> None:
         task.save()
 
 
-@frappe.whitelist()
 def sync_task_to_bcf_topic(task_doc) -> None:
     """Propagate changes from ERPNext Task back to the linked BCF Topic."""
     if isinstance(task_doc, str):
