@@ -1,0 +1,287 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:BCF-TOPIC-{YYYY}-{#####}",
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "guid",
+  "bcf_project",
+  "title",
+  "topic_type",
+  "topic_status",
+  "priority",
+  "column_break_1",
+  "index",
+  "assigned_to",
+  "stage",
+  "due_date",
+  "bim_clash",
+  "erpnext_task",
+  "section_break_desc",
+  "description",
+  "labels",
+  "section_break_viewpoints",
+  "default_viewpoint",
+  "viewpoint_count",
+  "comment_count",
+  "section_break_bcf_v3",
+  "document_references",
+  "bim_snippet",
+  "related_topics",
+  "section_break_audit",
+  "creation_date",
+  "creation_author",
+  "modified_date",
+  "modified_author"
+ ],
+ "fields": [
+  {
+   "description": "RFC 4122 UUID v4 (36 chars, e.g., c1a2b3c4-d5e6-4f7a-8b9c-0d1e2f3a4b5c)",
+   "fieldname": "guid",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Topic GUID",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "bcf_project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "BCF Project",
+   "options": "BCF Project",
+   "reqd": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "default": "Clash",
+   "fieldname": "topic_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Topic Type",
+   "reqd": 1
+  },
+  {
+   "default": "Open",
+   "fieldname": "topic_status",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "reqd": 1
+  },
+  {
+   "default": "Medium",
+   "fieldname": "priority",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Priority"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Sequential numerical index within the project for UI ordering.",
+   "fieldname": "index",
+   "fieldtype": "Int",
+   "label": "Topic Index"
+  },
+  {
+   "fieldname": "assigned_to",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Assigned To (User)",
+   "options": "User"
+  },
+  {
+   "fieldname": "stage",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Stage"
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Due Date"
+  },
+  {
+   "description": "Links directly to native BIM Clash record if generated via clash test.",
+   "fieldname": "bim_clash",
+   "fieldtype": "Link",
+   "label": "Originating BIM Clash",
+   "options": "BIM Clash"
+  },
+  {
+   "description": "Bi-directional linkage to project schedule work packages.",
+   "fieldname": "erpnext_task",
+   "fieldtype": "Link",
+   "label": "Linked ERPNext Task",
+   "options": "Task"
+  },
+  {
+   "fieldname": "section_break_desc",
+   "fieldtype": "Section Break",
+   "label": "Narrative & Categories"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "Topic Description"
+  },
+  {
+   "description": "JSON array of strings: [\"Structural\", \"HVAC\", \"Level 2\"]",
+   "fieldname": "labels",
+   "fieldtype": "Code",
+   "label": "Topic Labels",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "section_break_viewpoints",
+   "fieldtype": "Section Break",
+   "label": "Viewpoints & Metrics"
+  },
+  {
+   "description": "Primary 3D viewpoint opened when selecting this issue in 3D viewer.",
+   "fieldname": "default_viewpoint",
+   "fieldtype": "Link",
+   "label": "Default Viewpoint",
+   "options": "BCF Viewpoint"
+  },
+  {
+   "default": "0",
+   "fieldname": "viewpoint_count",
+   "fieldtype": "Int",
+   "label": "Total Viewpoints",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "comment_count",
+   "fieldtype": "Int",
+   "label": "Total Comments",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_bcf_v3",
+   "fieldtype": "Section Break",
+   "label": "BCF 3.0 Extended Metadata"
+  },
+  {
+   "description": "Array of {guid, url, description, is_external} objects.",
+   "fieldname": "document_references",
+   "fieldtype": "Code",
+   "label": "Document References",
+   "options": "JSON"
+  },
+  {
+   "description": "Object with {snippet_type, is_external, reference, reference_schema}.",
+   "fieldname": "bim_snippet",
+   "fieldtype": "Code",
+   "label": "BIM Snippet",
+   "options": "JSON"
+  },
+  {
+   "description": "Array of UUID v4 topic strings: [\"...\"]",
+   "fieldname": "related_topics",
+   "fieldtype": "Code",
+   "label": "Related Topic GUIDs",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "section_break_audit",
+   "fieldtype": "Section Break",
+   "label": "Audit Trail (UTC)"
+  },
+  {
+   "fieldname": "creation_date",
+   "fieldtype": "Datetime",
+   "label": "Creation Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "creation_author",
+   "fieldtype": "Data",
+   "label": "Creation Author",
+   "read_only": 1
+  },
+  {
+   "fieldname": "modified_date",
+   "fieldtype": "Datetime",
+   "label": "Modified Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "modified_author",
+   "fieldtype": "Data",
+   "label": "Modified Author",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "BIM",
+ "name": "BCF Topic",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "title,guid,bcf_project,topic_type,topic_status,assigned_to",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title"
+}

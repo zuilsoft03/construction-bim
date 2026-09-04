@@ -1,0 +1,66 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "ifc_guid",
+  "originating_system",
+  "authoring_tool_id",
+  "action",
+  "color_hex"
+ ],
+ "fields": [
+  {
+   "description": "22-char IFC Base64 or standard 36-char UUID.",
+   "fieldname": "ifc_guid",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "IFC GUID",
+   "reqd": 1
+  },
+  {
+   "description": "e.g. Revit 2026, ArchiCAD 27, MagiCAD 2026",
+   "fieldname": "originating_system",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Originating System"
+  },
+  {
+   "description": "e.g. Revit Element ID 482910",
+   "fieldname": "authoring_tool_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "CAD Internal ID"
+  },
+  {
+   "default": "Select",
+   "fieldname": "action",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Action / State",
+   "options": "Select\nColor\nHide\nIsolate"
+  },
+  {
+   "description": "8-char ARGB Hex (e.g. FFFF0000 = Opaque Red, 80FFFF00 = 50% Yellow)",
+   "fieldname": "color_hex",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Color Hex (AARRGGBB)"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "BIM",
+ "name": "BCF Component",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -21,11 +21,15 @@ def run_all_tests():
     # Import test cases directly
     from construction_bim.bim.doctype.bim_clash.test_bim_clash import TestBIMClash
     from construction_bim.bim.doctype.bim_bom_generator.test_bim_bom_generator import TestBIMBOMGenerator
+    from construction_bim.bim.doctype.bim_issue.test_bim_issue import TestBIMIssue
     from test.test_bim_clash_and_bom import TestBIMClashAndBOMSuite
+    from test.test_cad_bcf_suite import TestCADAndBCFCollaboration
 
     suite.addTests(loader.loadTestsFromTestCase(TestBIMClash))
     suite.addTests(loader.loadTestsFromTestCase(TestBIMBOMGenerator))
+    suite.addTests(loader.loadTestsFromTestCase(TestBIMIssue))
     suite.addTests(loader.loadTestsFromTestCase(TestBIMClashAndBOMSuite))
+    suite.addTests(loader.loadTestsFromTestCase(TestCADAndBCFCollaboration))
 
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)

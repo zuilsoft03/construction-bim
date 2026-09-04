@@ -33,6 +33,8 @@ def _get_or_create_project(project_name: str = "_Test BIM Integrated Project") -
 class TestBIMClashAndBOMSuite(FrappeTestCase):
     @classmethod
     def setUpClass(cls):
+        if hasattr(frappe.db, "_tables") and not hasattr(frappe, "get_installed_apps"):
+            raise unittest.SkipTest("TestBIMClashAndBOMSuite requires live Frappe bench site.")
         super().setUpClass()
         cls.project_name = _get_or_create_project("_Test BIM Integrated Project")
 

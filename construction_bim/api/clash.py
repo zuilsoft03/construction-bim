@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import logging
+import uuid
 from typing import Any
 
 import frappe
@@ -108,6 +109,10 @@ def save_clashes_batch(
                 if item.get("severity"):
                     existing.severity = item["severity"]
                 existing.save()
+                try:
+                    sync_clash_to_bcf(existing)
+                except Exception as e:
+                    logger.warning(f"Could not auto-sync BCF for clash {existing.name}: {e}")
                 updated_count += 1
                 result_names.append(existing.name)
             else:
@@ -184,6 +189,10 @@ def save_clashes_batch(
                 doc.viewpoint = vp_str
 
             doc.insert()
+            try:
+                sync_clash_to_bcf(doc)
+            except Exception as e:
+                logger.warning(f"Could not auto-sync BCF for clash {doc.name}: {e}")
             created_count += 1
             result_names.append(doc.name)
 
@@ -431,3 +440,103 @@ def delete_clash(clash_name: str) -> dict[str, str]:
     frappe.delete_doc("BIM Clash", clash_name)
     frappe.db.commit()
     return {"deleted": clash_name}
+
+
+@frappe.whitelist()
+def sync_clash_to_bcf(clash: str | Any) -> dict[str, Any]:
+    """Ensure a BIM Clash record is synchronized to a buildingSMART BCF Topic and Viewpoint."""
+    if isinstance(clash, str):
+        clash_doc = frappe.get_doc("BIM Clash", clash)
+    else:
+        clash_doc = clash
+    clash_doc.check_permission("read")
+
+    # 1. Resolve or create BCF Project
+    bcf_project_name = None
+    if clash_doc.project and frappe.db.exists("BCF Project", {"erpnext_project": clash_doc.project}):
+        bcf_project_name = frappe.db.get_value("BCF Project", {"erpnext_project": clash_doc.project}, "name")
+
+    if not bcf_project_name:
+        default_proj = frappe.get_all("BCF Project", limit_page_length=1)
+        if default_proj:
+            bcf_project_name = default_proj[0].name
+        else:
+            new_p = frappe.new_doc("BCF Project")
+            new_p.project_name = clash_doc.project or "General BIM Coordination"
+            new_p.erpnext_project = clash_doc.project
+            new_p.insert(ignore_permissions=True)
+            bcf_project_name = new_p.name
+
+    # 2. Check or create BCF Topic
+    topic_doc = None
+    if clash_doc.bcf_topic and frappe.db.exists("BCF Topic", clash_doc.bcf_topic):
+        topic_doc = frappe.get_doc("BCF Topic", clash_doc.bcf_topic)
+    else:
+        topic_doc = frappe.new_doc("BCF Topic")
+        topic_doc.guid = clash_doc.bcf_guid or str(uuid.uuid4())
+        topic_doc.bcf_project = bcf_project_name
+        topic_doc.bim_clash = clash_doc.name
+        topic_doc.insert(ignore_permissions=True)
+        clash_doc.bcf_topic = topic_doc.name
+        clash_doc.bcf_guid = topic_doc.guid
+
+    # Sync topic properties
+    topic_doc.title = clash_doc.title or f"Clash: {clash_doc.element_a_type or 'A'} vs {clash_doc.element_b_type or 'B'}"
+    topic_doc.topic_type = "Clash"
+    topic_doc.priority = clash_doc.priority or "High"
+    status_map = {
+        "Open": "Open",
+        "In Review": "In Progress",
+        "Resolved": "Resolved",
+        "Closed": "Closed",
+        "Ignored": "Closed"
+    }
+    topic_doc.topic_status = status_map.get(clash_doc.status, "Open")
+    topic_doc.due_date = clash_doc.due_date
+    topic_doc.assigned_to = clash_doc.assigned_to
+    topic_doc.save(ignore_permissions=True)
+
+    # 3. Create or update BCF Viewpoint
+    vp_doc = None
+    if clash_doc.viewpoint and frappe.db.exists("BCF Viewpoint", clash_doc.viewpoint):
+        vp_doc = frappe.get_doc("BCF Viewpoint", clash_doc.viewpoint)
+    else:
+        vp_doc = frappe.new_doc("BCF Viewpoint")
+        vp_doc.guid = str(uuid.uuid4())
+        vp_doc.topic = topic_doc.name
+        vp_doc.viewpoint_type = "Perspective"
+
+        cx = float(getattr(clash_doc, "collision_point_x", None) or getattr(clash_doc, "collision_x", None) or 0.0)
+        cy = float(getattr(clash_doc, "collision_point_y", None) or getattr(clash_doc, "collision_y", None) or 0.0)
+        cz = float(getattr(clash_doc, "collision_point_z", None) or getattr(clash_doc, "collision_z", None) or 0.0)
+
+        vp_doc.camera_position = json.dumps({"x": round(cx + 2.5, 4), "y": round(cy - 2.5, 4), "z": round(cz + 2.0, 4)})
+        vp_doc.camera_direction = json.dumps({"x": -0.6, "y": 0.6, "z": -0.5})
+        vp_doc.camera_up_vector = json.dumps({"x": 0.0, "y": 0.0, "z": 1.0})
+        vp_doc.field_of_view = 60.0
+
+        guid_a = getattr(clash_doc, "element_a_guid", None) or getattr(clash_doc, "guid_a", None)
+        guid_b = getattr(clash_doc, "element_b_guid", None) or getattr(clash_doc, "guid_b", None)
+        sels = []
+        if guid_a:
+            sels.append({"ifc_guid": guid_a})
+        if guid_b:
+            sels.append({"ifc_guid": guid_b})
+        vp_doc.selection = json.dumps(sels)
+        vp_doc.insert(ignore_permissions=True)
+
+        clash_doc.viewpoint = vp_doc.name
+        topic_doc.default_viewpoint = vp_doc.name
+        topic_doc.save(ignore_permissions=True)
+
+    if hasattr(clash_doc, "save"):
+        clash_doc.save(ignore_permissions=True)
+
+    return {
+        "status": "success",
+        "clash": clash_doc.name,
+        "bcf_topic": topic_doc.name,
+        "bcf_guid": topic_doc.guid,
+        "bcf_viewpoint": vp_doc.name if vp_doc else None
+    }
+

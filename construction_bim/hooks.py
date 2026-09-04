@@ -1,19 +1,19 @@
 app_name = "construction_bim"
-app_title = "Construction BIM"
+app_title = "Project Studio Bim"
 app_publisher = "zuilsoft03"
 app_description = "BIM module for ERPNext: IFC import, 3D model viewer, element-to-BOQ links, PDF takeoff."
 app_email = "zuilsoft03@gmail.com"
 app_license = "AGPL-3.0"
 app_icon = "octicon octicon-git-branch"
 app_color = "grey"
-app_home = "/app/construction"
+app_home = "/app/project-studio"
 
 add_to_apps_screen = [
 	{
 		"name": "construction_bim",
 		"logo": "/assets/construction_bim/images/bim-logo.svg",
-		"title": "Construction BIM",
-		"route": "/app/construction",
+		"title": "Project Studio Bim",
+		"route": "/app/project-studio",
 	}
 ]
 
@@ -22,7 +22,7 @@ add_to_apps_screen = [
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/construction_bim/css/construction_bim.css"
-# app_include_js = "/assets/construction_bim/js/construction_bim.js"
+app_include_js = "/assets/construction_bim/js/construction_bim.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/construction_bim/css/construction_bim.css"
@@ -167,11 +167,11 @@ add_to_apps_screen = [
 
 # linked-doc events
 # ---------------------------
-# doc_events = {
-# 	"BIM Model": {
-# 		"on_trash": "construction_bim.hooks.on_bim_model_trash"
-# 	}
-# }
+doc_events = {
+	"Task": {
+		"on_update": "construction_bim.bim.bcf.task_sync.sync_task_to_bcf_topic"
+	}
+}
 
 # Scheduled Tasks
 # ---------------

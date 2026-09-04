@@ -168,21 +168,21 @@ def get_model_quantity_summary(model: str) -> dict[str, Any]:
         vol = (
             _get_num(quants, ["NetVolume", "GrossVolume", "Volume", "Net_Volume", "Gross_Volume"]) or
             _get_num(props, ["NetVolume", "Volume", "GrossVolume", "Net Volume", "Gross Volume"]) or
-            0.0
+            float(getattr(el, "volume", 0.0) or 0.0)
         )
 
         # 2. Area extraction (m2)
         area = (
             _get_num(quants, ["NetArea", "GrossArea", "Area", "NetSideArea", "GrossSideArea", "Net_Area", "Gross_Area"]) or
             _get_num(props, ["NetArea", "GrossArea", "Area", "Net Area", "Gross Area"]) or
-            0.0
+            float(getattr(el, "area", 0.0) or 0.0)
         )
 
         # 3. Length extraction (m)
         length = (
             _get_num(quants, ["Length", "NominalLength", "TotalLength", "NetLength"]) or
             _get_num(props, ["Length", "NominalLength", "TotalLength"]) or
-            0.0
+            float(getattr(el, "length", 0.0) or 0.0)
         )
 
         # 4. Weight extraction (kg)
@@ -636,4 +636,75 @@ def _create_boq_traceability_links(model: str, bom_name: str, calculated_items: 
                 created += 1
 
     return created
+
+
+@frappe.whitelist()
+def generate_material_request_from_bim(
+    model_id: str,
+    cost_center: str | None = None,
+    warehouse: str | None = None,
+    material_request_type: str = "Purchase"
+) -> dict[str, Any]:
+    """Generate a formal ERPNext Material Request directly from BIM extracted quantities."""
+    if hasattr(frappe, "has_permission") and not frappe.has_permission("Material Request", "create"):
+        frappe.throw(_("Not permitted to create Material Request"), frappe.PermissionError)
+
+    preview = preview_bom_generation(model_id)
+    calculated_items = preview.get("items") or preview.get("calculated_items", [])
+    if not calculated_items:
+        frappe.throw(_("No quantifiable items found in BIM Model {0}").format(model_id))
+
+    model_doc = frappe.get_doc("BIM Model", model_id)
+    project_id = getattr(model_doc, "project", None)
+
+    import time
+    now_d = time.strftime("%Y-%m-%d")
+
+    mr = frappe.new_doc("Material Request")
+    mr.material_request_type = material_request_type
+    mr.transaction_date = now_d
+    mr.schedule_date = now_d
+    if cost_center:
+        mr.cost_center = cost_center
+    if project_id:
+        mr.project = project_id
+
+    items_added = 0
+    for itm in calculated_items:
+        qty = float(itm.get("net_quantity") or itm.get("qty") or 0.0)
+        if qty <= 0:
+            continue
+
+        item_code = itm.get("item_code")
+        _ensure_item_exists(
+            item_code,
+            item_name=itm.get("item_name", item_code),
+            item_group=itm.get("item_group", "Raw Material"),
+            default_uom=itm.get("uom", "Nos")
+        )
+
+        row = mr.append("items", {})
+        row.item_code = item_code
+        row.item_name = itm.get("item_name", item_code)
+        row.qty = round(qty, 2)
+        row.uom = itm.get("uom", "Nos")
+        row.rate = float(itm.get("rate") or 0.0)
+        row.amount = round(row.qty * row.rate, 2)
+        if warehouse:
+            row.warehouse = warehouse
+        if cost_center:
+            row.cost_center = cost_center
+        items_added += 1
+
+    mr.insert(ignore_permissions=True)
+    frappe.db.commit()
+
+    return {
+        "status": "success",
+        "material_request": mr.name,
+        "items_count": items_added,
+        "total_cost": preview.get("total_estimated_cost", 0.0),
+        "project": project_id
+    }
+
 

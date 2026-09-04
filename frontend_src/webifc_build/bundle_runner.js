@@ -1,4 +1,4 @@
-﻿const esbuild = require('esbuild');
+const esbuild = require('esbuild');
 const path = require('path');
 
 const page = process.argv[2] || 'bim_viewer';
@@ -11,6 +11,7 @@ esbuild.build({
   format: 'esm',
   minify: false,
   sourcemap: 'inline',
+  loader: { '.js': 'ts' },
   outfile: outFile,
   logLevel: 'silent',
 }).then(() => {

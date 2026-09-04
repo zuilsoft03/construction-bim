@@ -1,0 +1,106 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "boq_item_id",
+  "description",
+  "unit",
+  "contract_qty",
+  "rate",
+  "previous_qty",
+  "current_qty",
+  "cumulative_qty",
+  "current_amount",
+  "cumulative_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "boq_item_id",
+   "fieldtype": "Data",
+   "label": "BOQ Item ID"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Description",
+   "reqd": 1
+  },
+  {
+   "default": "m3",
+   "fieldname": "unit",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Unit"
+  },
+  {
+   "fieldname": "contract_qty",
+   "fieldtype": "Float",
+   "label": "Contract Qty",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Unit Rate",
+   "options": "PHP"
+  },
+  {
+   "default": "0",
+   "fieldname": "previous_qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Previous Qty"
+  },
+  {
+   "default": "0",
+   "fieldname": "current_qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Current Qty",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "cumulative_qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Cumulative Qty",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "current_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Current Claim Amount",
+   "options": "PHP",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "cumulative_amount",
+   "fieldtype": "Currency",
+   "label": "Cumulative Amount",
+   "options": "PHP",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Construction",
+ "name": "Progress Claim Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

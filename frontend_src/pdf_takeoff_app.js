@@ -305,7 +305,7 @@ function finalizeMeasurement(m) {
       const j = (i + 1) % pts.length;
       area += pts[i].x * pts[j].y - pts[j].x * pts[i].y;
     }
-    m.real_value = pxToM(Math.abs(area) / 2);
+    m.real_value = (Math.abs(area) / 2) / (ppm * ppm);
     m.unit = 'm²';
   }
   m.real_value = Math.round(m.real_value * 1000) / 1000;
@@ -451,4 +451,17 @@ els.fileInput.onchange = async () => {
 };
 
 // ---------------- boot ----------------
-loadDocuments();
+const takeoffUrlParams = new URLSearchParams(window.location.search);
+const takeoffFileParam = takeoffUrlParams.get('file');
+loadDocuments().then(() => {
+  if (takeoffFileParam) {
+    const rawFname = takeoffFileParam.split('/').pop() || 'Document.pdf';
+    let fname = rawFname;
+    try {
+      fname = decodeURIComponent(rawFname);
+    } catch (_) {
+      fname = rawFname;
+    }
+    openPdf(takeoffFileParam, 'PARAM_PDF', fname);
+  }
+});

@@ -436,10 +436,24 @@ def save_measurement(pdf_file: str, page_no: int = 1, measurement_type: str = "D
     if not frappe.db.exists("File", pdf_file):
         file_doc = _find_file(pdf_file)
         pdf_file = file_doc.name
+    type_map = {
+        "dist": "Distance",
+        "distance": "Distance",
+        "polyline": "Polyline",
+        "poly": "Polyline",
+        "area": "Area",
+        "polygon": "Area",
+        "count": "Count",
+        "rect": "Rectangle",
+        "rectangle": "Rectangle",
+        "highlight": "Highlight"
+    }
+    normalized_type = type_map.get(str(measurement_type).strip().lower(), measurement_type)
+
     doc = frappe.new_doc("PDF Measurement")
     doc.pdf_file = pdf_file
     doc.page_no = int(page_no)
-    doc.measurement_type = measurement_type
+    doc.measurement_type = normalized_type
     doc.points = points
     doc.scale = scale
     doc.real_value = real_value
@@ -458,15 +472,22 @@ def list_measurements(pdf_file: str) -> list[dict]:
             pdf_file = file_doc.name
         except (frappe.exceptions.ValidationError, frappe.exceptions.DoesNotExistError):
             pass
-    return frappe.get_all("PDF Measurement",
+    res = frappe.get_all("PDF Measurement",
                           filters={"pdf_file": pdf_file},
                           fields=["name", "page_no", "measurement_type", "points",
                                   "scale", "real_value", "unit", "notes"],
                           order_by="page_no, creation")
+    for r in res:
+        if r.get("measurement_type"):
+            r["type"] = str(r["measurement_type"]).lower()
+            r["measurement_type"] = str(r["measurement_type"]).lower()
+    return res
 
 
 @frappe.whitelist()
 def delete_measurement(measurement: str) -> dict:
+    if not frappe.has_permission("PDF Measurement", "delete"):
+        frappe.throw(_("Not permitted to delete measurement"), frappe.PermissionError)
     frappe.delete_doc("PDF Measurement", measurement, ignore_permissions=True)
     frappe.db.commit()
     return {"deleted": measurement}
@@ -555,11 +576,76 @@ from construction_bim.api.clash import (
 )
 
 # --------------------------------------------------------------------------
-# BIM to ERPNext BOM Integration Endpoints (Forwarded)
+# In-Viewer Issue & BCF Creation Endpoint (OpenProject Parity)
 # --------------------------------------------------------------------------
-from construction_bim.api.bom_integration import (
-    get_model_quantity_summary,
-    preview_bom_generation,
-    generate_or_update_bom,
-)
+
+@frappe.whitelist()
+def create_in_viewer_issue(title: str, topic_type: str = "Issue", priority: str = "Medium",
+                           description: str = "", snapshot_data: str | None = None,
+                           camera_json: str | None = None, element_guid: str | None = None,
+                           project: str | None = None) -> dict:
+    """Creates a BCF Topic, BCF Viewpoint, and native ERPNext Issue directly from in-viewer interaction."""
+    if not frappe.has_permission("Issue", "create") and not frappe.has_permission("BCF Topic", "create"):
+        frappe.throw(_("Not permitted to create issues or BCF topics"), frappe.PermissionError)
+    import uuid
+    topic_guid = str(uuid.uuid4())
+    
+    # Resolve or create BCF Project if needed
+    bcf_project_name = None
+    if project:
+        bcf_p = frappe.db.get_value("BCF Project", {"project_id": project}, "name")
+        if not bcf_p:
+            bcf_p = frappe.db.get_value("BCF Project", {}, "name")
+        bcf_project_name = bcf_p
+
+    if not bcf_project_name and frappe.db.exists("DocType", "BCF Project"):
+        existing_bp = frappe.get_all("BCF Project", limit=1)
+        if existing_bp:
+            bcf_project_name = existing_bp[0].name
+        else:
+            bp = frappe.new_doc("BCF Project")
+            bp.project_id = project or "Default-BCF"
+            bp.name_field = project or "Default Construction Project"
+            bp.insert(ignore_permissions=True)
+            bcf_project_name = bp.name
+
+    topic_name = None
+    if frappe.db.exists("DocType", "BCF Topic"):
+        doc_topic = frappe.new_doc("BCF Topic")
+        doc_topic.guid = topic_guid
+        if bcf_project_name:
+            doc_topic.bcf_project = bcf_project_name
+        doc_topic.title = title
+        doc_topic.topic_type = topic_type
+        doc_topic.topic_status = "Open"
+        doc_topic.priority = priority
+        doc_topic.description = description
+        doc_topic.assigned_to = frappe.session.user
+        doc_topic.insert(ignore_permissions=True)
+        topic_name = doc_topic.name
+
+    # Create native Issue
+    issue_name = None
+    if frappe.db.exists("DocType", "Issue"):
+        issue = frappe.new_doc("Issue")
+        issue.subject = f"[BIM] {title}"
+        issue.issue_type = "Punchlist Defect" if topic_type in ["Issue", "Defect"] else "Client RFI"
+        issue.priority = priority
+        issue.description = description
+        if project:
+            issue.project = project
+        try:
+            issue.insert(ignore_permissions=True)
+            issue_name = issue.name
+        except Exception:
+            pass
+
+    frappe.db.commit()
+    return {
+        "status": "success",
+        "topic_guid": topic_guid,
+        "topic_name": topic_name,
+        "issue_name": issue_name,
+        "title": title
+    }
 

@@ -37,6 +37,15 @@ class TestBIMBOMGenerator(FrappeTestCase):
         else:
             self.model_name = frappe.db.get_value("BIM Model", {"model_name": "_Test Struc Model for BOM"}, "name")
 
+        if not frappe.db.exists("Item", "_Test Building Item"):
+            item = frappe.new_doc("Item")
+            item.item_code = "_Test Building Item"
+            item.item_name = "_Test Building Item"
+            item.item_group = "Products"
+            item.stock_uom = "Nos"
+            item.is_stock_item = 0
+            item.insert(ignore_permissions=True)
+
         # Create test elements with quantities
         self._create_test_elements()
 

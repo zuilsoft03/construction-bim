@@ -1,0 +1,258 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:BIM-ISSUE-{YYYY}-{#####}",
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "topic_type",
+  "topic_status",
+  "priority",
+  "column_break_1",
+  "assigned_to",
+  "due_date",
+  "stage",
+  "labels",
+  "section_break_ref",
+  "reference_model",
+  "drawing_space",
+  "cad_file",
+  "column_break_view",
+  "pin_number",
+  "location_x",
+  "location_y",
+  "section_break_viewpoint",
+  "viewpoint_json",
+  "snapshot",
+  "section_break_desc",
+  "description",
+  "section_break_resolution",
+  "created_by_user",
+  "creation_date",
+  "column_break_res",
+  "resolved_by",
+  "resolution_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Issue Title",
+   "reqd": 1
+  },
+  {
+   "default": "Issue",
+   "fieldname": "topic_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Topic Type",
+   "options": "Issue\nClashing\nRequest\nRemark\nInquiry\nCoordination",
+   "reqd": 1
+  },
+  {
+   "default": "Open",
+   "fieldname": "topic_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Open\nIn Progress\nResolved\nClosed",
+   "reqd": 1
+  },
+  {
+   "default": "Normal",
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Priority",
+   "options": "Low\nNormal\nHigh\nCritical",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "assigned_to",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Assigned To",
+   "options": "User"
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Due Date"
+  },
+  {
+   "default": "Coordination",
+   "fieldname": "stage",
+   "fieldtype": "Select",
+   "label": "Stage / Milestone",
+   "options": "Schematic Design\nDetailed Design\nConstruction Documents\nCoordination\nAs-Built"
+  },
+  {
+   "fieldname": "labels",
+   "fieldtype": "Data",
+   "label": "Labels / Tags"
+  },
+  {
+   "fieldname": "section_break_ref",
+   "fieldtype": "Section Break",
+   "label": "Drawing & CAD Reference"
+  },
+  {
+   "fieldname": "reference_model",
+   "fieldtype": "Link",
+   "label": "Reference Model",
+   "options": "BIM Model"
+  },
+  {
+   "default": "Model Space",
+   "fieldname": "drawing_space",
+   "fieldtype": "Data",
+   "label": "Drawing Space / Sheet"
+  },
+  {
+   "fieldname": "cad_file",
+   "fieldtype": "Data",
+   "label": "CAD File Name / URL"
+  },
+  {
+   "fieldname": "column_break_view",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pin_number",
+   "fieldtype": "Int",
+   "label": "Pin Number"
+  },
+  {
+   "fieldname": "location_x",
+   "fieldtype": "Float",
+   "label": "CAD X Coordinate"
+  },
+  {
+   "fieldname": "location_y",
+   "fieldtype": "Float",
+   "label": "CAD Y Coordinate"
+  },
+  {
+   "fieldname": "section_break_viewpoint",
+   "fieldtype": "Section Break",
+   "label": "BCF Viewpoint & Markups"
+  },
+  {
+   "fieldname": "viewpoint_json",
+   "fieldtype": "Code",
+   "label": "Viewpoint JSON",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "snapshot",
+   "fieldtype": "Attach Image",
+   "label": "Snapshot Image"
+  },
+  {
+   "fieldname": "section_break_desc",
+   "fieldtype": "Section Break",
+   "label": "Description"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "Description"
+  },
+  {
+   "fieldname": "section_break_resolution",
+   "fieldtype": "Section Break",
+   "label": "Resolution & Audit"
+  },
+  {
+   "fieldname": "created_by_user",
+   "fieldtype": "Link",
+   "label": "Created By User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "creation_date",
+   "fieldtype": "Datetime",
+   "label": "Creation Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_res",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "resolved_by",
+   "fieldtype": "Link",
+   "label": "Resolved By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "resolution_date",
+   "fieldtype": "Datetime",
+   "label": "Resolution Date",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "BIM",
+ "name": "BIM Issue",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

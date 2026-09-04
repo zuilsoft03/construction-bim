@@ -1,0 +1,185 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:PHASE-{project}-{sequence}",
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "phase_name",
+  "project",
+  "sequence",
+  "column_break_1",
+  "status",
+  "gate_approval_status",
+  "approved_by",
+  "approval_date",
+  "section_break_schedule",
+  "planned_start",
+  "planned_end",
+  "column_break_actual",
+  "actual_start",
+  "actual_end",
+  "section_break_gates",
+  "gate_checklist",
+  "section_break_deliverables",
+  "deliverables_summary"
+ ],
+ "fields": [
+  {
+   "fieldname": "phase_name",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Phase Name",
+   "options": "1. Initiating\n2. Planning\n3. Executing\n4. Monitoring & Controlling\n5. Closing\n6. Defects Liability",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Project",
+   "options": "Project",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "sequence",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Sequence"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Not Started",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Not Started\nIn Progress\nGate Review\nCompleted\nSkipped"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "gate_approval_status",
+   "fieldtype": "Select",
+   "label": "Stage-Gate Status",
+   "options": "Pending\nApproved\nConditional Approval\nRejected"
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Gate Approved By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "approval_date",
+   "fieldtype": "Date",
+   "label": "Approval Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_schedule",
+   "fieldtype": "Section Break",
+   "label": "Timeline & Schedule"
+  },
+  {
+   "fieldname": "planned_start",
+   "fieldtype": "Date",
+   "label": "Planned Start"
+  },
+  {
+   "fieldname": "planned_end",
+   "fieldtype": "Date",
+   "label": "Planned End"
+  },
+  {
+   "fieldname": "column_break_actual",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "actual_start",
+   "fieldtype": "Date",
+   "label": "Actual Start"
+  },
+  {
+   "fieldname": "actual_end",
+   "fieldtype": "Date",
+   "label": "Actual End"
+  },
+  {
+   "fieldname": "section_break_gates",
+   "fieldtype": "Section Break",
+   "label": "Stage-Gate Verification Checklist"
+  },
+  {
+   "fieldname": "gate_checklist",
+   "fieldtype": "Table",
+   "label": "Gate Deliverables & Verifications",
+   "options": "Project Phase Gate"
+  },
+  {
+   "fieldname": "section_break_deliverables",
+   "fieldtype": "Section Break",
+   "label": "Deliverables & Notes"
+  },
+  {
+   "fieldname": "deliverables_summary",
+   "fieldtype": "Text Editor",
+   "label": "Deliverables Summary & Notes"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Construction",
+ "name": "Project Phase",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "sequence",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1
+}

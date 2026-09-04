@@ -1,0 +1,208 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:BCF-PROJ-{#####}",
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "project_name",
+  "project_id",
+  "erpnext_project",
+  "bcf_version",
+  "status",
+  "column_break_stats",
+  "topic_count",
+  "open_topic_count",
+  "section_break_extensions",
+  "topic_types",
+  "topic_statuses",
+  "priorities",
+  "topic_labels",
+  "stages",
+  "snippet_types",
+  "section_break_audit",
+  "created_by_user",
+  "modified_by_user"
+ ],
+ "fields": [
+  {
+   "fieldname": "project_name",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "label": "BCF Project Name",
+   "reqd": 1
+  },
+  {
+   "description": "RFC 4122 UUID v4 identifying the project in the buildingSMART BCF REST API.",
+   "fieldname": "project_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "BCF Project GUID",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "Optional mapping to ERPNext Project master for cost and schedule integration.",
+   "fieldname": "erpnext_project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "ERPNext Project",
+   "options": "Project"
+  },
+  {
+   "default": "2.1",
+   "fieldname": "bcf_version",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "BCF Version",
+   "options": "2.1\n3.0",
+   "reqd": 1
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Active\nArchived\nClosed"
+  },
+  {
+   "fieldname": "column_break_stats",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "topic_count",
+   "fieldtype": "Int",
+   "label": "Total Topics",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "open_topic_count",
+   "fieldtype": "Int",
+   "label": "Open Topics",
+   "read_only": 1
+  },
+  {
+   "description": "Allowed enumerated values conforming to BCF extensions.xml / extensions.json",
+   "fieldname": "section_break_extensions",
+   "fieldtype": "Section Break",
+   "label": "Allowed Extensions & Vocabularies"
+  },
+  {
+   "default": "[\"Clash\", \"Issue\", \"Inquiry\", \"Request\", \"Remark\", \"Fault\", \"Warning\"]",
+   "fieldname": "topic_types",
+   "fieldtype": "Code",
+   "label": "Topic Types",
+   "options": "JSON"
+  },
+  {
+   "default": "[\"Open\", \"In Progress\", \"Resolved\", \"Approved\", \"Closed\", \"Rejected\"]",
+   "fieldname": "topic_statuses",
+   "fieldtype": "Code",
+   "label": "Topic Statuses",
+   "options": "JSON"
+  },
+  {
+   "default": "[\"Critical\", \"High\", \"Medium\", \"Low\"]",
+   "fieldname": "priorities",
+   "fieldtype": "Code",
+   "label": "Priorities",
+   "options": "JSON"
+  },
+  {
+   "default": "[\"Architecture\", \"Structural\", \"MEP\", \"HVAC\", \"Electrical\", \"Plumbing\", \"Fire Protection\", \"Site\", \"Safety\"]",
+   "fieldname": "topic_labels",
+   "fieldtype": "Code",
+   "label": "Labels / Categories",
+   "options": "JSON"
+  },
+  {
+   "default": "[\"Concept\", \"Design Development\", \"Coordination\", \"Permitting\", \"Construction\", \"As-Built\"]",
+   "fieldname": "stages",
+   "fieldtype": "Code",
+   "label": "Project Stages",
+   "options": "JSON"
+  },
+  {
+   "default": "[\"IFC4\", \"IFC2X3\", \"JSON\"]",
+   "fieldname": "snippet_types",
+   "fieldtype": "Code",
+   "label": "BIM Snippet Types",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "section_break_audit",
+   "fieldtype": "Section Break",
+   "label": "Audit Information"
+  },
+  {
+   "fieldname": "created_by_user",
+   "fieldtype": "Data",
+   "label": "Created By",
+   "read_only": 1
+  },
+  {
+   "fieldname": "modified_by_user",
+   "fieldtype": "Data",
+   "label": "Last Modified By",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "BIM",
+ "name": "BCF Project",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "project_name,project_id,erpnext_project",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "project_name"
+}

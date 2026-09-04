@@ -1,0 +1,77 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-09-03 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "milestone_no",
+  "title",
+  "task",
+  "due_date",
+  "percent_weight",
+  "amount",
+  "status"
+ ],
+ "fields": [
+  {
+   "fieldname": "milestone_no",
+   "fieldtype": "Int",
+   "label": "Milestone No."
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Milestone Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "task",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Linked Task",
+   "options": "Task"
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Due Date"
+  },
+  {
+   "fieldname": "percent_weight",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "% Weight"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "options": "PHP"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Pending\nIn Progress\nAchieved\nOverdue",
+   "default": "Pending"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Construction",
+ "name": "Construction Contract Milestone",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
