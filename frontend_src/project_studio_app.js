@@ -255,9 +255,9 @@ class ProjectStudioApp {
 	}
 
 	selectProject(projectName, tab = 'home') {
-		this.currentProject = projectName;
-		const projObj = this.allProjects.find(p => p.name === projectName) || { project_name: projectName };
-		$('#current-project-title').text(projObj.project_name);
+		const projObj = this.allProjects.find(p => p.name === projectName || p.project_name === projectName) || { name: projectName, project_name: projectName };
+		this.currentProject = projObj.name;
+		$('#current-project-title').text(projObj.project_name || projObj.name);
 		$('#sidebar-active-status').text(projObj.status || 'Active');
 
 		// Enable project-specific nav tabs
@@ -965,6 +965,7 @@ class ProjectStudioApp {
 		}
 
 		meetings.forEach(m => {
+			const docType = m.doctype || (m.type === 'Toolbox Talk' ? 'Toolbox Talk' : 'Event');
 			$cont.append(`
 				<div class="meeting-card p-3 mb-3" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
 					<div class="flex-between">
@@ -973,14 +974,14 @@ class ProjectStudioApp {
 							<h4 class="mt-1 mb-1 font-weight-bold">${m.title}</h4>
 							<small class="text-muted"><i class="fa fa-calendar"></i> ${m.date} &nbsp;|&nbsp; <i class="fa fa-user"></i> Conductor: ${m.host || 'Site Coordinator'} &nbsp;|&nbsp; <i class="fa fa-users"></i> Attendees: ${m.participants || 0}</small>
 						</div>
-						<button class="btn btn-default btn-xs btn-view-meeting-doc" data-doctype="${m.type}" data-name="${m.name}"><i class="fa fa-eye"></i> View Doc</button>
+						<button class="btn btn-default btn-xs btn-view-meeting-doc" data-doctype="${docType}" data-name="${m.name}"><i class="fa fa-eye"></i> View Doc</button>
 					</div>
 				</div>
 			`);
 		});
 
 		$cont.find('.btn-view-meeting-doc').on('click', function () {
-			const dt = $(this).data('doctype');
+			const dt = $(this).data('doctype') || 'Event';
 			const nm = $(this).data('name');
 			frappe.set_route('Form', dt, nm);
 		});
@@ -993,45 +994,29 @@ class ProjectStudioApp {
 			fields: [
 				{ fieldname: 'meeting_type', label: __('Type'), fieldtype: 'Select', options: 'Toolbox Talk\nCoordination Meeting', default: 'Toolbox Talk' },
 				{ fieldname: 'subject', label: __('Topic / Subject'), fieldtype: 'Data', reqd: 1 },
-				{ fieldname: 'date', label: __('Date'), fieldtype: 'Date', default: (frappe.datetime && frappe.datetime.get_today) ? frappe.datetime.get_today() : new Date().toISOString().split('T')[0] },
-				{ fieldname: 'conductor', label: __('Conductor / Host'), fieldtype: 'Data' }
+				{ fieldname: 'date', label: __('Date'), fieldtype: 'Date', default: (frappe.datetime && frappe.datetime.get_today) ? frappe.datetime.get_today() : new Date().toISOString().split('T')[0], reqd: 1 },
+				{ fieldname: 'conductor', label: __('Conductor (Safety Officer / Host)'), fieldtype: 'Data', default: frappe.session.user_fullname || frappe.session.user || 'Administrator', reqd: 1 }
 			],
 			primary_action_label: __('Create Meeting'),
 			primary_action(values) {
-				if (values.meeting_type === 'Toolbox Talk') {
-					frappe.call({
-						method: 'frappe.client.insert',
-						args: {
-							doc: {
-								doctype: 'Toolbox Talk',
-								project: self.currentProject,
-								topic_category: values.subject,
-								date: values.date,
-								conductor_name: values.conductor || frappe.session.user
-							}
-						}
-					}).then(() => {
-						d.hide();
-						frappe.show_alert({ message: __('Toolbox talk scheduled.'), indicator: 'green' });
-						self.loadProjectData(self.currentProject);
-					});
-				} else {
-					frappe.call({
-						method: 'frappe.client.insert',
-						args: {
-							doc: {
-								doctype: 'Event',
-								subject: values.subject,
-								starts_on: values.date + ' 09:00:00',
-								event_type: 'Private'
-							}
-						}
-					}).then(() => {
-						d.hide();
-						frappe.show_alert({ message: __('Meeting created.'), indicator: 'green' });
-						self.loadProjectData(self.currentProject);
-					});
-				}
+				frappe.call({
+					method: 'construction_bim.api.project_studio.schedule_project_meeting',
+					args: {
+						project: self.currentProject,
+						meeting_type: values.meeting_type,
+						subject: values.subject,
+						date: values.date,
+						conductor: values.conductor
+					}
+				}).then(() => {
+					d.hide();
+					const label = values.meeting_type === 'Toolbox Talk' ? __('Toolbox talk scheduled.') : __('Coordination meeting scheduled.');
+					frappe.show_alert({ message: label, indicator: 'green' });
+					self.loadProjectData(self.currentProject);
+				}).catch(err => {
+					console.error('Error scheduling meeting:', err);
+					frappe.msgprint(__('Error: ') + (err.message || err));
+				});
 			}
 		});
 		d.show();
