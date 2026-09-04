@@ -112,22 +112,37 @@ var ProjectStudioApp = class {
     $("#document-folders-container").on("click", ".file-item-link", function(e) {
       const route = $(this).data("route");
       const url = $(this).data("url");
+      const modelId = $(this).data("model-id");
       if (route === "bim") {
         e.preventDefault();
-        self.switchTab("bcf");
+        self.switchTab("bcf", { model: modelId, url });
         frappe.show_alert({ message: __("Opening IFC model in 3D Viewer..."), indicator: "blue" });
       } else if (route === "cad") {
         e.preventDefault();
-        self.switchTab("cad");
+        self.switchTab("cad", { file: url });
         frappe.show_alert({ message: __("Opening drawing in 2D CAD Studio..."), indicator: "blue" });
       } else if (route === "pdf") {
         e.preventDefault();
-        self.switchTab("pdf");
+        self.switchTab("pdf", { file: url });
         frappe.show_alert({ message: __("Opening plan in PDF Takeoff..."), indicator: "blue" });
       }
     });
     $("#btn-upload-document").on("click", function() {
       self.openFileUploadDialog();
+    });
+    $("#btn-bcf-upload-ifc").on("click", function() {
+      self.openBcfUploadDialog();
+    });
+    $("#btn-load-all-models").on("click", function() {
+      $('#bcf-models-tree input[type="checkbox"]').prop("checked", true);
+      const iframeSrc = `/app/bim-viewer?project=${encodeURIComponent(self.currentProject)}`;
+      $("#iframe-bcf-3d-viewer").attr("src", iframeSrc);
+      $("#btn-bcf-open-fullscreen").attr("href", iframeSrc);
+    });
+    $("#btn-unload-all-models").on("click", function() {
+      $('#bcf-models-tree input[type="checkbox"]').prop("checked", false);
+      const iframeSrc = `/app/bim-viewer?project=${encodeURIComponent(self.currentProject)}&model=none`;
+      $("#iframe-bcf-3d-viewer").attr("src", iframeSrc);
     });
     $("#btn-open-dwg-fullscreen").on("click", function() {
       window.open(`/app/dwg-viewer?project=${encodeURIComponent(self.currentProject)}`, "_blank");
@@ -189,7 +204,7 @@ var ProjectStudioApp = class {
     this.switchTab(tab);
     this.loadProjectData(projectName);
   }
-  switchTab(tabKey) {
+  switchTab(tabKey, params = {}) {
     this.currentTab = tabKey;
     $(".studio-nav-list .nav-item").removeClass("active");
     $(`.studio-nav-list .nav-item[data-tab="${tabKey}"]`).addClass("active");
@@ -210,11 +225,13 @@ var ProjectStudioApp = class {
     } else if (tabKey === "gantt") {
       this.renderGanttChart();
     } else if (tabKey === "bcf") {
-      this.renderBcfViewer();
+      this.renderBcfViewer(params.model);
     } else if (tabKey === "cad") {
-      $("#iframe-dwg-viewer").attr("src", `/app/dwg-viewer?project=${encodeURIComponent(this.currentProject)}`);
+      const cadSrc = params.file ? `/app/dwg-viewer?project=${encodeURIComponent(this.currentProject)}&file=${encodeURIComponent(params.file)}` : `/app/dwg-viewer?project=${encodeURIComponent(this.currentProject)}`;
+      $("#iframe-dwg-viewer").attr("src", cadSrc);
     } else if (tabKey === "pdf") {
-      $("#iframe-pdf-viewer").attr("src", `/app/pdf-takeoff?project=${encodeURIComponent(this.currentProject)}`);
+      const pdfSrc = params.file ? `/app/pdf-takeoff?project=${encodeURIComponent(this.currentProject)}&file=${encodeURIComponent(params.file)}` : `/app/pdf-takeoff?project=${encodeURIComponent(this.currentProject)}`;
+      $("#iframe-pdf-viewer").attr("src", pdfSrc);
     } else if (tabKey === "documents") {
       this.renderDocumentsTree();
     } else if (tabKey === "meetings") {
@@ -617,8 +634,15 @@ var ProjectStudioApp = class {
   // -------------------------------------------------------------------------
   // TAB 5: BCF 2-PANE COORDINATION VIEWER (Screenshot 4)
   // -------------------------------------------------------------------------
-  renderBcfViewer() {
+  renderBcfViewer(targetModel = null) {
     const self = this;
+    const $iframe = $("#iframe-bcf-3d-viewer");
+    const targetParam = targetModel ? `&model=${encodeURIComponent(targetModel)}` : "";
+    const expectedSrc = `/app/bim-viewer?project=${encodeURIComponent(self.currentProject)}${targetParam}`;
+    if ($iframe.length && $iframe.attr("src") !== expectedSrc) {
+      $iframe.attr("src", expectedSrc);
+    }
+    $("#btn-bcf-open-fullscreen").attr("href", expectedSrc);
     frappe.call({
       method: "construction_bim.api.project_studio.get_bcf_coordination_data",
       args: { project: self.currentProject }
@@ -629,16 +653,30 @@ var ProjectStudioApp = class {
       const $tree = $("#bcf-models-tree");
       $tree.empty();
       if (models.length === 0) {
-        $tree.append('<div class="text-muted p-2"><small>No IFC models uploaded.</small></div>');
+        $tree.append('<div class="text-muted p-3 text-center"><small>No IFC models uploaded yet.<br>Click <strong>+ Upload IFC</strong> above to add one.</small></div>');
       } else {
         models.forEach((m) => {
+          const isChecked = targetModel ? m.name === targetModel || m.model_name === targetModel : true;
           $tree.append(`
-						<div class="model-tree-row p-1">
-							<label style="font-weight: normal; font-size: 12px; cursor: pointer;">
-								<input type="checkbox" checked data-model="${m.name}"> <strong>[${m.discipline || "IFC"}]</strong> ${m.model_name || m.name}
+						<div class="model-tree-row p-1 flex-between" style="border-bottom: 1px solid #f1f5f9;">
+							<label style="font-weight: normal; font-size: 12px; cursor: pointer; margin: 0;">
+								<input type="checkbox" class="model-tree-cb" ${isChecked ? "checked" : ""} data-model="${m.name}"> <strong>[${m.discipline || "IFC"}]</strong> ${m.model_name || m.name}
 							</label>
+							<a href="javascript:void(0)" class="action-focus-model text-primary ml-1" data-model="${m.name}" title="View this model"><i class="fa fa-eye"></i></a>
 						</div>
 					`);
+        });
+        $tree.find(".model-tree-cb").on("change", function() {
+          const mName = $(this).data("model");
+          if ($(this).is(":checked")) {
+            $("#iframe-bcf-3d-viewer").attr("src", `/app/bim-viewer?project=${encodeURIComponent(self.currentProject)}&model=${encodeURIComponent(mName)}`);
+          }
+        });
+        $tree.find(".action-focus-model").on("click", function() {
+          const mName = $(this).data("model");
+          $tree.find(".model-tree-cb").prop("checked", false);
+          $tree.find(`.model-tree-cb[data-model="${mName}"]`).prop("checked", true);
+          $("#iframe-bcf-3d-viewer").attr("src", `/app/bim-viewer?project=${encodeURIComponent(self.currentProject)}&model=${encodeURIComponent(mName)}`);
         });
       }
       $("#bcf-topic-count").text(topics.length);
@@ -693,7 +731,7 @@ var ProjectStudioApp = class {
         } else {
           f.files.forEach((file) => {
             $fList.append(`
-							<a href="javascript:void(0)" class="file-item-link" data-route="${file.route_target}" data-url="${file.file_url}">
+							<a href="javascript:void(0)" class="file-item-link" data-route="${file.route_target}" data-url="${file.file_url}" data-model-id="${file.model_id || file.id || ""}">
 								<span><i class="fa fa-file text-secondary"></i> ${file.file_name}</span>
 								<span class="badge">${file.badge}</span>
 							</a>
@@ -704,6 +742,35 @@ var ProjectStudioApp = class {
       });
     });
   }
+  handleUploadedFile(fileDoc) {
+    const self = this;
+    const ext = (fileDoc.file_name || "").split(".").pop().toLowerCase();
+    if (ext === "ifc") {
+      frappe.show_alert({ message: __("Ingesting IFC model into 3D BIM database..."), indicator: "blue" });
+      frappe.call({
+        method: "construction_bim.bim.api.create_model_from_ifc",
+        args: {
+          file_url: fileDoc.file_url,
+          file_name: fileDoc.file_name,
+          project: self.currentProject,
+          model_name: fileDoc.file_name.replace(/\.[^/.]+$/, ""),
+          discipline: "Architecture"
+        }
+      }).then((res) => {
+        frappe.show_alert({ message: __("BIM Model ingested successfully!"), indicator: "green" });
+        self.renderDocumentsTree();
+        self.switchTab("bcf", { model: res.message ? res.message.name : null });
+      }).catch((err) => {
+        console.error("Failed to parse IFC:", err);
+        frappe.msgprint(__("Uploaded file saved, but IFC parsing encountered an issue: ") + (err.message || err));
+        self.renderDocumentsTree();
+        self.switchTab("bcf");
+      });
+    } else {
+      frappe.show_alert({ message: __("File uploaded successfully."), indicator: "green" });
+      self.renderDocumentsTree();
+    }
+  }
   openFileUploadDialog() {
     const self = this;
     new frappe.ui.FileUploader({
@@ -711,8 +778,21 @@ var ProjectStudioApp = class {
       docname: self.currentProject,
       folder: "Home",
       on_success(file_doc) {
-        frappe.show_alert({ message: __("File uploaded successfully."), indicator: "green" });
-        self.renderDocumentsTree();
+        self.handleUploadedFile(file_doc);
+      }
+    });
+  }
+  openBcfUploadDialog() {
+    const self = this;
+    new frappe.ui.FileUploader({
+      doctype: "Project",
+      docname: self.currentProject,
+      folder: "Home",
+      restrictions: {
+        allowed_file_types: [".ifc"]
+      },
+      on_success(file_doc) {
+        self.handleUploadedFile(file_doc);
       }
     });
   }

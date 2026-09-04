@@ -451,4 +451,11 @@ els.fileInput.onchange = async () => {
 };
 
 // ---------------- boot ----------------
-loadDocuments();
+const takeoffUrlParams = new URLSearchParams(window.location.search);
+const takeoffFileParam = takeoffUrlParams.get('file');
+loadDocuments().then(() => {
+  if (takeoffFileParam) {
+    const fname = decodeURIComponent(takeoffFileParam.split('/').pop());
+    openPdf(takeoffFileParam, 'PARAM_PDF', fname);
+  }
+});

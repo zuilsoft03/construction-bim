@@ -327,10 +327,14 @@ def list_work_packages(project, filter_key=None, type_filter=None, search=None):
 		limit_page_length=500
 	)
 
+	VALID_WP_TYPES = ["Task", "Milestone", "Phase", "Issue", "Remark", "Request", "Clash"]
+	WP_TYPE_MAP = {t.lower(): t for t in VALID_WP_TYPES}
+
 	items = []
 	for t in tasks:
 		doc = frappe.get_doc("Task", t.name)
-		wp_type = getattr(doc, "work_package_type", None) or t.type or "Task"
+		raw_type = getattr(doc, "work_package_type", None) or t.type or "Task"
+		wp_type = WP_TYPE_MAP.get(str(raw_type).strip().lower(), "Task")
 		
 		# Type filter check
 		if type_filter and type_filter.lower() != "all" and wp_type.lower() != type_filter.lower():
@@ -353,7 +357,7 @@ def list_work_packages(project, filter_key=None, type_filter=None, search=None):
 		items.append({
 			"id": t.name,
 			"subject": t.subject or t.name,
-			"type": str(wp_type).upper(),
+			"type": wp_type,
 			"status": t.status,
 			"priority": t.priority or "Normal",
 			"parent_task": t.parent_task,
@@ -375,6 +379,10 @@ def quick_create_work_package(project, wp_type, subject, description=None, prior
 	if not frappe.db.exists("Project", project):
 		frappe.throw(_("Project {0} not found.").format(project))
 
+	VALID_WP_TYPES = ["Task", "Milestone", "Phase", "Issue", "Remark", "Request", "Clash"]
+	WP_TYPE_MAP = {t.lower(): t for t in VALID_WP_TYPES}
+	normalized_type = WP_TYPE_MAP.get(str(wp_type).strip().lower(), "Task")
+
 	task = frappe.new_doc("Task")
 	task.project = project
 	task.subject = subject
@@ -383,9 +391,9 @@ def quick_create_work_package(project, wp_type, subject, description=None, prior
 	task.status = "Open"
 	task.exp_end_date = due_date
 	task.parent_task = parent_wp
-	task.work_package_type = wp_type
+	task.work_package_type = normalized_type
 
-	if wp_type.lower() == "milestone":
+	if normalized_type == "Milestone":
 		task.is_milestone = 1
 
 	task.insert(ignore_permissions=True)
@@ -430,7 +438,7 @@ def quick_create_work_package(project, wp_type, subject, description=None, prior
 	return {
 		"id": task.name,
 		"subject": task.subject,
-		"type": wp_type.upper(),
+		"type": normalized_type,
 		"status": task.status,
 		"linked_doc": linked_doc_name
 	}
@@ -583,13 +591,16 @@ def get_project_document_tree(project):
 	)
 
 	# Also gather BIM Models
+	seen_ifc_urls = set()
 	if _doctype_exists("BIM Model"):
 		models = frappe.get_all("BIM Model", filters={"project": project}, fields=["name", "model_name", "original_file", "geometry_file"])
 		for m in models:
 			file_url = getattr(m, "original_file", None) or getattr(m, "geometry_file", None)
 			if file_url:
+				seen_ifc_urls.add(file_url)
 				folder_map["03 BIM Models"]["files"].append({
 					"id": m.name,
+					"model_id": m.name,
 					"file_name": m.model_name or os.path.basename(file_url),
 					"file_url": file_url,
 					"file_size": 0,
@@ -606,9 +617,42 @@ def get_project_document_tree(project):
 		badge = ext.upper()
 
 		if ext in ["ifc"]:
+			if f.file_url in seen_ifc_urls:
+				continue
+			model_id = None
+			if _doctype_exists("BIM Model"):
+				existing = frappe.db.get_value("BIM Model", {"original_file": f.file_url}, "name")
+				if not existing:
+					try:
+						from construction_bim.bim.api import create_model_from_ifc
+						res = create_model_from_ifc(
+							file_url=f.file_url,
+							file_name=f.file_name,
+							project=project,
+							model_name=(f.file_name or "BIM Model").rsplit(".", 1)[0],
+							discipline="Architecture"
+						)
+						existing = res.get("name")
+					except Exception:
+						pass
+				model_id = existing
+
+			seen_ifc_urls.add(f.file_url)
 			target_route = "bim"
 			target_folder = "03 BIM Models"
 			badge = "3D IFC"
+			folder_map[target_folder]["files"].append({
+				"id": f.name,
+				"model_id": model_id or f.name,
+				"file_name": f.file_name,
+				"file_url": f.file_url,
+				"file_size": flt(f.file_size),
+				"file_size_formatted": _format_bytes(flt(f.file_size)),
+				"extension": ext,
+				"route_target": target_route,
+				"badge": badge
+			})
+			continue
 		elif ext in ["dwg", "dxf"]:
 			target_route = "cad"
 			target_folder = "02 Drawings & Specs"

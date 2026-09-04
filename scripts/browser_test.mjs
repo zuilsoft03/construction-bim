@@ -262,7 +262,7 @@ async function run() {
   console.log("Testing Quick Create (+) Task modal...");
   await send("Runtime.evaluate", {
     expression: `(() => {
-      const btn = document.querySelector('.action-quick-add[data-type="TASK"]');
+      const btn = document.querySelector('.action-quick-add[data-type="Task"]');
       if (btn) btn.click();
     })()`,
   });

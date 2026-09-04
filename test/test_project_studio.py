@@ -166,7 +166,7 @@ class TestProjectStudio(unittest.TestCase):
         clashes = project_studio.list_work_packages(self.project.name, type_filter="clash")
         self.assertEqual(len(clashes), 1)
         self.assertEqual(clashes[0]["subject"], "Pipe vs Beam Collision")
-        self.assertEqual(clashes[0]["type"], "CLASH")
+        self.assertEqual(clashes[0]["type"], "Clash")
 
     # --------------------------------------------------------------------------
     # 4. Quick-Create Work Packages (Polymorphic Creation)
@@ -181,7 +181,7 @@ class TestProjectStudio(unittest.TestCase):
             priority="Normal",
             due_date="2026-05-15"
         )
-        self.assertEqual(res_task["type"], "TASK")
+        self.assertEqual(res_task["type"], "Task")
         self.assertTrue(mock_frappe_db.exists("Task", res_task["id"]))
 
         # Case B: Clash (auto-links to BCF Topic if registered)
@@ -191,7 +191,7 @@ class TestProjectStudio(unittest.TestCase):
             subject="HVAC Duct penetrating Shear Wall at Grid 3-C",
             priority="High"
         )
-        self.assertEqual(res_clash["type"], "CLASH")
+        self.assertEqual(res_clash["type"], "Clash")
 
         # Case C: Request (auto-links to RFI)
         res_req = project_studio.quick_create_work_package(
@@ -201,7 +201,7 @@ class TestProjectStudio(unittest.TestCase):
             priority="Normal",
             description="Proposed equivalent membrane technical submittal"
         )
-        self.assertEqual(res_req["type"], "REQUEST")
+        self.assertEqual(res_req["type"], "Request")
         self.assertIsNotNone(res_req.get("linked_doc"))
         self.assertTrue(mock_frappe_db.exists("RFI", res_req["linked_doc"]))
 

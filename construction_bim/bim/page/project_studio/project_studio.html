@@ -54,13 +54,13 @@
 					<li><a href="javascript:void(0)" class="action-quick-add" data-type="user"><i class="fa fa-user-plus text-info"></i> Invite user</a></li>
 					<li role="separator" class="divider"></li>
 					<li class="dropdown-header">WORK PACKAGES</li>
-					<li><a href="javascript:void(0)" class="action-quick-add" data-type="TASK"><span class="wp-pill wp-pill-task">TASK</span> Standard Task</a></li>
-					<li><a href="javascript:void(0)" class="action-quick-add" data-type="MILESTONE"><span class="wp-pill wp-pill-milestone">MILESTONE</span> Stage Deadline</a></li>
-					<li><a href="javascript:void(0)" class="action-quick-add" data-type="PHASE"><span class="wp-pill wp-pill-phase">PHASE</span> PM² Stage Gate</a></li>
-					<li><a href="javascript:void(0)" class="action-quick-add" data-type="ISSUE"><span class="wp-pill wp-pill-issue">ISSUE</span> Snag / Punchlist</a></li>
-					<li><a href="javascript:void(0)" class="action-quick-add" data-type="REMARK"><span class="wp-pill wp-pill-remark">REMARK</span> Site Observation</a></li>
-					<li><a href="javascript:void(0)" class="action-quick-add" data-type="REQUEST"><span class="wp-pill wp-pill-request">REQUEST</span> RFI / Change</a></li>
-					<li><a href="javascript:void(0)" class="action-quick-add" data-type="CLASH"><span class="wp-pill wp-pill-clash">CLASH</span> 3D Coordination</a></li>
+					<li><a href="javascript:void(0)" class="action-quick-add" data-type="Task"><span class="wp-pill wp-pill-task">Task</span> Standard Task</a></li>
+					<li><a href="javascript:void(0)" class="action-quick-add" data-type="Milestone"><span class="wp-pill wp-pill-milestone">Milestone</span> Stage Deadline</a></li>
+					<li><a href="javascript:void(0)" class="action-quick-add" data-type="Phase"><span class="wp-pill wp-pill-phase">Phase</span> PM² Stage Gate</a></li>
+					<li><a href="javascript:void(0)" class="action-quick-add" data-type="Issue"><span class="wp-pill wp-pill-issue">Issue</span> Snag / Punchlist</a></li>
+					<li><a href="javascript:void(0)" class="action-quick-add" data-type="Remark"><span class="wp-pill wp-pill-remark">Remark</span> Site Observation</a></li>
+					<li><a href="javascript:void(0)" class="action-quick-add" data-type="Request"><span class="wp-pill wp-pill-request">Request</span> RFI / Change</a></li>
+					<li><a href="javascript:void(0)" class="action-quick-add" data-type="Clash"><span class="wp-pill wp-pill-clash">Clash</span> 3D Coordination</a></li>
 				</ul>
 			</div>
 
@@ -292,7 +292,7 @@
 								<h3 id="wp-active-filter-title">All open</h3>
 							</div>
 							<div class="bar-right">
-								<button class="btn btn-success btn-sm action-quick-add" data-type="TASK"><i class="fa fa-plus"></i> + Create</button>
+								<button class="btn btn-success btn-sm action-quick-add" data-type="Task"><i class="fa fa-plus"></i> + Create</button>
 							</div>
 						</div>
 						<div class="table-responsive">
@@ -357,6 +357,7 @@
 							<h4>Models & Spatial Tree</h4>
 						</div>
 						<div class="bcf-panel-controls">
+							<button id="btn-bcf-upload-ifc" class="btn btn-primary btn-xs"><i class="fa fa-upload"></i> + Upload IFC</button>
 							<button id="btn-load-all-models" class="btn btn-default btn-xs">Load all</button>
 							<button id="btn-unload-all-models" class="btn btn-default btn-xs">Unload all</button>
 						</div>
@@ -370,11 +371,10 @@
 						<div class="bcf-canvas-hud">
 							<button id="btn-bcf-create-topic" class="btn btn-success btn-xs"><i class="fa fa-plus"></i> + Create Issue</button>
 							<button id="btn-bcf-toggle-drawer" class="btn btn-default btn-xs"><i class="fa fa-list"></i> BCF Topics Drawer</button>
-							<button id="btn-bcf-fit-view" class="btn btn-default btn-xs"><i class="fa fa-crosshairs"></i> Fit</button>
-							<button id="btn-bcf-section" class="btn btn-default btn-xs"><i class="fa fa-scissors"></i> Section</button>
+							<a id="btn-bcf-open-fullscreen" href="/app/bim-viewer" target="_blank" class="btn btn-default btn-xs" style="text-decoration: none;"><i class="fa fa-external-link"></i> Standalone 3D Viewer</a>
 						</div>
 						<div id="bcf-webgl-container" class="webgl-canvas-host">
-							<!-- Three.js Canvas mounts here -->
+							<iframe id="iframe-bcf-3d-viewer" src="/app/bim-viewer" style="width: 100%; height: 680px; border: none; border-radius: 6px;"></iframe>
 						</div>
 					</div>
 

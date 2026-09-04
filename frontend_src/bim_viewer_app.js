@@ -2525,6 +2525,48 @@ function initInViewerIssueCreation() {
   }
 }
 
+async function handleRouteParams() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectParam = urlParams.get('project');
+  const modelParam = urlParams.get('model');
+  const viewpointParam = urlParams.get('viewpoint');
+
+  if (modelParam) {
+    if (!loadedModels.has(modelParam)) {
+      await loadModelGeometry(modelParam);
+      renderModelsList();
+      updateElementMeshesList();
+      populateFacets();
+      fitView();
+    }
+    return;
+  }
+
+  if (projectParam && availableModels.length) {
+    const projModels = availableModels.filter(m => m.project === projectParam);
+    if (projModels.length > 0) {
+      for (const m of projModels) {
+        if (!loadedModels.has(m.name)) {
+          await loadModelGeometry(m.name);
+        }
+      }
+      renderModelsList();
+      updateElementMeshesList();
+      populateFacets();
+      fitView();
+      return;
+    }
+  }
+
+  if (availableModels.length > 0 && loadedModels.size === 0) {
+    await loadModelGeometry(availableModels[0].name);
+    renderModelsList();
+    updateElementMeshesList();
+    populateFacets();
+    fitView();
+  }
+}
+
 // ---------------- Boot ----------------
 initDisciplineControls();
 initUiEvents();
