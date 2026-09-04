@@ -125,6 +125,7 @@ def topics_collection(project_id: str, topic_type: Optional[str] = None,
     method = frappe.local.request.method if hasattr(frappe, "local") and hasattr(frappe.local, "request") else "GET"
 
     if method == "POST":
+        frappe.has_permission("BCF Topic", "create", throw=True)
         data = frappe.local.form_dict
         if isinstance(data.get("data"), str):
             data = json.loads(data.get("data"))

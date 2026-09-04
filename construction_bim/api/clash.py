@@ -449,6 +449,7 @@ def sync_clash_to_bcf(clash: str | Any) -> dict[str, Any]:
         clash_doc = frappe.get_doc("BIM Clash", clash)
     else:
         clash_doc = clash
+    clash_doc.check_permission("read")
 
     # 1. Resolve or create BCF Project
     bcf_project_name = None

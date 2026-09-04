@@ -566,7 +566,9 @@ if frappe:
             )
 
         proj = frappe.get_doc("Project", project)
-        proj.status = "In Progress" if "In Progress" in [opt.value for opt in proj.meta.get_field("status").options.split("\n") if opt] else "Open"
+        status_field = proj.meta.get_field("status")
+        status_opts = [opt.strip() for opt in (status_field.options or "").split("\n") if opt.strip()] if status_field else []
+        proj.status = "In Progress" if "In Progress" in status_opts else "Open"
         proj.custom_overall_progress = 0
         proj.save(ignore_permissions=True)
 

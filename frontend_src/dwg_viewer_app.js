@@ -44,6 +44,9 @@ export class DWGViewerApp {
           const ext = fileParam.split(".").pop()?.toLowerCase();
           if (ext === "dxf") {
             const textResp = await fetch(fileParam);
+            if (!textResp.ok) {
+              throw new Error(`Failed to fetch DXF file: ${textResp.status} ${textResp.statusText}`);
+            }
             const content = await textResp.text();
             const parsed = parseDXFText(content);
             parsed.model_name = decodeURIComponent(fileParam.split("/").pop() || "CAD Drawing");
@@ -52,6 +55,12 @@ export class DWGViewerApp {
             this.updateLayerUI();
             this.updateSpacesUI(parsed.spaces);
             await this.loadIssues();
+            if (issueParam) {
+              const targetIssue = this.bcf.issues.find((i) => i.name === issueParam);
+              if (targetIssue) {
+                this.selectIssue(targetIssue);
+              }
+            }
             this.showToast(`Loaded ${parsed.model_name} (${parsed.entity_count} entities)`, "success");
             return;
           }

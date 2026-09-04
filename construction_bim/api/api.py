@@ -75,6 +75,7 @@ __all__ = [
 @frappe.whitelist()
 def purge_test_bim_data() -> dict:
     """Purge orphaned BIM BOQ Links, test BOMs, and test Items."""
+    frappe.only_for("System Manager")
     deleted_boq_links = 0
     deleted_boms = 0
     deleted_items = 0

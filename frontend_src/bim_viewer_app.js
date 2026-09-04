@@ -1747,14 +1747,30 @@ async function handleRouteParams() {
   const elemA = routeOpts.element_a || params.get('element_a');
   const elemB = routeOpts.element_b || params.get('element_b');
 
-  if (modelParam) {
+  if (modelParam && modelParam !== 'none') {
     const modelNames = modelParam.split(',').map(s => s.trim()).filter(Boolean);
     for (const m of modelNames) {
-      await loadModelGeometry(m);
+      if (!loadedModels.has(m)) {
+        await loadModelGeometry(m);
+      }
     }
     renderModelsList();
     updateElementMeshesList();
+    if (typeof populateFacets === 'function') populateFacets();
     fitView();
+  } else if (projectParam && typeof availableModels !== 'undefined' && availableModels.length) {
+    const projModels = availableModels.filter(m => m.project === projectParam);
+    if (projModels.length > 0) {
+      for (const m of projModels) {
+        if (!loadedModels.has(m.name)) {
+          await loadModelGeometry(m.name);
+        }
+      }
+      renderModelsList();
+      updateElementMeshesList();
+      if (typeof populateFacets === 'function') populateFacets();
+      fitView();
+    }
   }
 
   if (clashParam) {
@@ -2522,48 +2538,6 @@ function initInViewerIssueCreation() {
         btnConfirm.textContent = 'Create BCF Issue';
       }
     };
-  }
-}
-
-async function handleRouteParams() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const projectParam = urlParams.get('project');
-  const modelParam = urlParams.get('model');
-  const viewpointParam = urlParams.get('viewpoint');
-
-  if (modelParam) {
-    if (!loadedModels.has(modelParam)) {
-      await loadModelGeometry(modelParam);
-      renderModelsList();
-      updateElementMeshesList();
-      populateFacets();
-      fitView();
-    }
-    return;
-  }
-
-  if (projectParam && availableModels.length) {
-    const projModels = availableModels.filter(m => m.project === projectParam);
-    if (projModels.length > 0) {
-      for (const m of projModels) {
-        if (!loadedModels.has(m.name)) {
-          await loadModelGeometry(m.name);
-        }
-      }
-      renderModelsList();
-      updateElementMeshesList();
-      populateFacets();
-      fitView();
-      return;
-    }
-  }
-
-  if (availableModels.length > 0 && loadedModels.size === 0) {
-    await loadModelGeometry(availableModels[0].name);
-    renderModelsList();
-    updateElementMeshesList();
-    populateFacets();
-    fitView();
   }
 }
 

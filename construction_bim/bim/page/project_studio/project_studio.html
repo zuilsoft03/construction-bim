@@ -1,69 +1,102 @@
 <div id="project-studio-root" class="project-studio-container">
-	<!-- Unified Left Sidebar (Frappe UI Style, Matching Reference Photo) -->
+	<!-- Unified Left Sidebar (Frappe UI / CRM Style, Matching Reference Photo) -->
 	<aside id="studio-sidebar" class="studio-sidebar">
 		<!-- Sidebar Brand Header with Project Switcher Pill -->
 		<div class="sidebar-header-brand">
 			<div class="brand-dropdown dropdown">
 				<div class="brand-info dropdown-toggle" id="projectSwitcherBtn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-					<div class="brand-logo"><i class="fa fa-cubes"></i></div>
+					<div class="brand-logo">
+						<svg viewBox="0 0 24 24" width="18" height="18" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+							<polyline points="3.29 7 12 12 20.71 7"></polyline>
+							<line x1="12" y1="22" x2="12" y2="12"></line>
+						</svg>
+					</div>
 					<div class="brand-names">
-						<span class="brand-app-name">Project Studio <i class="fa fa-angle-down text-muted"></i></span>
+						<span class="brand-app-name">Project Studio</span>
 						<span class="brand-project-name" id="current-project-title">All projects</span>
 					</div>
+					<svg class="brand-chevron" viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round">
+						<polyline points="6 9 12 15 18 9"></polyline>
+					</svg>
 				</div>
 				<ul class="dropdown-menu project-switcher-menu" id="project-switcher-list" aria-labelledby="projectSwitcherBtn">
 					<li class="dropdown-header">PROJECTS</li>
-					<li><a href="javascript:void(0)" class="action-select-proj" data-project="all"><i class="fa fa-th-list text-muted"></i> <strong>All projects (Hub)</strong></a></li>
+					<li><a href="javascript:void(0)" class="action-select-proj" data-project="all"><strong>All projects (Hub)</strong></a></li>
 					<li role="separator" class="divider"></li>
-					<li id="project-switcher-loading" class="text-muted p-2 text-center"><small><i class="fa fa-spinner fa-spin"></i> Loading projects...</small></li>
+					<li id="project-switcher-loading" class="text-muted p-2 text-center"><small>Loading projects...</small></li>
 				</ul>
 			</div>
 		</div>
 
-		<!-- Search Section in Sidebar with ⌘K badge -->
-		<div class="sidebar-search-section">
-			<div class="sidebar-search-wrapper">
-				<i class="fa fa-search search-icon"></i>
-				<input type="text" id="studio-global-search" class="sidebar-search-field" placeholder="Search...">
-				<span class="shortcut-pill">⌘K</span>
-			</div>
-		</div>
-
-		<!-- Nav links (11 required tabs) -->
+		<!-- Nav links (Frappe CRM Clean List with Lucide Line Icons) -->
 		<nav class="studio-nav">
 			<ul class="studio-nav-list">
 				<li class="nav-item active" data-tab="home">
-					<a href="javascript:void(0)"><i class="fa fa-home nav-icon"></i> <span>Home</span></a>
+					<a href="javascript:void(0)">
+						<svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+						<span>Dashboard</span>
+					</a>
 				</li>
 				<li class="nav-item" data-tab="work-packages">
-					<a href="javascript:void(0)"><i class="fa fa-tasks nav-icon"></i> <span>Work Packages</span></a>
+					<a href="javascript:void(0)">
+						<svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+						<span>Work Packages</span>
+					</a>
 				</li>
 				<li class="nav-item" data-tab="boards">
-					<a href="javascript:void(0)"><i class="fa fa-columns nav-icon"></i> <span>Boards</span></a>
+					<a href="javascript:void(0)">
+						<svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+						<span>Boards</span>
+					</a>
 				</li>
 				<li class="nav-item" data-tab="gantt">
-					<a href="javascript:void(0)"><i class="fa fa-align-left nav-icon"></i> <span>Gantt Charts</span></a>
+					<a href="javascript:void(0)">
+						<svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="17" y2="12"/><line x1="8" y1="18" x2="19" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+						<span>Gantt Charts</span>
+					</a>
 				</li>
 				<li class="nav-item" data-tab="bcf">
-					<a href="javascript:void(0)"><i class="fa fa-cube nav-icon"></i> <span>BIM / BCF</span></a>
+					<a href="javascript:void(0)">
+						<svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
+						<span>BIM / BCF</span>
+					</a>
 				</li>
 				<li class="nav-item" data-tab="cad">
-					<a href="javascript:void(0)"><i class="fa fa-pencil nav-icon"></i> <span>2D CAD (DWG)</span></a>
+					<a href="javascript:void(0)">
+						<svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><circle cx="11" cy="11" r="2"/></svg>
+						<span>2D CAD (DWG)</span>
+					</a>
 				</li>
 				<li class="nav-item" data-tab="pdf">
-					<a href="javascript:void(0)"><i class="fa fa-file-pdf-o nav-icon"></i> <span>PDF Plans</span></a>
+					<a href="javascript:void(0)">
+						<svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+						<span>PDF Plans</span>
+					</a>
 				</li>
 				<li class="nav-item" data-tab="documents">
-					<a href="javascript:void(0)"><i class="fa fa-folder-o nav-icon"></i> <span>Documents</span></a>
+					<a href="javascript:void(0)">
+						<svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+						<span>Documents</span>
+					</a>
 				</li>
 				<li class="nav-item" data-tab="meetings">
-					<a href="javascript:void(0)"><i class="fa fa-comments-o nav-icon"></i> <span>Meetings & Safety</span></a>
+					<a href="javascript:void(0)">
+						<svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+						<span>Meetings & Safety</span>
+					</a>
 				</li>
 				<li class="nav-item" data-tab="members">
-					<a href="javascript:void(0)"><i class="fa fa-users nav-icon"></i> <span>Members</span></a>
+					<a href="javascript:void(0)">
+						<svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+						<span>Members</span>
+					</a>
 				</li>
 				<li class="nav-item" data-tab="settings">
-					<a href="javascript:void(0)"><i class="fa fa-cog nav-icon"></i> <span>Settings</span></a>
+					<a href="javascript:void(0)">
+						<svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+						<span>Settings</span>
+					</a>
 				</li>
 			</ul>
 		</nav>
@@ -71,156 +104,162 @@
 		<!-- Bottom Collapse Trigger -->
 		<div class="sidebar-footer-action">
 			<button id="btn-toggle-sidebar" class="btn-sidebar-collapse" title="Toggle Sidebar">
-				<i class="fa fa-indent"></i> <span>Collapse</span>
+				<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></svg>
+				<span>Collapse</span>
 			</button>
 		</div>
 	</aside>
 
-	<!-- Main Container with Clean Topbar and Viewport -->
+	<!-- Main Container with Viewport -->
 	<div class="studio-main-container">
-		<!-- Clean Light Topbar (Matching Reference Photo) -->
-		<header class="studio-header">
-			<div class="studio-header-left">
-				<h3 class="studio-page-title" id="studio-active-title">Home</h3>
+		<!-- Top Bar (Matching Frappe CRM: Title on Left, Refresh / Edit / Create on Right) -->
+		<header class="studio-topbar">
+			<div class="topbar-left">
+				<h1 class="topbar-title" id="studio-active-title">Dashboard</h1>
 			</div>
-			<div class="studio-header-right">
-				<button id="btn-studio-refresh" class="btn btn-default btn-sm" title="Refresh">
-					<i class="fa fa-refresh"></i> Refresh
+			<div class="topbar-right">
+				<button class="btn-topbar-action" id="btn-studio-refresh" title="Refresh">
+					<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M16 16h5v5"></path></svg>
+					<span>Refresh</span>
+				</button>
+				<button class="btn-topbar-action" id="btn-studio-edit" title="Edit">
+					<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg>
+					<span>Edit</span>
 				</button>
 				<div class="dropdown d-inline-block">
-					<button class="btn btn-default btn-sm dropdown-toggle" type="button" id="quickCreateBtn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						<i class="fa fa-plus text-success"></i> Create <span class="caret"></span>
+					<button class="btn-topbar-primary dropdown-toggle" id="btnStudioCreateDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+						<span>Create</span>
 					</button>
-					<ul class="dropdown-menu dropdown-menu-right quick-create-menu" aria-labelledby="quickCreateBtn">
-						<li><a href="javascript:void(0)" class="action-quick-add" data-type="project"><i class="fa fa-folder-open-o text-primary"></i> <strong>Project</strong></a></li>
-						<li><a href="javascript:void(0)" class="action-quick-add" data-type="user"><i class="fa fa-user-plus text-info"></i> Invite user</a></li>
-						<li role="separator" class="divider"></li>
+					<ul class="dropdown-menu dropdown-menu-right quick-create-menu" aria-labelledby="btnStudioCreateDropdown">
 						<li class="dropdown-header">WORK PACKAGES</li>
-						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Task"><span class="wp-pill wp-pill-task">Task</span> Standard Task</a></li>
-						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Milestone"><span class="wp-pill wp-pill-milestone">Milestone</span> Stage Deadline</a></li>
-						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Phase"><span class="wp-pill wp-pill-phase">Phase</span> PM² Stage Gate</a></li>
-						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Issue"><span class="wp-pill wp-pill-issue">Issue</span> Snag / Punchlist</a></li>
-						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Remark"><span class="wp-pill wp-pill-remark">Remark</span> Site Observation</a></li>
-						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Request"><span class="wp-pill wp-pill-request">Request</span> RFI / Change</a></li>
-						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Clash"><span class="wp-pill wp-pill-clash">Clash</span> 3D Coordination</a></li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Task">Standard Task</a></li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Milestone">Milestone</a></li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Phase">Phase</a></li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Issue">Issue / Defect</a></li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Remark">Remark</a></li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Request">Request / RFI</a></li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="Clash">Clash Topic</a></li>
+						<li role="separator" class="divider"></li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="project">New Project</a></li>
+						<li><a href="javascript:void(0)" class="action-quick-add" data-type="user">Invite Member</a></li>
 					</ul>
 				</div>
-				<button id="btn-fullscreen" class="btn btn-default btn-sm" title="Toggle Fullscreen">
-					<i class="fa fa-arrows-alt"></i>
-				</button>
-				<a href="/app/construction" class="btn btn-default btn-sm" title="Exit to Construction Workspace">
-					<i class="fa fa-th"></i> <span class="hidden-xs">Desk</span>
-				</a>
 			</div>
 		</header>
 
 		<!-- Main Viewport Workspace -->
 		<main id="studio-viewport" class="studio-viewport">
 			<!-- TAB 0: ALL PROJECTS HUB (Screenshot 1) -->
+			<!-- TAB 0: ALL PROJECTS HUB -->
 			<section id="view-all-projects" class="studio-tab-view" style="display: none;">
-				<div class="view-header">
-					<div class="view-header-title">
-						<ol class="breadcrumb">
-							<li><a href="javascript:void(0)">Projects</a></li>
-							<li class="active">Active projects</li>
-						</ol>
-						<h2>Active projects</h2>
+				<div class="studio-sub-header">
+					<div class="sub-header-filters">
+						<div class="search-box-unified">
+							<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+							<input type="text" id="projects-filter-input" placeholder="Filter projects...">
+						</div>
 					</div>
-					<div class="view-header-actions">
-						<button id="btn-add-project" class="btn btn-success"><i class="fa fa-plus"></i> + Add</button>
+					<div class="sub-header-actions">
+						<button id="btn-add-subproject" class="btn-topbar-action" title="Add Subproject">
+							<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+							<span>Subproject</span>
+						</button>
+						<button id="btn-add-project" class="btn-topbar-primary" title="Add Project">
+							<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+							<span>Add Project</span>
+						</button>
 					</div>
 				</div>
-				<div class="view-content">
-					<div class="projects-table-toolbar flex-between">
-						<div class="toolbar-left">
-							<button id="btn-add-subproject" class="btn btn-default btn-sm"><i class="fa fa-level-down"></i> Subproject</button>
-						</div>
-						<div class="search-box">
-							<input type="text" id="projects-filter-input" class="form-control input-sm" placeholder="Filter projects...">
-						</div>
+				<div class="projects-card-surface">
+					<div class="table-responsive">
+						<table class="table projects-table" id="table-active-projects">
+							<thead>
+								<tr>
+									<th width="48" class="text-center">FAV</th>
+									<th>PROJECT NAME</th>
+									<th width="120">STATUS</th>
+									<th width="90">VISIBILITY</th>
+									<th width="130">CREATED ON</th>
+									<th width="140">LATEST ACTIVITY</th>
+									<th width="100">STORAGE</th>
+								</tr>
+							</thead>
+							<tbody id="projects-table-body">
+								<!-- Rendered via JS -->
+							</tbody>
+						</table>
 					</div>
-					<table class="table table-hover projects-table" id="table-active-projects">
-						<thead>
-							<tr>
-								<th width="40">FAV</th>
-								<th>NAME</th>
-								<th width="120">STATUS</th>
-								<th width="80">PUBLIC</th>
-								<th width="120">CREATED ON</th>
-								<th width="140">LATEST ACTIVITY</th>
-								<th width="120">STORAGE</th>
-							</tr>
-						</thead>
-						<tbody id="projects-table-body">
-							<!-- Rendered via JS -->
-						</tbody>
-					</table>
-					<div id="projects-table-summary" class="projects-table-footer text-muted"></div>
+					<div id="projects-table-summary" class="projects-table-footer"></div>
 				</div>
 			</section>
 
-			<!-- TAB 1: PROJECT HOME DASHBOARD (Screenshot 2) -->
+			<!-- TAB 1: PROJECT HOME DASHBOARD (Matching Frappe CRM Reference) -->
 			<section id="view-home" class="studio-tab-view">
-				<!-- Frappe UI Greeting Section (Hey, Administrator) -->
-				<div class="home-greeting-section">
-					<h2 class="home-greeting-title">Hey, <span id="home-user-greeting">Administrator</span></h2>
-					<div class="row row-metrics-summary mb-4">
-						<div class="col-md-4">
-							<div class="metric-stat-card p-3">
-								<small class="text-muted font-weight-bold">Open Tasks</small>
-								<div class="d-flex align-items-baseline justify-content-between mt-1">
-									<span class="metric-number" id="home-stat-open-tasks">0</span>
-									<span class="badge-success-soft">On Track</span>
-								</div>
-								<div class="metric-sparkline-bar mt-2" style="height: 3px; background: #e0f2fe; border-radius: 2px;">
-									<div id="sparkline-open-bar" style="width: 70%; height: 100%; background: #0284c7; border-radius: 2px;"></div>
-								</div>
-							</div>
+				<!-- Sub-header Filter Row (Matching Reference Photo Dropdown Pills) -->
+				<div class="studio-sub-header">
+					<div class="sub-header-filters">
+						<button class="filter-pill-btn" id="filter-date-btn" type="button">
+							<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+							<span>Last 30 Days</span>
+							<svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+						</button>
+						<button class="filter-pill-btn" id="filter-project-btn" type="button">
+							<span id="filter-project-label">All Projects</span>
+							<svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+						</button>
+					</div>
+				</div>
+
+				<!-- 4-Column Metric Stat Cards Row (Pure Frappe CRM Card Style) -->
+				<div class="metrics-kpi-grid">
+					<div class="metric-kpi-card">
+						<div class="metric-kpi-label">Total Open Tasks</div>
+						<div class="metric-kpi-value" id="home-stat-open-tasks">0</div>
+						<div class="metric-kpi-trend text-success">
+							<svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+							<span>On Track</span>
 						</div>
-						<div class="col-md-4">
-							<div class="metric-stat-card p-3">
-								<small class="text-muted font-weight-bold">Active Clashes</small>
-								<div class="d-flex align-items-baseline justify-content-between mt-1">
-									<span class="metric-number" id="home-stat-clashes">0</span>
-									<span class="badge-neutral-soft">Coordination</span>
-								</div>
-								<div class="metric-sparkline-bar mt-2" style="height: 3px; background: #fee2e2; border-radius: 2px;">
-									<div id="sparkline-clashes-bar" style="width: 25%; height: 100%; background: #dc2626; border-radius: 2px;"></div>
-								</div>
-							</div>
-						</div>
-						<div class="col-md-4">
-							<div class="metric-stat-card p-3">
-								<small class="text-muted font-weight-bold">Overall Progress</small>
-								<div class="d-flex align-items-baseline justify-content-between mt-1">
-									<span class="metric-number" id="home-stat-progress">0%</span>
-									<span class="badge-info-soft">Schedule</span>
-								</div>
-								<div class="metric-sparkline-bar mt-2" style="height: 3px; background: #f1f5f9; border-radius: 2px;">
-									<div id="sparkline-progress-bar" style="width: 40%; height: 100%; background: #6366f1; border-radius: 2px;"></div>
-								</div>
-							</div>
+					</div>
+					<div class="metric-kpi-card">
+						<div class="metric-kpi-label">Active Clashes</div>
+						<div class="metric-kpi-value" id="home-stat-clashes">0</div>
+						<div class="metric-kpi-trend text-muted">Coordination</div>
+					</div>
+					<div class="metric-kpi-card">
+						<div class="metric-kpi-label">Overall Progress</div>
+						<div class="metric-kpi-value" id="home-stat-progress">0%</div>
+						<div class="metric-kpi-trend text-primary">Schedule baseline</div>
+					</div>
+					<div class="metric-kpi-card">
+						<div class="metric-kpi-label">Toolbox Briefings</div>
+						<div class="metric-kpi-value" id="home-stat-meetings">0</div>
+						<div class="metric-kpi-trend text-success">
+							<svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+							<span>Compliant</span>
 						</div>
 					</div>
 				</div>
+
+				<!-- Dashboard Content Grid -->
 				<div class="dashboard-grid">
-					<!-- Top Row: Overview Summary & Status Narrative -->
+					<!-- Overview Summary & Status Narrative -->
 					<div class="dashboard-card card-summary">
-						<div class="card-header">
-							<h3><i class="fa fa-info-circle text-primary"></i> Project Overview</h3>
+						<div class="card-header flex-between">
+							<h4>Project Overview</h4>
+							<span class="text-muted" id="overview-dates" style="font-size: 12px;">--</span>
 						</div>
 						<div class="card-body">
-							<p id="overview-description" class="overview-desc-text">Loading description...</p>
-							<div class="overview-meta-row">
-								<span><strong>Dates:</strong> <span id="overview-dates">--</span></span>
-								<span><strong>Progress:</strong> <span id="overview-progress">0%</span></span>
+							<p id="overview-description" class="overview-desc-text">Select a project to view summary details.</p>
+							<div class="overview-meta-row mt-2">
+								<span class="text-muted">Progress: <strong id="overview-progress">0%</strong></span>
 							</div>
 						</div>
 					</div>
 
 					<div class="dashboard-card card-status">
 						<div class="card-header flex-between">
-							<h3>Status</h3>
+							<h4>Status & Health</h4>
 							<div class="status-dropdown-container">
 								<select id="select-project-health" class="form-control input-sm health-select">
 									<option value="On Track">🟢 On track</option>
@@ -230,16 +269,16 @@
 							</div>
 						</div>
 						<div class="card-body">
-							<h4 class="text-muted status-subheading">Status Description</h4>
+							<div class="text-muted status-subheading mb-1">Status Description</div>
 							<p id="overview-status-narrative" class="status-narrative-text">Loading...</p>
-							<button id="btn-edit-status-narrative" class="btn btn-default btn-xs"><i class="fa fa-pencil"></i> Edit status note</button>
+							<button id="btn-edit-status-narrative" class="btn btn-default btn-xs">Edit status note</button>
 						</div>
 					</div>
 
-					<!-- Middle Row: Milestone Diamond Timeline -->
+					<!-- Project Milestone Diamond Timeline -->
 					<div class="dashboard-card card-timeline full-width">
 						<div class="card-header flex-between">
-							<h3><i class="fa fa-calendar-check-o text-primary"></i> Project timeline</h3>
+							<h4>Project Timeline</h4>
 							<span class="text-muted"><small>Milestone stage delivery</small></span>
 						</div>
 						<div class="card-body">
@@ -252,11 +291,11 @@
 						</div>
 					</div>
 
-					<!-- Bottom Row: Subprojects, Meetings, Members, News -->
+					<!-- Subprojects & Meetings -->
 					<div class="dashboard-card card-subprojects">
 						<div class="card-header flex-between">
-							<h3>Subitems</h3>
-							<button id="btn-add-subproject" class="btn btn-default btn-xs" title="Add Subproject"><i class="fa fa-plus"></i></button>
+							<h4>Subitems</h4>
+							<button id="btn-add-subproject-widget" class="btn btn-default btn-xs" title="Add Subproject">+</button>
 						</div>
 						<div class="card-body">
 							<ul id="subprojects-list" class="subprojects-list">
@@ -267,8 +306,8 @@
 
 					<div class="dashboard-card card-meetings">
 						<div class="card-header flex-between">
-							<h3>My meetings & Toolboxes</h3>
-							<button id="btn-add-meeting" class="btn btn-default btn-xs"><i class="fa fa-plus"></i> Meeting</button>
+							<h4>Meetings & Safety Talks</h4>
+							<button id="btn-add-meeting" class="btn btn-default btn-xs">+ Meeting</button>
 						</div>
 						<div class="card-body">
 							<div id="meetings-list-container">
@@ -279,7 +318,7 @@
 
 					<div class="dashboard-card card-members">
 						<div class="card-header flex-between">
-							<h3>Members</h3>
+							<h4>Project Members</h4>
 							<a href="javascript:void(0)" class="view-members-link text-muted"><small>View all</small></a>
 						</div>
 						<div class="card-body">
@@ -291,7 +330,7 @@
 
 					<div class="dashboard-card card-news">
 						<div class="card-header">
-							<h3>News & Safety Bulletins</h3>
+							<h4>News & Safety Bulletins</h4>
 						</div>
 						<div class="card-body">
 							<div id="news-feed-container">
@@ -342,7 +381,10 @@
 								<h3 id="wp-active-filter-title">All open</h3>
 							</div>
 							<div class="bar-right">
-								<button class="btn btn-success btn-sm action-quick-add" data-type="Task"><i class="fa fa-plus"></i> + Create</button>
+								<button class="btn-topbar-primary action-quick-add" data-type="Task">
+									<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+									<span>Create</span>
+								</button>
 							</div>
 						</div>
 						<div class="table-responsive">
@@ -367,19 +409,25 @@
 				</div>
 			</section>
 
-			<!-- TAB 3: KANBAN BOARDS (OpenProject Boards) -->
+			<!-- TAB 3: KANBAN BOARDS -->
 			<section id="view-boards" class="studio-tab-view" style="display: none;">
-				<div class="board-top-controls flex-between">
-					<div class="board-title-box">
-						<h2>Kanban Boards</h2>
+				<div class="studio-sub-header">
+					<div class="sub-header-filters">
+						<div class="filter-pill-btn group-select-pill">
+							<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+							<span class="text-muted">Group by:</span>
+							<select id="select-board-group-by" class="sub-filter-select">
+								<option value="status">Status (New, In Progress, Resolved, Closed)</option>
+								<option value="priority">Priority (Low, Normal, High, Urgent)</option>
+								<option value="assignee">Assignee (Team Member)</option>
+							</select>
+						</div>
 					</div>
-					<div class="board-grouping-selector form-inline">
-						<label class="control-label mr-2">Group by: </label>
-						<select id="select-board-group-by" class="form-control input-sm">
-							<option value="status">Status (New, In Progress, Resolved, Closed)</option>
-							<option value="priority">Priority (Low, Normal, High, Urgent)</option>
-							<option value="assignee">Assignee (Team Member)</option>
-						</select>
+					<div class="sub-header-actions">
+						<button class="btn-topbar-primary action-quick-add" data-type="Task">
+							<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+							<span>Add Card</span>
+						</button>
 					</div>
 				</div>
 
@@ -390,26 +438,46 @@
 
 			<!-- TAB 4: GANTT CHARTS -->
 			<section id="view-gantt" class="studio-tab-view" style="display: none;">
-				<div class="view-header">
-					<h2>Gantt Schedule</h2>
+				<div class="studio-sub-header">
+					<div class="sub-header-filters">
+						<div class="btn-group gantt-scale-group" role="group">
+							<button type="button" class="btn-gantt-scale active" data-scale="Day">Day</button>
+							<button type="button" class="btn-gantt-scale" data-scale="Week">Week</button>
+							<button type="button" class="btn-gantt-scale" data-scale="Month">Month</button>
+						</div>
+					</div>
+					<div class="sub-header-actions">
+						<button class="btn-topbar-primary action-quick-add" data-type="Task">
+							<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+							<span>Add Task</span>
+						</button>
+					</div>
 				</div>
-				<div id="gantt-chart-container" class="gantt-wrapper p-3">
+				<div class="gantt-card-surface">
 					<div id="frappe-gantt-target"></div>
 				</div>
 			</section>
 
-			<!-- TAB 5: BIM / BCF COORDINATION 2-PANE VIEWER (Screenshot 4) -->
+			<!-- TAB 5: BIM / BCF COORDINATION 2-PANE VIEWER -->
 			<section id="view-bcf" class="studio-tab-view" style="display: none;">
 				<div class="bcf-coordination-layout">
 					<!-- Left Pane: Spatial Hierarchy & Model Tree -->
 					<div class="bcf-left-panel">
 						<div class="bcf-panel-header">
-							<h4>Models & Spatial Tree</h4>
+							<div class="panel-header-title">
+								<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+								<span>Spatial Models</span>
+							</div>
+							<div class="bcf-panel-actions">
+								<button id="btn-bcf-upload-ifc" class="btn-topbar-primary btn-xs" title="Upload IFC Model">
+									<svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+									<span>Upload</span>
+								</button>
+							</div>
 						</div>
-						<div class="bcf-panel-controls">
-							<button id="btn-bcf-upload-ifc" class="btn btn-primary btn-xs"><i class="fa fa-upload"></i> + Upload IFC</button>
-							<button id="btn-load-all-models" class="btn btn-default btn-xs">Load all</button>
-							<button id="btn-unload-all-models" class="btn btn-default btn-xs">Unload all</button>
+						<div class="bcf-tree-toolbar">
+							<button id="btn-load-all-models" class="btn-panel-action">Load all</button>
+							<button id="btn-unload-all-models" class="btn-panel-action">Unload all</button>
 						</div>
 						<div id="bcf-models-tree" class="bcf-tree-view">
 							<!-- Model checkboxes rendered here -->
@@ -419,12 +487,28 @@
 					<!-- Center Canvas: 3D WebGL Viewer -->
 					<div class="bcf-center-canvas">
 						<div class="bcf-canvas-hud">
-							<button id="btn-bcf-create-topic" class="btn btn-success btn-xs"><i class="fa fa-plus"></i> + Create Issue</button>
-							<button id="btn-bcf-toggle-drawer" class="btn btn-default btn-xs"><i class="fa fa-list"></i> BCF Topics Drawer</button>
-							<a id="btn-bcf-open-fullscreen" href="/app/bim-viewer" target="_blank" class="btn btn-default btn-xs" style="text-decoration: none;"><i class="fa fa-external-link"></i> Standalone 3D Viewer</a>
+							<div class="canvas-hud-left">
+								<span class="hud-status-badge">
+									<span class="status-live-dot"></span> 3D WebGL Viewer
+								</span>
+							</div>
+							<div class="canvas-hud-right">
+								<button id="btn-bcf-create-topic" class="btn-topbar-primary btn-sm">
+									<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+									<span>Create Issue</span>
+								</button>
+								<button id="btn-bcf-toggle-drawer" class="btn-topbar-action btn-sm">
+									<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+									<span>BCF Drawer</span>
+								</button>
+								<a id="btn-bcf-open-fullscreen" href="/app/bim-viewer" target="_blank" class="btn-topbar-action btn-sm" style="text-decoration: none;">
+									<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+									<span>Fullscreen</span>
+								</a>
+							</div>
 						</div>
 						<div id="bcf-webgl-container" class="webgl-canvas-host">
-							<iframe id="iframe-bcf-3d-viewer" src="/app/bim-viewer" style="width: 100%; height: 680px; border: none; border-radius: 6px;"></iframe>
+							<iframe id="iframe-bcf-3d-viewer" src="/app/bim-viewer" style="width: 100%; height: 680px; border: none; border-radius: 8px;"></iframe>
 						</div>
 					</div>
 
@@ -432,7 +516,9 @@
 					<div id="bcf-floating-drawer" class="bcf-cards-drawer" style="display: none;">
 						<div class="drawer-header flex-between">
 							<h4>BCF Topics (<span id="bcf-topic-count">0</span>)</h4>
-							<button id="btn-close-bcf-drawer" class="btn btn-default btn-xs"><i class="fa fa-times"></i></button>
+							<button id="btn-close-bcf-drawer" class="btn-icon-close">
+								<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+							</button>
 						</div>
 						<div id="bcf-cards-container" class="drawer-cards-stream">
 							<!-- Topic cards rendered here -->
@@ -443,53 +529,70 @@
 
 			<!-- TAB 6: 2D CAD DWG/DXF STUDIO -->
 			<section id="view-cad" class="studio-tab-view" style="display: none;">
-				<div class="cad-studio-wrapper">
-					<div class="view-header flex-between">
-						<h2>2D CAD Drawing Studio</h2>
-						<button id="btn-open-dwg-fullscreen" class="btn btn-default btn-sm"><i class="fa fa-external-link"></i> Standalone DWG Page</button>
+				<div class="studio-sub-header">
+					<div class="sub-header-filters">
+						<span class="sub-header-desc text-muted">AutoCAD DWG & DXF Floor Plan Layout Viewer</span>
 					</div>
-					<div id="cad-embed-host" class="cad-viewport-host">
-						<iframe id="iframe-dwg-viewer" src="/app/dwg-viewer" style="width: 100%; height: 700px; border: none;"></iframe>
+					<div class="sub-header-actions">
+						<a id="btn-open-dwg-fullscreen" href="/app/dwg-viewer" target="_blank" class="btn-topbar-action btn-sm" style="text-decoration: none;">
+							<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+							<span>Open Fullscreen</span>
+						</a>
 					</div>
+				</div>
+				<div id="cad-embed-host" class="cad-viewport-host">
+					<iframe id="iframe-dwg-viewer" src="/app/dwg-viewer" style="width: 100%; height: 720px; border: none; border-radius: 8px;"></iframe>
 				</div>
 			</section>
 
 			<!-- TAB 7: PDF PLANS TAKEOFF -->
 			<section id="view-pdf" class="studio-tab-view" style="display: none;">
-				<div class="pdf-studio-wrapper">
-					<div class="view-header flex-between">
-						<h2>PDF Plan Sheets Takeoff</h2>
-						<button id="btn-open-pdf-fullscreen" class="btn btn-default btn-sm"><i class="fa fa-external-link"></i> Standalone PDF Page</button>
+				<div class="studio-sub-header">
+					<div class="sub-header-filters">
+						<span class="sub-header-desc text-muted">Vector PDF Drawing Sheets, Calibration & Takeoff</span>
 					</div>
-					<div id="pdf-embed-host" class="pdf-viewport-host">
-						<iframe id="iframe-pdf-viewer" src="/app/pdf-takeoff" style="width: 100%; height: 700px; border: none;"></iframe>
+					<div class="sub-header-actions">
+						<a id="btn-open-pdf-fullscreen" href="/app/pdf-takeoff" target="_blank" class="btn-topbar-action btn-sm" style="text-decoration: none;">
+							<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+							<span>Open Fullscreen</span>
+						</a>
 					</div>
+				</div>
+				<div id="pdf-embed-host" class="pdf-viewport-host">
+					<iframe id="iframe-pdf-viewer" src="/app/pdf-takeoff" style="width: 100%; height: 720px; border: none; border-radius: 8px;"></iframe>
 				</div>
 			</section>
 
 			<!-- TAB 8: PROJECT DOCUMENTS TREE -->
 			<section id="view-documents" class="studio-tab-view" style="display: none;">
-				<div class="documents-layout">
-					<div class="view-header flex-between">
-						<div>
-							<h2>Project Documents</h2>
-							<p class="text-muted">Structured document repository with one-click interactive viewers</p>
-						</div>
-						<div>
-							<button id="btn-upload-document" class="btn btn-primary btn-sm"><i class="fa fa-upload"></i> Upload File</button>
-						</div>
+				<div class="studio-sub-header">
+					<div class="sub-header-filters">
+						<span class="sub-header-desc text-muted">Document repository with integrated 3D BIM, CAD, and PDF takeoff</span>
 					</div>
-					<div class="document-folders-grid" id="document-folders-container">
-						<!-- 5 Folders with files rendered here -->
+					<div class="sub-header-actions">
+						<button id="btn-upload-document" class="btn-topbar-primary">
+							<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+							<span>Upload File</span>
+						</button>
 					</div>
+				</div>
+				<div class="document-folders-grid" id="document-folders-container">
+					<!-- 5 Folder cards rendered dynamically -->
 				</div>
 			</section>
 
 			<!-- TAB 9: MEETINGS & TOOLBOX TALKS -->
 			<section id="view-meetings" class="studio-tab-view" style="display: none;">
-				<div class="view-header flex-between">
-					<h2>Meetings & Daily Safety Briefings</h2>
-					<button class="btn btn-primary btn-sm" id="btn-schedule-meeting"><i class="fa fa-plus"></i> New Meeting</button>
+				<div class="studio-sub-header">
+					<div class="sub-header-filters">
+						<span class="sub-header-desc text-muted">Daily safety briefings and site coordination minutes</span>
+					</div>
+					<div class="sub-header-actions">
+						<button class="btn-topbar-primary" id="btn-schedule-meeting">
+							<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+							<span>New Meeting</span>
+						</button>
+					</div>
 				</div>
 				<div class="meetings-container" id="meetings-tab-container">
 					<!-- Meetings stream -->
@@ -498,61 +601,97 @@
 
 			<!-- TAB 10: MEMBERS & ROLES -->
 			<section id="view-members" class="studio-tab-view" style="display: none;">
-				<div class="view-header flex-between">
-					<h2>Project Members & Permissions</h2>
-					<button class="btn btn-primary btn-sm action-quick-add" data-type="user"><i class="fa fa-user-plus"></i> Invite Member</button>
+				<div class="studio-sub-header">
+					<div class="sub-header-filters">
+						<span class="sub-header-desc text-muted">Project team members, roles, and collaboration permissions</span>
+					</div>
+					<div class="sub-header-actions">
+						<button class="btn-topbar-primary action-quick-add" data-type="user">
+							<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+							<span>Invite Member</span>
+						</button>
+					</div>
 				</div>
-				<div class="members-table-container">
-					<table class="table table-hover" id="table-project-members">
-						<thead>
-							<tr>
-								<th>NAME</th>
-								<th>EMAIL</th>
-								<th>ROLE</th>
-								<th>STATUS</th>
-							</tr>
-						</thead>
-						<tbody id="members-table-body">
-							<!-- Members list -->
-						</tbody>
-					</table>
+				<div class="members-card-surface">
+					<div class="table-responsive">
+						<table class="table members-table" id="table-project-members">
+							<thead>
+								<tr>
+									<th>MEMBER</th>
+									<th>EMAIL / USERNAME</th>
+									<th>PROJECT ROLE</th>
+									<th>STATUS</th>
+								</tr>
+							</thead>
+							<tbody id="members-table-body">
+								<!-- Members list -->
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</section>
 
 			<!-- TAB 11: PROJECT SETTINGS -->
 			<section id="view-settings" class="studio-tab-view" style="display: none;">
 				<div class="settings-layout">
-					<div class="view-header">
-						<h2>Project Settings</h2>
-					</div>
-					<div class="settings-card card-general">
-						<h3>General Information</h3>
-						<div class="form-group">
-							<label>Project Name</label>
-							<input type="text" id="setting-project-name" class="form-control">
+					<!-- General Settings Card -->
+					<div class="settings-section-card">
+						<div class="settings-card-header">
+							<h3>General Information</h3>
+							<p class="text-muted">Manage project metadata, status commentary, and workflow attributes.</p>
 						</div>
-						<div class="form-group">
-							<label>Status Narrative</label>
-							<textarea id="setting-status-narrative" class="form-control" rows="3"></textarea>
+						<div class="settings-card-body">
+							<div class="form-group-frappe">
+								<label for="setting-project-name">Project Name</label>
+								<input type="text" id="setting-project-name" class="input-frappe" placeholder="Enter project name">
+							</div>
+							<div class="form-group-frappe">
+								<label for="setting-status-narrative">Status Narrative & Notes</label>
+								<textarea id="setting-status-narrative" class="input-frappe" rows="3" placeholder="Provide executive overview of current project progress and delivery status..."></textarea>
+							</div>
+							<div class="settings-switch-group">
+								<label class="switch-row">
+									<input type="checkbox" id="setting-is-template">
+									<div class="switch-text">
+										<div class="switch-title">Project Template</div>
+										<div class="switch-desc">Allow cloning milestone stages, tasks, and structures into new projects</div>
+									</div>
+								</label>
+								<label class="switch-row">
+									<input type="checkbox" id="setting-is-favorite">
+									<div class="switch-text">
+										<div class="switch-title">Favorite Project</div>
+										<div class="switch-desc">Pin to top of project dashboard and switcher</div>
+									</div>
+								</label>
+							</div>
+							<div class="settings-form-actions">
+								<button id="btn-save-project-settings" class="btn-topbar-primary">
+									<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+									<span>Save Settings</span>
+								</button>
+							</div>
 						</div>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="setting-is-template"> <strong>Set as Project Template</strong> (allows cloning phases, gates, and tasks into new projects)
-							</label>
-						</div>
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" id="setting-is-favorite"> <strong>Favorite Project</strong> (pin to top of dashboard)
-							</label>
-						</div>
-						<button id="btn-save-project-settings" class="btn btn-primary"><i class="fa fa-check"></i> Save Settings</button>
 					</div>
 
-					<div class="settings-card card-danger-zone mt-4">
-						<h3 class="text-danger">Danger Zone</h3>
-						<p class="text-muted">Archive or delete this project.</p>
-						<button id="btn-toggle-archive-project" class="btn btn-warning mr-2"><i class="fa fa-archive"></i> Archive Project</button>
-						<button id="btn-delete-project" class="btn btn-danger"><i class="fa fa-trash"></i> Delete Project</button>
+					<!-- Danger Zone Card -->
+					<div class="settings-section-card card-danger">
+						<div class="settings-card-header">
+							<h3 class="text-danger">Danger Zone</h3>
+							<p class="text-muted">Actions that permanently modify project availability or remove data.</p>
+						</div>
+						<div class="settings-card-body">
+							<div class="danger-actions-row">
+								<button id="btn-toggle-archive-project" class="btn-danger-outline">
+									<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
+									<span>Archive Project</span>
+								</button>
+								<button id="btn-delete-project" class="btn-danger-solid">
+									<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+									<span>Delete Project</span>
+								</button>
+							</div>
+						</div>
 					</div>
 				</div>
 			</section>

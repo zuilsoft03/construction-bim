@@ -561,26 +561,23 @@ def get_bcf_coordination_data(project):
 	topics = []
 	if _doctype_exists("BCF Topic"):
 		bcf_projs = frappe.get_all("BCF Project", filters={"erpnext_project": project}, pluck="name") if _doctype_exists("BCF Project") else []
-		topic_filters = {}
 		if bcf_projs:
-			topic_filters["bcf_project"] = ["in", bcf_projs]
-
-		t_list = frappe.get_all(
-			"BCF Topic",
-			filters=topic_filters if bcf_projs else None,
-			fields=["name", "title", "topic_type", "priority", "topic_status", "creation", "assigned_to"],
-			limit_page_length=50
-		)
-		for t in t_list:
-			topics.append({
-				"name": t.name,
-				"title": t.title,
-				"topic_type": t.topic_type or "Clash",
-				"priority": t.priority or "Normal",
-				"status": getattr(t, "topic_status", "Open"),
-				"creation": str(t.creation),
-				"assigned_to": t.assigned_to
-			})
+			t_list = frappe.get_all(
+				"BCF Topic",
+				filters={"bcf_project": ["in", bcf_projs]},
+				fields=["name", "title", "topic_type", "priority", "topic_status", "creation", "assigned_to"],
+				limit_page_length=50
+			)
+			for t in t_list:
+				topics.append({
+					"name": t.name,
+					"title": t.title,
+					"topic_type": t.topic_type or "Clash",
+					"priority": t.priority or "Normal",
+					"status": getattr(t, "topic_status", "Open"),
+					"creation": str(t.creation),
+					"assigned_to": t.assigned_to
+				})
 
 	return {"models": models, "topics": topics}
 
@@ -795,6 +792,8 @@ def schedule_project_meeting(project, meeting_type, subject, date=None, conducto
 		else:
 			frappe.throw(_("Project {0} not found.").format(project))
 
+	frappe.has_permission("Project", "write", project, throw=True)
+
 	if not subject:
 		frappe.throw(_("Briefing Topic / Subject is required."))
 
@@ -814,6 +813,9 @@ def schedule_project_meeting(project, meeting_type, subject, date=None, conducto
 		doc.subject = subject
 		doc.starts_on = f"{meeting_date} 09:00:00"
 		doc.event_type = "Private"
+		doc.description = f"Project Studio BIM Coordination: {project}"
+		if hasattr(doc, "custom_project"):
+			doc.custom_project = project
 		doc.insert(ignore_permissions=True)
 		return {"doctype": "Event", "name": doc.name}
 

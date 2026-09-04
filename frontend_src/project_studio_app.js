@@ -1,8 +1,42 @@
 // Project Studio Frontend Application (OpenProject BIM Parity)
 // Manages All Projects Hub, Project Home, Work Packages, Boards, BCF, Documents, Settings
 
+const ICONS = {
+	calendar: `<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+	user: `<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+	users: `<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+	eye: `<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
+	clock: `<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+	file: `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>`,
+	folder: `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>`,
+	check: `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+	list: `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,
+	cube: `<svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>`,
+	info: `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`,
+	arrowRight: `<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`,
+	table: `<svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>`,
+	camera: `<svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>`,
+	star: `<svg viewBox="0 0 24 24" width="13" height="13" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+	starEmpty: `<svg viewBox="0 0 24 24" width="13" height="13" stroke="#9ca3af" stroke-width="1.5" fill="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`
+};
+
+function escapeHtml(str) {
+	if (str == null) return '';
+	if (window.frappe && frappe.utils && frappe.utils.escape_html) {
+		return frappe.utils.escape_html(String(str));
+	}
+	return String(str)
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
+}
+
 class ProjectStudioApp {
-	constructor() {
+	constructor(opts = {}) {
+		this.opts = opts;
+		this.page = opts.page || (window.cur_page && window.cur_page.page) || (frappe.container && frappe.container.page && frappe.container.page.page);
 		this.currentProject = null;
 		this.allProjects = [];
 		this.currentTab = 'home';
@@ -15,6 +49,7 @@ class ProjectStudioApp {
 	}
 
 	init() {
+		this.setupNativePageHeader();
 		this.bindEvents();
 		this.loadProjectsList().then(() => {
 			// Check URL parameters for project
@@ -32,6 +67,58 @@ class ProjectStudioApp {
 		});
 	}
 
+	setupNativePageHeader() {
+		if (!this.page) return;
+		const self = this;
+
+		this.page.set_title(__('Dashboard'));
+		if (this.currentProject) {
+			this.page.set_title_sub(this.currentProject);
+		}
+
+		if (this.page.clear_action_bar) this.page.clear_action_bar();
+		if (this.page.clear_primary_action) this.page.clear_primary_action();
+
+		// Primary Action: + Create
+		this.page.set_primary_action(
+			__('Create'),
+			() => self.openQuickCreateModal('Task'),
+			'add'
+		);
+
+		// Add standard work package types under Create group
+		this.page.add_inner_button(__('Standard Task'), () => self.openQuickCreateModal('Task'), __('Create'));
+		this.page.add_inner_button(__('Milestone'), () => self.openQuickCreateModal('Milestone'), __('Create'));
+		this.page.add_inner_button(__('Phase'), () => self.openQuickCreateModal('Phase'), __('Create'));
+		this.page.add_inner_button(__('Issue / Punchlist'), () => self.openQuickCreateModal('Issue'), __('Create'));
+		this.page.add_inner_button(__('Remark'), () => self.openQuickCreateModal('Remark'), __('Create'));
+		this.page.add_inner_button(__('Request / RFI'), () => self.openQuickCreateModal('Request'), __('Create'));
+		this.page.add_inner_button(__('Clash Topic'), () => self.openQuickCreateModal('Clash'), __('Create'));
+		this.page.add_inner_button(__('New Project'), () => self.openQuickCreateModal('project'), __('Create'));
+		this.page.add_inner_button(__('Invite Member'), () => self.openQuickCreateModal('user'), __('Create'));
+
+		// Toolbar utility buttons (Matching Frappe CRM: Refresh, Edit, Desk)
+		this.page.add_button(__('Refresh'), () => {
+			if (self.currentProject) {
+				self.loadProjectData(self.currentProject);
+			} else {
+				self.loadProjectsList();
+			}
+		}, { icon: 'refresh' });
+
+		this.page.add_button(__('Edit'), () => {
+			if (self.currentProject) {
+				frappe.set_route('Form', 'Project', self.currentProject);
+			} else {
+				self.switchTab('settings');
+			}
+		}, { icon: 'edit' });
+
+		this.page.add_button(__('Desk'), () => {
+			frappe.set_route('desk');
+		}, { icon: 'grid' });
+	}
+
 	bindEvents() {
 		const self = this;
 
@@ -47,12 +134,31 @@ class ProjectStudioApp {
 			self.switchTab(tab);
 		});
 
+		// Filter pill buttons (Frappe CRM style)
+		$('#filter-project-btn').on('click', function (e) {
+			e.stopPropagation();
+			$('#projectSwitcherBtn').dropdown('toggle');
+		});
+
+		$('#filter-date-btn').on('click', function () {
+			frappe.show_alert({ message: __('Filter: Last 30 Days (Active)'), indicator: 'blue' });
+		});
+
 		// Refresh button
 		$('#btn-studio-refresh').on('click', function () {
 			if (self.currentProject) {
 				self.loadProjectData(self.currentProject);
 			} else {
 				self.loadProjectsList();
+			}
+		});
+
+		// Edit button
+		$('#btn-studio-edit').on('click', function () {
+			if (self.currentProject) {
+				frappe.set_route('Form', 'Project', self.currentProject);
+			} else {
+				self.switchTab('settings');
 			}
 		});
 
@@ -198,8 +304,21 @@ class ProjectStudioApp {
 		});
 		$('#btn-unload-all-models').on('click', function () {
 			$('#bcf-models-tree input[type="checkbox"]').prop('checked', false);
-			const iframeSrc = `/app/bim-viewer?project=${encodeURIComponent(self.currentProject)}&model=none`;
+			const iframeSrc = `/app/bim-viewer?project=${encodeURIComponent(self.currentProject)}`;
 			$('#iframe-bcf-3d-viewer').attr('src', iframeSrc);
+		});
+
+		// BCF Create Issue button
+		$('#btn-bcf-create-topic').on('click', function () {
+			self.openQuickCreateModal('Issue');
+		});
+
+		// Dashboard widget buttons
+		$('#btn-add-meeting').on('click', function () {
+			self.openScheduleMeetingDialog();
+		});
+		$('#btn-add-subproject-widget').on('click', function () {
+			self.openQuickCreateModal('subproject');
 		});
 
 		// Standalone CAD & PDF buttons
@@ -246,14 +365,14 @@ class ProjectStudioApp {
 	renderProjectSwitcher() {
 		const $list = $('#project-switcher-list');
 		$list.empty();
-		$list.append('<li><a href="javascript:void(0)" class="action-select-proj" data-project="all"><i class="fa fa-th-list text-muted"></i> <strong>All projects (Hub)</strong></a></li>');
+		$list.append(`<li><a href="javascript:void(0)" class="action-select-proj" data-project="all"><span class="mr-2 text-muted">${ICONS.list}</span> <strong>All projects (Hub)</strong></a></li>`);
 		$list.append('<li role="separator" class="divider"></li>');
 
 		const self = this;
 		this.allProjects.forEach(p => {
 			const favIcon = p.is_favorite ? '⭐ ' : '';
 			const tmplBadge = p.is_template ? ' <span class="badge">Template</span>' : '';
-			const $item = $(`<li><a href="javascript:void(0)" class="action-select-proj" data-project="${p.name}">${favIcon}${p.project_name}${tmplBadge}</a></li>`);
+			const $item = $(`<li><a href="javascript:void(0)" class="action-select-proj" data-project="${escapeHtml(p.name)}">${favIcon}${escapeHtml(p.project_name || p.name)}${tmplBadge}</a></li>`);
 			$list.append($item);
 		});
 
@@ -271,7 +390,11 @@ class ProjectStudioApp {
 		const projObj = this.allProjects.find(p => p.name === projectName || p.project_name === projectName) || { name: projectName, project_name: projectName };
 		this.currentProject = projObj.name;
 		$('#current-project-title').text(projObj.project_name || projObj.name);
+		$('#filter-project-label').text(projObj.project_name || projObj.name);
 		$('#sidebar-active-status').text(projObj.status || 'Active');
+		if (this.page) {
+			this.page.set_title_sub(projObj.project_name || projObj.name);
+		}
 
 		// Enable project-specific nav tabs
 		$('.studio-nav-list .nav-item').show();
@@ -285,7 +408,7 @@ class ProjectStudioApp {
 		$(`.studio-nav-list .nav-item[data-tab="${tabKey}"]`).addClass('active');
 
 		const tabTitles = {
-			'home': 'Home',
+			'home': 'Dashboard',
 			'work-packages': 'Work Packages',
 			'boards': 'Boards',
 			'gantt': 'Gantt Charts',
@@ -298,7 +421,14 @@ class ProjectStudioApp {
 			'settings': 'Settings',
 			'all-projects': 'Active Projects'
 		};
-		$('#studio-active-title').text(tabTitles[tabKey] || tabKey);
+		const activeTitle = tabTitles[tabKey] || tabKey;
+		$('#studio-active-title').text(activeTitle);
+		if (this.page) {
+			this.page.set_title(activeTitle);
+			if (this.currentProject) {
+				this.page.set_title_sub(this.currentProject);
+			}
+		}
 
 		$('.studio-tab-view').hide();
 
@@ -365,23 +495,23 @@ class ProjectStudioApp {
 
 		const self = this;
 		this.allProjects.forEach(p => {
-			const favStar = p.is_favorite ? '⭐' : '☆';
+			const favStar = p.is_favorite ? ICONS.star : ICONS.starEmpty;
 			const statusPill = p.health_status === 'On Track' 
-				? '<span class="label label-success" style="background:#10b981;">ON TRACK</span>'
+				? '<span class="status-active-pill"><span class="status-dot-green"></span> On track</span>'
 				: (p.health_status === 'At Risk' 
-					? '<span class="label label-warning" style="background:#f59e0b;">AT RISK</span>'
-					: '<span class="label label-danger" style="background:#ef4444;">OFF TRACK</span>');
+					? '<span class="status-warning-pill"><span class="status-dot-amber"></span> At risk</span>'
+					: '<span class="status-danger-pill"><span class="status-dot-red"></span> Off track</span>');
 
 			const indent = p.parent_project ? '&nbsp;&nbsp;&nbsp;&nbsp;↳ ' : '';
 			const $tr = $(`
 				<tr>
-					<td class="text-center"><a href="javascript:void(0)" class="toggle-fav" data-project="${p.name}">${favStar}</a></td>
-					<td>${indent}<a href="javascript:void(0)" class="project-link" data-project="${p.name}"><strong>${p.project_name}</strong></a></td>
+					<td class="text-center"><a href="javascript:void(0)" class="toggle-fav" data-project="${escapeHtml(p.name)}">${favStar}</a></td>
+					<td>${indent}<a href="javascript:void(0)" class="project-link" data-project="${escapeHtml(p.name)}"><strong>${escapeHtml(p.project_name || p.name)}</strong></a></td>
 					<td>${statusPill}</td>
-					<td><i class="fa fa-check text-muted"></i></td>
-					<td>${p.created_on || '--'}</td>
-					<td>${p.latest_activity_at || '--'}</td>
-					<td><small class="text-muted">${p.disk_usage_formatted || '0 Bytes'}</small></td>
+					<td class="text-center text-success">${ICONS.check}</td>
+					<td><span class="text-muted">${escapeHtml(p.created_on || '--')}</span></td>
+					<td><span class="text-muted">${escapeHtml(p.latest_activity_at || '--')}</span></td>
+					<td><small class="text-muted">${escapeHtml(p.disk_usage_formatted || '0 Bytes')}</small></td>
 				</tr>
 			`);
 
@@ -430,7 +560,12 @@ class ProjectStudioApp {
 		$('#overview-progress').text(`${Math.round(summary.percent_complete || 0)}%`);
 
 		// Health status
-		$('#select-project-health').val(summary.health_status || 'On Track');
+		const health = summary.health_status || 'On Track';
+		$('#select-project-health').val(health);
+		if (this.page && this.page.set_indicator) {
+			const color = health === 'On Track' ? 'green' : (health === 'At Risk' ? 'orange' : 'red');
+			this.page.set_indicator(health, color);
+		}
 		$('#overview-status-narrative').text(summary.status_narrative || __('All tasks and sub-projects are on schedule.'));
 
 		// Milestone Diamond Timeline
@@ -442,8 +577,8 @@ class ProjectStudioApp {
 		(data.subprojects || []).forEach(s => {
 			$subList.append(`
 				<li class="flex-between p-1">
-					<span><i class="fa fa-folder-o text-primary"></i> ${s.project_name}</span>
-					<span class="label label-success" style="background:#10b981;">${s.status}</span>
+					<span class="d-inline-flex align-items-center gap-1"><span class="text-primary mr-1">${ICONS.folder}</span> ${s.project_name}</span>
+					<span class="status-active-pill"><span class="status-dot-green"></span> ${s.status}</span>
 				</li>
 			`);
 		});
@@ -461,7 +596,7 @@ class ProjectStudioApp {
 						<strong>${m.title}</strong>
 						<span class="badge badge-info">${m.type}</span>
 					</div>
-					<small class="text-muted"><i class="fa fa-calendar"></i> ${m.date} | ${m.host || 'Coordinator'}</small>
+					<small class="text-muted d-inline-flex align-items-center gap-1 mt-1">${ICONS.calendar} <span>${m.date} | ${m.host || 'Coordinator'}</span></small>
 				</div>
 			`);
 		});
@@ -475,10 +610,10 @@ class ProjectStudioApp {
 		(data.members || []).forEach(m => {
 			$memGrid.append(`
 				<div class="member-chip p-1" style="display: inline-flex; align-items: center; gap: 6px; margin: 4px;">
-					<span class="avatar-circle" style="width:28px;height:28px;border-radius:50%;background:#0284c7;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;">
+					<span class="avatar-circle" style="width:28px;height:28px;border-radius:50%;background:#4338ca;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;">
 						${(m.full_name || m.user).substring(0, 2).toUpperCase()}
 					</span>
-					<small>${m.full_name || m.user}</small>
+					<small class="font-weight-medium">${m.full_name || m.user}</small>
 				</div>
 			`);
 		});
@@ -488,7 +623,7 @@ class ProjectStudioApp {
 		$newsCont.empty();
 		(data.news || []).forEach(n => {
 			$newsCont.append(`
-				<div class="news-bulletin p-2 mb-2" style="background: #f8fafc; border-left: 3px solid #3b82f6; border-radius: 4px;">
+				<div class="news-bulletin p-2 mb-2" style="background: #f8fafc; border-left: 3px solid #6366f1; border-radius: 4px;">
 					<h5 class="m-0 font-weight-bold">${n.title}</h5>
 					<small class="text-muted">${n.author} on ${n.date}</small>
 					<p class="m-0 mt-1 text-secondary" style="font-size: 12px;">${n.content}</p>
@@ -503,7 +638,7 @@ class ProjectStudioApp {
 
 		if (!milestones || milestones.length === 0) {
 			$('#timeline-axis-bar').hide();
-			$markers.html('<div class="text-center" style="width: 100%;"><span class="timeline-empty-msg text-muted"><i class="fa fa-info-circle"></i> No delivery milestones recorded yet.</span></div>');
+			$markers.html(`<div class="text-center" style="width: 100%;"><span class="timeline-empty-msg text-muted">${ICONS.info} No delivery milestones recorded yet.</span></div>`);
 			return;
 		}
 
@@ -611,9 +746,9 @@ class ProjectStudioApp {
 
 		let linkHtml = '<div class="text-muted"><small>Native Task in ERPNext.</small></div>';
 		if (wp.bcf_topic) {
-			linkHtml = `<div class="alert alert-warning"><i class="fa fa-cube"></i> Linked to BCF Clash Topic: <strong>${wp.bcf_topic}</strong></div>`;
+			linkHtml = `<div class="alert alert-warning d-flex align-items-center gap-2"><span class="mr-1">${ICONS.cube}</span> <div>Linked to BCF Clash Topic: <strong>${wp.bcf_topic}</strong></div></div>`;
 		} else if (wp.rfi_link) {
-			linkHtml = `<div class="alert alert-info"><i class="fa fa-question-circle"></i> Linked to Technical RFI: <strong>${wp.rfi_link}</strong></div>`;
+			linkHtml = `<div class="alert alert-info d-flex align-items-center gap-2"><span class="mr-1">${ICONS.info}</span> <div>Linked to Technical RFI: <strong>${wp.rfi_link}</strong></div></div>`;
 		}
 		d.fields_dict.linked_info.$wrapper.html(linkHtml);
 		d.show();
@@ -690,16 +825,25 @@ class ProjectStudioApp {
 				// Populate cards
 				col.cards.forEach(card => {
 					const pillCls = `wp-pill-${(card.type || 'task').toLowerCase()}`;
+					const assigneeName = card.assignee_name || '';
+					const assigneeInitials = assigneeName ? assigneeName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '';
+					const assigneeHtml = assigneeName ? `
+						<span class="card-assignee-pill" title="${assigneeName}">
+							<span class="assignee-avatar">${assigneeInitials}</span>
+							<span class="assignee-text">${assigneeName}</span>
+						</span>
+					` : '';
+
 					const $card = $(`
 						<div class="kanban-card" draggable="true" data-task="${card.id}">
-							<div class="flex-between mb-1">
+							<div class="kanban-card-head">
 								<span class="wp-pill ${pillCls}">${card.type}</span>
-								<small class="text-muted">${card.priority}</small>
+								<span class="card-priority priority-${(card.priority || 'normal').toLowerCase()}">${card.priority}</span>
 							</div>
-							<div style="font-weight: 600; font-size: 13px; color: #1e293b;">${card.subject}</div>
-							<div class="flex-between mt-2">
-								<small class="text-muted"><i class="fa fa-calendar"></i> ${card.exp_end_date || '--'}</small>
-								<small class="text-secondary">${card.assignee_name || ''}</small>
+							<div class="kanban-card-title">${card.subject}</div>
+							<div class="kanban-card-foot">
+								<span class="card-date-badge">${ICONS.calendar} <span>${card.exp_end_date || '--'}</span></span>
+								${assigneeHtml}
 							</div>
 						</div>
 					`);
@@ -741,7 +885,16 @@ class ProjectStudioApp {
 			$target.empty();
 
 			if (items.length === 0) {
-				$target.html('<div class="text-muted text-center p-4">No scheduled work packages found for Gantt chart.</div>');
+				$target.html(`
+					<div class="empty-state-card">
+						<div class="empty-state-icon mb-2 text-muted">${ICONS.calendar}</div>
+						<h4 style="font-weight:600; font-size:15px; color:#111827; margin:0 0 6px 0;">No Scheduled Tasks</h4>
+						<p class="text-muted mb-3" style="font-size:13px; max-width: 360px;">Work packages with start and due dates will appear here on an interactive schedule timeline.</p>
+						<button class="btn-topbar-primary action-quick-add" data-type="Task">
+							<span>+ Add Task</span>
+						</button>
+					</div>
+				`);
 				return;
 			}
 
@@ -762,13 +915,22 @@ class ProjectStudioApp {
 
 			if (window.Gantt) {
 				try {
-					new window.Gantt('#frappe-gantt-target', ganttTasks, {
+					self.ganttChart = new window.Gantt('#frappe-gantt-target', ganttTasks, {
 						view_modes: ['Quarter Day', 'Half Day', 'Day', 'Week', 'Month'],
 						view_mode: 'Day',
 						date_format: 'YYYY-MM-DD',
 						on_click: (task) => {
 							const wp = items.find(i => i.id === task.id);
 							if (wp) self.openWorkPackageInspector(wp);
+						}
+					});
+
+					$('.gantt-scale-group .btn-gantt-scale').off('click').on('click', function () {
+						$('.gantt-scale-group .btn-gantt-scale').removeClass('active');
+						$(this).addClass('active');
+						const scale = $(this).data('scale');
+						if (self.ganttChart && self.ganttChart.change_view_mode) {
+							self.ganttChart.change_view_mode(scale);
 						}
 					});
 					return;
@@ -841,11 +1003,13 @@ class ProjectStudioApp {
 				models.forEach(m => {
 					const isChecked = targetModel ? (m.name === targetModel || m.model_name === targetModel) : true;
 					$tree.append(`
-						<div class="model-tree-row p-1 flex-between" style="border-bottom: 1px solid #f1f5f9;">
-							<label style="font-weight: normal; font-size: 12px; cursor: pointer; margin: 0;">
-								<input type="checkbox" class="model-tree-cb" ${isChecked ? 'checked' : ''} data-model="${m.name}"> <strong>[${m.discipline || 'IFC'}]</strong> ${m.model_name || m.name}
+						<div class="model-tree-row p-2 flex-between" style="border-bottom: 1px solid #f1f5f9; border-radius: 6px;">
+							<label style="font-weight: normal; font-size: 12.5px; cursor: pointer; margin: 0; display: flex; align-items: center; gap: 6px;">
+								<input type="checkbox" class="model-tree-cb" ${isChecked ? 'checked' : ''} data-model="${m.name}">
+								<span class="badge" style="background:#e0e7ff; color:#4338ca; font-size:10px; font-weight:600;">${m.discipline || 'IFC'}</span>
+								<span>${m.model_name || m.name}</span>
 							</label>
-							<a href="javascript:void(0)" class="action-focus-model text-primary ml-1" data-model="${m.name}" title="View this model"><i class="fa fa-eye"></i></a>
+							<a href="javascript:void(0)" class="action-focus-model text-muted ml-1" data-model="${m.name}" title="View this model">${ICONS.eye}</a>
 						</div>
 					`);
 				});
@@ -871,17 +1035,22 @@ class ProjectStudioApp {
 			$stream.empty();
 
 			if (topics.length === 0) {
-				$stream.append('<div class="text-muted p-3 text-center"><small>No BCF topics logged for this project.</small></div>');
+				$stream.append('<div class="text-muted p-4 text-center"><small>No BCF topics logged for this project.</small></div>');
 			} else {
 				topics.forEach(top => {
 					$stream.append(`
-						<div class="bcf-topic-card p-2 mb-2" style="border: 1px solid #e2e8f0; border-radius: 6px; background: #fff;">
-							<div class="flex-between">
-								<span class="badge badge-warning">${top.topic_type}</span>
-								<small class="text-muted">${top.status}</small>
+						<div class="bcf-topic-card mb-2">
+							<div class="flex-between mb-1">
+								<span class="status-warning-pill">${escapeHtml(top.topic_type)}</span>
+								<span class="text-muted" style="font-size:11px;">${escapeHtml(top.status)}</span>
 							</div>
-							<h5 class="mt-1 mb-1 font-weight-bold">${top.title}</h5>
-							<small class="text-muted"><i class="fa fa-clock-o"></i> ${top.creation ? top.creation.split(' ')[0] : '--'} &nbsp;|&nbsp; ${top.assigned_to || 'Unassigned'}</small>
+							<div class="font-weight-medium" style="font-size:13px; color:#111827;">${escapeHtml(top.title)}</div>
+							<div class="text-muted d-flex align-items-center gap-1 mt-1" style="font-size:11.5px;">
+								<span>${ICONS.clock}</span>
+								<span>${escapeHtml(top.creation ? top.creation.split(' ')[0] : '--')}</span>
+								<span class="mx-1">•</span>
+								<span>${escapeHtml(top.assigned_to || 'Unassigned')}</span>
+							</div>
 						</div>
 					`);
 				});
@@ -902,13 +1071,26 @@ class ProjectStudioApp {
 			const $cont = $('#document-folders-container');
 			$cont.empty();
 
+			const folderConfig = {
+				'01 Contracts & NTP': { icon: ICONS.file, bg: '#eff6ff', color: '#2563eb' },
+				'02 Drawings & Specs': { icon: ICONS.list, bg: '#f5f3ff', color: '#7c3aed' },
+				'03 BIM Models': { icon: ICONS.cube, bg: '#fffbeb', color: '#d97706' },
+				'04 BOQ & Estimates': { icon: ICONS.table, bg: '#ecfdf5', color: '#059669' },
+				'05 Site Media': { icon: ICONS.camera, bg: '#fff1f2', color: '#e11d48' }
+			};
+
 			folders.forEach(f => {
+				const cfg = folderConfig[f.folder_name] || { icon: ICONS.folder, bg: '#f1f5f9', color: '#475467' };
 				const $box = $(`
-					<div class="folder-box">
+					<div class="doc-folder-card">
 						<div class="folder-header">
-							<i class="${f.icon} text-primary"></i>
-							<span>${f.folder_name}</span>
-							<span class="badge ml-auto">${f.files.length}</span>
+							<div class="folder-icon-pill" style="background: ${cfg.bg}; color: ${cfg.color};">
+								${cfg.icon}
+							</div>
+							<div class="folder-title-box">
+								<span class="folder-name">${f.folder_name}</span>
+								<span class="folder-count-badge">${f.files.length} items</span>
+							</div>
 						</div>
 						<div class="folder-files-list">
 							<!-- Files -->
@@ -918,19 +1100,37 @@ class ProjectStudioApp {
 
 				const $fList = $box.find('.folder-files-list');
 				if (f.files.length === 0) {
-					$fList.append('<div class="text-muted p-2 text-center"><small>Empty folder</small></div>');
+					$fList.append('<div class="text-muted p-3 text-center" style="font-size:12px;">No files in folder</div>');
 				} else {
 					f.files.forEach(file => {
 						$fList.append(`
 							<a href="javascript:void(0)" class="file-item-link" data-route="${file.route_target}" data-url="${file.file_url}" data-model-id="${file.model_id || file.id || ''}">
-								<span><i class="fa fa-file text-secondary"></i> ${file.file_name}</span>
-								<span class="badge">${file.badge}</span>
+								<div class="file-item-left">
+									<span class="text-muted mr-1">${ICONS.file}</span>
+									<span class="file-name-text">${file.file_name}</span>
+								</div>
+								<span class="folder-count-badge">${file.badge || 'File'}</span>
 							</a>
 						`);
 					});
 				}
 
 				$cont.append($box);
+			});
+
+			$cont.find('.file-item-link').on('click', function () {
+				const route = $(this).data('route');
+				const url = $(this).data('url');
+				const modelId = $(this).data('model-id');
+				if (route === 'bim-viewer' || (url && url.endsWith('.ifc'))) {
+					self.switchTab('bcf', { model: modelId });
+				} else if (route === 'dwg-viewer' || (url && (url.endsWith('.dwg') || url.endsWith('.dxf')))) {
+					self.switchTab('cad', { file: url });
+				} else if (route === 'pdf-takeoff' || (url && url.endsWith('.pdf'))) {
+					self.switchTab('pdf', { file: url });
+				} else if (url) {
+					window.open(url, '_blank');
+				}
 			});
 		});
 	}
@@ -1003,21 +1203,45 @@ class ProjectStudioApp {
 		$cont.empty();
 
 		if (meetings.length === 0) {
-			$cont.html('<div class="text-muted text-center p-4">No coordination meetings or toolbox talks logged yet. Click <strong>New Meeting</strong> above to create one.</div>');
+			$cont.html(`
+				<div class="empty-state-card">
+					<div class="empty-state-icon mb-2 text-muted">${ICONS.calendar}</div>
+					<h4 style="font-weight:600; font-size:15px; color:#111827; margin:0 0 6px 0;">No Briefings Scheduled</h4>
+					<p class="text-muted mb-3" style="font-size:13px; max-width: 360px;">No coordination meetings or toolbox talks recorded yet for this project.</p>
+					<button class="btn-topbar-primary" id="btn-schedule-meeting-empty">
+						<span>+ New Meeting</span>
+					</button>
+				</div>
+			`);
+			$cont.find('#btn-schedule-meeting-empty').on('click', () => self.openScheduleMeetingDialog());
 			return;
 		}
 
 		meetings.forEach(m => {
 			const docType = m.doctype || (m.type === 'Toolbox Talk' ? 'Toolbox Talk' : 'Event');
+			const isToolbox = m.type === 'Toolbox Talk';
+			const pillCls = isToolbox ? 'meeting-pill-toolbox' : 'meeting-pill-coord';
+
 			$cont.append(`
-				<div class="meeting-card p-3 mb-3" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-					<div class="flex-between">
-						<div>
-							<span class="badge ${m.type === 'Toolbox Talk' ? 'badge-warning' : 'badge-primary'}">${m.type}</span>
-							<h4 class="mt-1 mb-1 font-weight-bold">${m.title}</h4>
-							<small class="text-muted"><i class="fa fa-calendar"></i> ${m.date} &nbsp;|&nbsp; <i class="fa fa-user"></i> Conductor: ${m.host || 'Site Coordinator'} &nbsp;|&nbsp; <i class="fa fa-users"></i> Attendees: ${m.participants || 0}</small>
+				<div class="meeting-card-surface">
+					<div class="meeting-card-main">
+						<div class="meeting-card-header">
+							<span class="meeting-badge ${pillCls}">${escapeHtml(m.type)}</span>
+							<h4 class="meeting-title">${escapeHtml(m.title)}</h4>
 						</div>
-						<button class="btn btn-default btn-xs btn-view-meeting-doc" data-doctype="${docType}" data-name="${m.name}"><i class="fa fa-eye"></i> View Doc</button>
+						<div class="meeting-meta-row">
+							<span class="meta-item">${ICONS.calendar} <span>${escapeHtml(m.date)}</span></span>
+							<span class="meta-divider">•</span>
+							<span class="meta-item">${ICONS.user} <span>Conductor: ${escapeHtml(m.host || 'Site Coordinator')}</span></span>
+							<span class="meta-divider">•</span>
+							<span class="meta-item">${ICONS.users} <span>Attendees: ${escapeHtml(m.participants || 0)}</span></span>
+						</div>
+					</div>
+					<div class="meeting-card-action">
+						<button class="btn-topbar-action btn-sm btn-view-meeting-doc" data-doctype="${escapeHtml(docType)}" data-name="${escapeHtml(m.name)}">
+							<span class="mr-1">${ICONS.eye}</span>
+							<span>View Doc</span>
+						</button>
 					</div>
 				</div>
 			`);
@@ -1054,8 +1278,10 @@ class ProjectStudioApp {
 				}).then(() => {
 					d.hide();
 					const label = values.meeting_type === 'Toolbox Talk' ? __('Toolbox talk scheduled.') : __('Coordination meeting scheduled.');
-					frappe.show_alert({ message: label, indicator: 'green' });
 					self.loadProjectData(self.currentProject);
+					if (self.currentTab === 'meetings') {
+						setTimeout(() => self.renderMeetingsTab(), 150);
+					}
 				}).catch(err => {
 					console.error('Error scheduling meeting:', err);
 					frappe.msgprint(__('Error: ') + (err.message || err));
@@ -1079,12 +1305,19 @@ class ProjectStudioApp {
 		}
 
 		members.forEach(m => {
+			const fullName = m.full_name || m.user || 'Member';
+			const initials = fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'MB';
 			$tbody.append(`
-				<tr>
-					<td><strong>${m.full_name || m.user}</strong></td>
-					<td>${m.user}</td>
-					<td><span class="badge">${m.role || 'Member'}</span></td>
-					<td><span class="label label-success">Active</span></td>
+				<tr class="member-table-row">
+					<td>
+						<div class="member-cell">
+							<span class="member-avatar-circle">${escapeHtml(initials)}</span>
+							<span class="member-name font-weight-medium">${escapeHtml(fullName)}</span>
+						</div>
+					</td>
+					<td><span class="text-muted">${escapeHtml(m.user)}</span></td>
+					<td><span class="member-role-pill">${escapeHtml(m.role || 'Member')}</span></td>
+					<td><span class="status-active-pill"><span class="status-dot-green"></span> Active</span></td>
 				</tr>
 			`);
 		});
@@ -1284,6 +1517,10 @@ class ProjectStudioApp {
 		const self = this;
 		this.updateProjectSettingsField(this.currentProject, { health_status: newHealth }).then(() => {
 			frappe.show_alert({ message: __('Project health set to {0}', [newHealth]), indicator: 'blue' });
+			if (self.page && self.page.set_indicator) {
+				const color = newHealth === 'On Track' ? 'green' : (newHealth === 'At Risk' ? 'orange' : 'red');
+				self.page.set_indicator(newHealth, color);
+			}
 		});
 	}
 
